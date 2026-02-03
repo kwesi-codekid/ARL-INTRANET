@@ -7,7 +7,7 @@
  * Task: 1.2.3.2.7 - Add alert sound notification option
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Modal,
   ModalContent,
@@ -19,6 +19,47 @@ import {
 } from "@heroui/react";
 import { AlertTriangle, AlertCircle, Info, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
 import type { SerializedAlert } from "~/lib/services/alert.server";
+
+// Web Audio API alert sound generator
+function playAlertSound(severity: "critical" | "warning" | "info") {
+  try {
+    const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Different frequencies for different severities
+    const frequencies = {
+      critical: [880, 0, 880, 0, 880], // High pitched urgent beeps
+      warning: [660, 0, 660], // Medium pitched warning beeps
+      info: [440], // Single informational tone
+    };
+
+    const freq = frequencies[severity];
+    const beepDuration = severity === "critical" ? 0.15 : 0.2;
+    let time = audioContext.currentTime;
+
+    freq.forEach((f, i) => {
+      if (f === 0) {
+        time += beepDuration * 0.5; // Pause
+      } else {
+        oscillator.frequency.setValueAtTime(f, time);
+        gainNode.gain.setValueAtTime(0.3, time);
+        gainNode.gain.setValueAtTime(0, time + beepDuration * 0.9);
+        time += beepDuration;
+      }
+    });
+
+    oscillator.type = "sine";
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(time);
+  } catch {
+    // Audio not supported or blocked
+    console.warn("Alert sound could not be played");
+  }
+}
 
 interface AlertPopupProps {
   alerts: SerializedAlert[];
@@ -65,32 +106,49 @@ const typeLabels: Record<string, string> = {
 export function AlertPopup({ alerts, isOpen, onClose, onAcknowledge }: AlertPopupProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [hasPlayedSound, setHasPlayedSound] = useState(false);
 
   const popupAlerts = alerts.filter((alert) => alert.showPopup);
 
-  // Play sound for critical alerts
+  // Play sound when popup opens for alerts with playSound enabled
   useEffect(() => {
-    if (isOpen && soundEnabled && popupAlerts.length > 0) {
+    if (isOpen && soundEnabled && popupAlerts.length > 0 && !hasPlayedSound) {
       const currentAlert = popupAlerts[currentIndex];
-      if (currentAlert?.playSound && currentAlert.severity === "critical") {
-        // Play alert sound (you would need to add an audio file)
-        // audioRef.current?.play();
+      if (currentAlert?.playSound) {
+        playAlertSound(currentAlert.severity);
+        setHasPlayedSound(true);
       }
     }
-  }, [isOpen, currentIndex, soundEnabled, popupAlerts]);
+  }, [isOpen, currentIndex, soundEnabled, popupAlerts, hasPlayedSound]);
 
-  const handleNext = () => {
+  // Reset sound played state when popup closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHasPlayedSound(false);
+    }
+  }, [isOpen]);
+
+  const handleNext = useCallback(() => {
     if (currentIndex < popupAlerts.length - 1) {
+      const nextAlert = popupAlerts[currentIndex + 1];
       setCurrentIndex(currentIndex + 1);
+      // Play sound for next alert if enabled
+      if (soundEnabled && nextAlert?.playSound) {
+        playAlertSound(nextAlert.severity);
+      }
     }
-  };
+  }, [currentIndex, popupAlerts, soundEnabled]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
+      const prevAlert = popupAlerts[currentIndex - 1];
       setCurrentIndex(currentIndex - 1);
+      // Play sound for previous alert if enabled
+      if (soundEnabled && prevAlert?.playSound) {
+        playAlertSound(prevAlert.severity);
+      }
     }
-  };
+  }, [currentIndex, popupAlerts, soundEnabled]);
 
   const handleAcknowledge = () => {
     const currentAlert = popupAlerts[currentIndex];
@@ -124,9 +182,6 @@ export function AlertPopup({ alerts, isOpen, onClose, onAcknowledge }: AlertPopu
 
   return (
     <>
-      {/* Hidden audio element for alert sounds */}
-      <audio ref={audioRef} src="/sounds/alert.mp3" preload="auto" />
-
       <Modal
         isOpen={isOpen}
         onClose={onClose}

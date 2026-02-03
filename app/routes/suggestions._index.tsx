@@ -3,7 +3,7 @@
  * Task: 1.3.2.2 - Public Suggestion UI
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardBody,
@@ -26,6 +26,25 @@ import {
   checkRateLimit,
 } from "~/lib/services/suggestion.server";
 
+type LoaderData = {
+  categories: Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>;
+  rateLimit: {
+    allowed: boolean;
+    remaining: number;
+  };
+};
+
+type ActionData = {
+  success: boolean;
+  message?: string;
+  remaining?: number;
+  error?: string;
+};
+
 export async function loader({ request }: LoaderFunctionArgs) {
   await connectDB();
 
@@ -33,7 +52,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Check rate limit for current user
   const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim() || "unknown";
+  const realIp = request.headers.get("x-real-ip");
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+  const ip =
+    cfConnectingIp?.trim() ||
+    realIp?.trim() ||
+    forwarded?.split(",")[0]?.trim() ||
+    "127.0.0.1";
   const ipHash = hashIP(ip);
   const rateLimit = await checkRateLimit(ipHash);
 
@@ -55,7 +80,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Get client IP
   const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim() || "unknown";
+  const realIp = request.headers.get("x-real-ip");
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+  const ip =
+    cfConnectingIp?.trim() ||
+    realIp?.trim() ||
+    forwarded?.split(",")[0]?.trim() ||
+    "127.0.0.1";
   const ipHash = hashIP(ip);
 
   // Check rate limit
@@ -121,8 +152,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function SuggestionsPage() {
-  const { categories, rateLimit } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { categories, rateLimit } = useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -133,13 +164,12 @@ export default function SuggestionsPage() {
   const maxCharacters = 2000;
   const minCharacters = 10;
 
-  // Reset form on success
-  if (actionData?.success && content) {
-    setTimeout(() => {
+  useEffect(() => {
+    if (actionData?.success) {
       setContent("");
       setSelectedCategory("");
-    }, 100);
-  }
+    }
+  }, [actionData?.success]);
 
   return (
     <MainLayout>
@@ -171,7 +201,7 @@ export default function SuggestionsPage() {
         </Card>
 
         {/* Success Message */}
-        {actionData?.success && (
+        {actionData?.success && actionData.message && (
           <Card className="mb-6 bg-green-50 border border-green-200">
             <CardBody className="flex flex-row items-center gap-3">
               <CheckCircle className="text-green-500 flex-shrink-0" size={24} />
@@ -188,7 +218,7 @@ export default function SuggestionsPage() {
         )}
 
         {/* Error Message */}
-        {actionData?.error && (
+        {!actionData?.success && actionData?.error && (
           <Card className="mb-6 bg-red-50 border border-red-200">
             <CardBody className="flex flex-row items-center gap-3">
               <AlertCircle className="text-red-500 flex-shrink-0" size={24} />
@@ -216,6 +246,9 @@ export default function SuggestionsPage() {
           </CardHeader>
           <CardBody>
             <Form method="post" className="space-y-6">
+              <input type="hidden" name="categoryId" value={selectedCategory} />
+              <textarea className="hidden" name="content" value={content} readOnly />
+
               {/* Honeypot field - hidden from users, bots will fill it */}
               <input
                 type="text"
@@ -230,7 +263,6 @@ export default function SuggestionsPage() {
                 <Select
                   label="Category"
                   placeholder="Select a category"
-                  name="categoryId"
                   selectedKeys={selectedCategory ? [selectedCategory] : []}
                   onSelectionChange={(keys) => {
                     const selected = Array.from(keys)[0] as string;
@@ -239,7 +271,7 @@ export default function SuggestionsPage() {
                   isRequired
                   isDisabled={!rateLimit.allowed || isSubmitting}
                 >
-                  {categories.map((category) => (
+                  {categories.map((category: LoaderData["categories"][number]) => (
                     <SelectItem key={category.id} textValue={category.name}>
                       <div>
                         <p className="font-medium">{category.name}</p>
@@ -257,7 +289,6 @@ export default function SuggestionsPage() {
                 <Textarea
                   label="Your Suggestion"
                   placeholder="Share your idea, feedback, or concern..."
-                  name="content"
                   value={content}
                   onValueChange={setContent}
                   minRows={5}

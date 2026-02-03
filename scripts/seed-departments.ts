@@ -13,7 +13,7 @@ const DepartmentSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true },
   category: {
     type: String,
-    enum: ["operations", "support", "dfsl", "contractors"],
+    enum: ["operations", "support", "hse", "dfsl", "contractors"],
     default: "support"
   },
   description: { type: String },
@@ -26,29 +26,31 @@ const Department = mongoose.models.Department || mongoose.model("Department", De
 const departmentsData = [
   // Operations
   { name: "Mining", code: "MINING", category: "operations", order: 1, isActive: true },
-  { name: "Processing", code: "PROC", category: "operations", order: 2, isActive: true },
-  { name: "Maintenance", code: "MAINT", category: "operations", order: 3, isActive: true },
-  { name: "Technical Services", code: "TECH", category: "operations", order: 4, isActive: true },
-  { name: "Geology", code: "GEO", category: "operations", order: 5, isActive: true },
+  { name: "Geology", code: "GEO", category: "operations", order: 2, isActive: true },
+  { name: "Exploration", code: "EXPL", category: "operations", order: 3, isActive: true },
+  { name: "Engineering", code: "ENG", category: "operations", order: 4, isActive: true },
+  { name: "Process", code: "PROC", category: "operations", order: 5, isActive: true },
   { name: "Survey", code: "SURV", category: "operations", order: 6, isActive: true },
+  { name: "NTL", code: "NTL", category: "operations", order: 7, isActive: true },
+  { name: "TSF", code: "TSF", category: "operations", order: 8, isActive: true },
+  { name: "HME", code: "HME", category: "operations", order: 9, isActive: true },
 
   // Support
-  { name: "Human Resources", code: "HR", category: "support", order: 1, isActive: true },
+  { name: "HR & Admin", code: "HR", category: "support", order: 1, isActive: true },
   { name: "Finance", code: "FIN", category: "support", order: 2, isActive: true },
-  { name: "Supply Chain", code: "SCM", category: "support", order: 3, isActive: true },
-  { name: "Information Technology", code: "IT", category: "support", order: 4, isActive: true },
-  { name: "Administration", code: "ADMIN", category: "support", order: 5, isActive: true },
-  { name: "Health, Safety & Environment", code: "HSE", category: "support", order: 6, isActive: true },
-  { name: "Security", code: "SEC", category: "support", order: 7, isActive: true },
+  { name: "Supply", code: "SCM", category: "support", order: 3, isActive: true },
+  { name: "IT", code: "IT", category: "support", order: 4, isActive: true },
+  { name: "Commercial", code: "COMM", category: "support", order: 5, isActive: true },
+  { name: "Security", code: "SEC", category: "support", order: 6, isActive: true },
+  { name: "SRD", code: "SRD", category: "support", order: 7, isActive: true },
+  { name: "Accra Office", code: "ACCRA", category: "support", order: 8, isActive: true },
+
+  // HSE & Safety
+  { name: "HSE", code: "HSE", category: "hse", order: 1, isActive: true },
+  { name: "SHSESG", code: "SHSESG", category: "hse", order: 2, isActive: true },
 
   // DFSL (Damang Food Services Limited)
-  { name: "Camp Services", code: "CAMP", category: "dfsl", order: 1, isActive: true },
-  { name: "Catering", code: "CATER", category: "dfsl", order: 2, isActive: true },
-
-  // Contractors
-  { name: "Mining Contractor", code: "MCON", category: "contractors", order: 1, isActive: true },
-  { name: "Drilling Contractor", code: "DCON", category: "contractors", order: 2, isActive: true },
-  { name: "External Contractors", code: "ECON", category: "contractors", order: 3, isActive: true },
+  { name: "DFSL", code: "DFSL", category: "dfsl", order: 1, isActive: true },
 ];
 
 async function seedDepartments() {

@@ -6,7 +6,7 @@
 1.0 ARL Intranet Project
 ├── 1.1 Phase 1: Foundation & Core Communication
 ├── 1.2 Phase 2: Safety & Daily Operations
-├── 1.3 Phase 3: Engagement & Feedback (Polls removed)
+├── 1.3 Phase 3: Engagement & Feedback
 └── 1.4 Phase 4: Advanced Features
 ```
 
@@ -18,6 +18,7 @@
 
 | Section | Description | Status | Completed |
 |---------|-------------|--------|-----------|
+| **Phase 1: Foundation & Core Communication** ||||
 | 1.1.1.1 | Development Environment Setup | ✅ | 7/7 |
 | 1.1.1.2 | Database Setup | ✅ | 8/8 |
 | 1.1.1.3 | Base Layout & Navigation | ✅ | 10/10 |
@@ -25,16 +26,27 @@
 | 1.1.3 | News & Announcements | ✅ | 28/28 |
 | 1.1.4 | Company Contact Directory | ✅ | 18/18 |
 | 1.1.5 | Company Apps Links | ✅ | 13/13 |
+| **Phase 2: Safety & Daily Operations** ||||
 | 1.2.1 | Daily Toolbox Talk | ✅ | 26/26 |
 | 1.2.2 | Safety Tips & Videos | ✅ | 21/21 |
-| 1.2.3 | Safety & Incident Alerts | ✅ | 25/25 |
-| 1.2.4 | Canteen Menu | ✅ | 15/15 |
-| 1.3.1 | Events & Photo Gallery | ✅ | 35/35 |
-| 1.3.2 | Anonymous Suggestion Box | ✅ | 22/22 |
-| 1.4.1 | AI Chatbot (Claude Integration) | ✅ | 21/24 |
-| 1.4.3 | Gold Industry News | ✅ | 19/22 |
+| 1.2.3 | Safety & Incident Alerts | 🔄 | 17/17 |
+| 1.2.4 | Canteen Menu | 🔄 | 12/15 |
+| **Phase 3: Engagement & Feedback** ||||
+| 1.3.1 | Events & Photo Gallery | 🔄 | 20/24 |
+| 1.3.2 | Polls | ⏳ | 0/29 |
+| 1.3.3 | Anonymous Suggestion Box | 🔄 | 10/18 |
+| **Phase 4: Advanced Features** ||||
+| 1.4.1 | AI Chatbot (Claude Integration) | 🔄 | 7/30 |
+| 1.4.2 | Interactive Site Map | ⏳ | 0/22 |
+| 1.4.3 | Gold Industry News | 🔄 | 9/18 |
+| 1.4.4 | Mini Games | ⏳ | 0/65 |
+| **New Features (Not in Original WBS)** ||||
+| NEW | Policies Management | ✅ | 15/15 |
+| NEW | Executive Messages | 🔄 | 5/8 |
+| NEW | IT Tips | 🔄 | 5/8 |
+| NEW | Company Info / About Page | ✅ | 6/6 |
 
-**Last Updated:** January 24, 2026 (AI Chatbot and Gold Industry News completed)
+**Last Updated:** January 30, 2026 (Phase 2-4 In Progress)
 
 ---
 
@@ -398,13 +410,13 @@
 | 1.2.3.4.1 | Create admin alerts listing page | 1.1.2.3.5 | ✅ |
 | 1.2.3.4.2 | Build alert creation form with severity picker | 1.1.2.3.6 | ✅ |
 | 1.2.3.4.3 | Create scheduling interface (start/end date pickers) | 1.2.3.1.6 | ✅ |
-| 1.2.3.4.4 | Add quick activate/deactivate toggle | 1.2.3.4.1 | ✅ |
-| 1.2.3.4.5 | Implement alert preview | 1.2.3.4.2 | ✅ |
+| 1.2.3.4.4 | Add quick activate/deactivate toggle | 1.2.3.4.1 | ⏳ |
+| 1.2.3.4.5 | Implement alert preview | 1.2.3.4.2 | ⏳ |
 | 1.2.3.4.6 | Create alert edit and delete functionality | 1.2.3.4.1 | ✅ |
 
 ---
 
-## 1.2.4 Canteen Menu ✅
+## 1.2.4 Canteen Menu 🔄
 
 ### 1.2.4.1 Backend Development ✅
 | Task ID | Task Description | Dependencies | Status |
@@ -416,15 +428,15 @@
 | 1.2.4.1.5 | Create CRUD endpoints for admin | 1.2.4.1.1, 1.1.2.2.3 | ✅ |
 | 1.2.4.1.6 | Implement menu templates for quick creation | 1.2.4.1.1 | ✅ |
 
-### 1.2.4.2 Public Menu UI ✅
+### 1.2.4.2 Public Menu UI 🔄
 | Task ID | Task Description | Dependencies | Status |
 |---------|------------------|--------------|--------|
 | 1.2.4.2.1 | Create canteen menu page | 1.2.4.1.3 | ✅ |
 | 1.2.4.2.2 | Build daily menu view (breakfast, lunch, dinner) | 1.2.4.2.1 | ✅ |
-| 1.2.4.2.3 | Build weekly menu calendar view | 1.2.4.1.4 | ✅ |
-| 1.2.4.2.4 | Create daily/weekly toggle | 1.2.4.2.1 | ✅ |
+| 1.2.4.2.3 | Build weekly menu calendar view | 1.2.4.1.4 | ⏳ |
+| 1.2.4.2.4 | Create daily/weekly toggle | 1.2.4.2.1 | ⏳ |
 | 1.2.4.2.5 | Add dietary indicator icons (vegetarian, halal, etc.) | 1.2.4.2.2 | ✅ |
-| 1.2.4.2.6 | Add homepage today's menu widget | 1.1.1.3.10 | ✅ |
+| 1.2.4.2.6 | Add homepage today's menu widget | 1.1.1.3.10 | ⏳ |
 
 ### 1.2.4.3 Admin Menu Management ✅
 | Task ID | Task Description | Dependencies | Status |
@@ -432,147 +444,184 @@
 | 1.2.4.3.1 | Create admin menu listing/calendar page | 1.1.2.3.5 | ✅ |
 | 1.2.4.3.2 | Build menu creation form | 1.1.2.3.6 | ✅ |
 | 1.2.4.3.3 | Create meal/item builder interface | 1.2.4.3.2 | ✅ |
-| 1.2.4.3.4 | Implement menu copy/duplicate functionality | 1.2.4.1.6 | ✅ |
-| 1.2.4.3.5 | Create weekly menu bulk editor | 1.2.4.3.2 | ✅ |
+| 1.2.4.3.4 | Implement menu copy/duplicate functionality | 1.2.4.1.6 | ⏳ |
+| 1.2.4.3.5 | Create weekly menu bulk editor | 1.2.4.3.2 | ⏳ |
 | 1.2.4.3.6 | Add menu template management | 1.2.4.1.6 | ✅ |
 
 ---
 
 # 1.3 PHASE 3: Engagement & Feedback
 
-## 1.3.1 Events & Photo Gallery ✅
+## 1.3.1 Events & Photo Gallery
 
-### 1.3.1.1 Events Backend ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.1.1.1 | Create Event schema (title, description, date, location, images) | 1.1.1.2.2 | ✅ |
-| 1.3.1.1.2 | Create GET /api/events endpoint (upcoming + past) | 1.3.1.1.1 | ✅ |
-| 1.3.1.1.3 | Create GET /api/events/:id endpoint | 1.3.1.1.1 | ✅ |
-| 1.3.1.1.4 | Create CRUD endpoints for admin | 1.3.1.1.1, 1.1.2.2.3 | ✅ |
-| 1.3.1.1.5 | Implement event filtering (upcoming, past, by month) | 1.3.1.1.2 | ✅ |
+### 1.3.1.1 Events Backend
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.1.1.1 | Create Event schema (title, description, date, location, images) | 1.1.1.2.2 |
+| 1.3.1.1.2 | Create GET /api/events endpoint (upcoming + past) | 1.3.1.1.1 |
+| 1.3.1.1.3 | Create GET /api/events/:id endpoint | 1.3.1.1.1 |
+| 1.3.1.1.4 | Create CRUD endpoints for admin | 1.3.1.1.1, 1.1.2.2.3 |
+| 1.3.1.1.5 | Implement event filtering (upcoming, past, by month) | 1.3.1.1.2 |
 
-### 1.3.1.2 Photo Gallery Backend ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.1.2.1 | Create Album schema (title, description, date, cover, event_id) | 1.1.1.2.2 | ✅ |
-| 1.3.1.2.2 | Create Photo schema (album_id, url, caption, order) | 1.1.1.2.2 | ✅ |
-| 1.3.1.2.3 | Create GET /api/albums endpoint | 1.3.1.2.1 | ✅ |
-| 1.3.1.2.4 | Create GET /api/albums/:id/photos endpoint | 1.3.1.2.2 | ✅ |
-| 1.3.1.2.5 | Create album CRUD endpoints for admin | 1.3.1.2.1, 1.1.2.2.3 | ✅ |
-| 1.3.1.2.6 | Create batch photo upload endpoint | 1.3.1.2.2, 1.1.3.2.3 | ✅ |
-| 1.3.1.2.7 | Implement photo reordering endpoint | 1.3.1.2.2 | ✅ |
+### 1.3.1.2 Photo Gallery Backend
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.1.2.1 | Create Album schema (title, description, date, cover, event_id) | 1.1.1.2.2 |
+| 1.3.1.2.2 | Create Photo schema (album_id, url, caption, order) | 1.1.1.2.2 |
+| 1.3.1.2.3 | Create GET /api/albums endpoint | 1.3.1.2.1 |
+| 1.3.1.2.4 | Create GET /api/albums/:id/photos endpoint | 1.3.1.2.2 |
+| 1.3.1.2.5 | Create album CRUD endpoints for admin | 1.3.1.2.1, 1.1.2.2.3 |
+| 1.3.1.2.6 | Create batch photo upload endpoint | 1.3.1.2.2, 1.1.3.2.3 |
+| 1.3.1.2.7 | Implement photo reordering endpoint | 1.3.1.2.2 |
 
-### 1.3.1.3 Public Events UI ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.1.3.1 | Create events listing page | 1.3.1.1.2 | ✅ |
-| 1.3.1.3.2 | Build event card component | 1.3.1.3.1 | ✅ |
-| 1.3.1.3.3 | Create event detail page | 1.3.1.1.3 | ✅ |
-| 1.3.1.3.4 | Implement upcoming/past event tabs | 1.3.1.1.5 | ✅ |
-| 1.3.1.3.5 | Add event calendar view | 1.3.1.3.1 | ✅ |
-| 1.3.1.3.6 | Add homepage upcoming events widget | 1.1.1.3.10 | ✅ |
+### 1.3.1.3 Public Events UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.1.3.1 | Create events listing page | 1.3.1.1.2 |
+| 1.3.1.3.2 | Build event card component | 1.3.1.3.1 |
+| 1.3.1.3.3 | Create event detail page | 1.3.1.1.3 |
+| 1.3.1.3.4 | Implement upcoming/past event tabs | 1.3.1.1.5 |
+| 1.3.1.3.5 | Add event calendar view | 1.3.1.3.1 |
+| 1.3.1.3.6 | Add homepage upcoming events widget | 1.1.1.3.10 |
 
-### 1.3.1.4 Public Photo Gallery UI ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.1.4.1 | Create photo gallery page with albums | 1.3.1.2.3 | ✅ |
-| 1.3.1.4.2 | Build album cover grid | 1.3.1.4.1 | ✅ |
-| 1.3.1.4.3 | Create album detail page with photo grid | 1.3.1.2.4 | ✅ |
-| 1.3.1.4.4 | Implement lightbox for full-size photo viewing | 1.3.1.4.3 | ✅ |
-| 1.3.1.4.5 | Add photo navigation (prev/next) in lightbox | 1.3.1.4.4 | ✅ |
-| 1.3.1.4.6 | Link gallery to related events | 1.3.1.3.3 | ✅ |
+### 1.3.1.4 Public Photo Gallery UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.1.4.1 | Create photo gallery page with albums | 1.3.1.2.3 |
+| 1.3.1.4.2 | Build album cover grid | 1.3.1.4.1 |
+| 1.3.1.4.3 | Create album detail page with photo grid | 1.3.1.2.4 |
+| 1.3.1.4.4 | Implement lightbox for full-size photo viewing | 1.3.1.4.3 |
+| 1.3.1.4.5 | Add photo navigation (prev/next) in lightbox | 1.3.1.4.4 |
+| 1.3.1.4.6 | Link gallery to related events | 1.3.1.3.3 |
 
-### 1.3.1.5 Admin Events & Gallery Management ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.1.5.1 | Create admin events listing page | 1.1.2.3.5 | ✅ |
-| 1.3.1.5.2 | Build event creation form | 1.1.2.3.6 | ✅ |
-| 1.3.1.5.3 | Create admin albums listing page | 1.1.2.3.5 | ✅ |
-| 1.3.1.5.4 | Build album creation form | 1.1.2.3.6 | ✅ |
-| 1.3.1.5.5 | Create batch photo upload interface with progress | 1.3.1.2.6 | ✅ |
-| 1.3.1.5.6 | Implement drag-and-drop photo reordering | 1.3.1.2.7 | ✅ |
-| 1.3.1.5.7 | Add photo caption editing | 1.3.1.5.5 | ✅ |
-| 1.3.1.5.8 | Create album cover selection interface | 1.3.1.5.3 | ✅ |
+### 1.3.1.5 Admin Events & Gallery Management
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.1.5.1 | Create admin events listing page | 1.1.2.3.5 |
+| 1.3.1.5.2 | Build event creation form | 1.1.2.3.6 |
+| 1.3.1.5.3 | Create admin albums listing page | 1.1.2.3.5 |
+| 1.3.1.5.4 | Build album creation form | 1.1.2.3.6 |
+| 1.3.1.5.5 | Create batch photo upload interface with progress | 1.3.1.2.6 |
+| 1.3.1.5.6 | Implement drag-and-drop photo reordering | 1.3.1.2.7 |
+| 1.3.1.5.7 | Add photo caption editing | 1.3.1.5.5 |
+| 1.3.1.5.8 | Create album cover selection interface | 1.3.1.5.3 |
 
 ---
 
-## 1.3.2 Anonymous Suggestion Box ✅
+## 1.3.2 Polls
 
-### 1.3.2.1 Backend Development ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.2.1.1 | Create Suggestion schema (content, category, status, ip_hash, dates) | 1.1.1.2.2 | ✅ |
-| 1.3.2.1.2 | Create SuggestionCategory schema | 1.1.1.2.2 | ✅ |
-| 1.3.2.1.3 | Create POST /api/suggestions endpoint (public) | 1.3.2.1.1 | ✅ |
-| 1.3.2.1.4 | Implement IP hashing for traceability | 1.3.2.1.3 | ✅ |
-| 1.3.2.1.5 | Create GET /api/admin/suggestions endpoint | 1.3.2.1.1, 1.1.2.2.3 | ✅ |
-| 1.3.2.1.6 | Create suggestion status update endpoint | 1.3.2.1.1, 1.1.2.2.3 | ✅ |
-| 1.3.2.1.7 | Create category management endpoints | 1.3.2.1.2 | ✅ |
-| 1.3.2.1.8 | Implement rate limiting for submissions | 1.3.2.1.3 | ✅ |
+### 1.3.2.1 Backend Development
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.2.1.1 | Create Poll schema (question, options, active, dates, votes) | 1.1.1.2.2 |
+| 1.3.2.1.2 | Create PollVote schema (poll_id, option_index, voter_id/ip) | 1.1.1.2.2 |
+| 1.3.2.1.3 | Create GET /api/polls/active endpoint | 1.3.2.1.1 |
+| 1.3.2.1.4 | Create GET /api/polls/:id endpoint with results | 1.3.2.1.1 |
+| 1.3.2.1.5 | Create POST /api/polls/:id/vote endpoint | 1.3.2.1.2 |
+| 1.3.2.1.6 | Implement duplicate vote prevention (by IP/session) | 1.3.2.1.5 |
+| 1.3.2.1.7 | Create CRUD endpoints for admin | 1.3.2.1.1, 1.1.2.2.3 |
+| 1.3.2.1.8 | Create GET /api/polls/history endpoint | 1.3.2.1.1 |
 
-### 1.3.2.2 Public Suggestion UI ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.2.2.1 | Create suggestion submission page | 1.3.2.1.3 | ✅ |
-| 1.3.2.2.2 | Build suggestion form (text area, category select) | 1.3.2.2.1 | ✅ |
-| 1.3.2.2.3 | Add character count/limit indicator | 1.3.2.2.2 | ✅ |
-| 1.3.2.2.4 | Create submission confirmation message | 1.3.2.2.2 | ✅ |
-| 1.3.2.2.5 | Add anonymity assurance messaging | 1.3.2.2.1 | ✅ |
-| 1.3.2.2.6 | Implement spam prevention (honeypot, cooldown) | 1.3.2.1.8 | ✅ |
+### 1.3.2.2 Public Poll UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.2.2.1 | Create poll widget component | 1.3.2.1.3 |
+| 1.3.2.2.2 | Build vote submission UI | 1.3.2.1.5 |
+| 1.3.2.2.3 | Create results display with percentages/bar chart | 1.3.2.1.4 |
+| 1.3.2.2.4 | Implement voted state (show results after voting) | 1.3.2.2.2 |
+| 1.3.2.2.5 | Add homepage active poll widget | 1.1.1.3.10 |
+| 1.3.2.2.6 | Create poll history page | 1.3.2.1.8 |
 
-### 1.3.2.3 Admin Suggestion Management ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.3.2.3.1 | Create admin suggestions listing page | 1.1.2.3.5 | ✅ |
-| 1.3.2.3.2 | Implement status filter (new, reviewed, archived) | 1.3.2.3.1 | ✅ |
-| 1.3.2.3.3 | Create category filter | 1.3.2.1.7 | ✅ |
-| 1.3.2.3.4 | Build suggestion detail view | 1.3.2.3.1 | ✅ |
-| 1.3.2.3.5 | Implement status change functionality | 1.3.2.1.6 | ✅ |
-| 1.3.2.3.6 | Create admin notes/comments on suggestions | 1.3.2.3.4 | ✅ |
-| 1.3.2.3.7 | Add IP trace lookup (superadmin only) | 1.3.2.1.4 | ✅ |
-| 1.3.2.3.8 | Create suggestion category management | 1.3.2.1.7 | ✅ |
+### 1.3.2.3 Admin Poll Management
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.2.3.1 | Create admin polls listing page | 1.1.2.3.5 |
+| 1.3.2.3.2 | Build poll creation form (question + options) | 1.1.2.3.6 |
+| 1.3.2.3.3 | Implement activate/deactivate toggle | 1.3.2.3.1 |
+| 1.3.2.3.4 | Create poll results view with analytics | 1.3.2.1.4 |
+| 1.3.2.3.5 | Add poll scheduling (auto-activate/deactivate) | 1.3.2.3.2 |
+| 1.3.2.3.6 | Implement poll edit and delete | 1.3.2.3.1 |
+
+---
+
+## 1.3.3 Anonymous Suggestion Box
+
+### 1.3.3.1 Backend Development
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.3.1.1 | Create Suggestion schema (content, category, status, ip_hash, dates) | 1.1.1.2.2 |
+| 1.3.3.1.2 | Create SuggestionCategory schema | 1.1.1.2.2 |
+| 1.3.3.1.3 | Create POST /api/suggestions endpoint (public) | 1.3.3.1.1 |
+| 1.3.3.1.4 | Implement IP hashing for traceability | 1.3.3.1.3 |
+| 1.3.3.1.5 | Create GET /api/admin/suggestions endpoint | 1.3.3.1.1, 1.1.2.2.3 |
+| 1.3.3.1.6 | Create suggestion status update endpoint | 1.3.3.1.1, 1.1.2.2.3 |
+| 1.3.3.1.7 | Create category management endpoints | 1.3.3.1.2 |
+| 1.3.3.1.8 | Implement rate limiting for submissions | 1.3.3.1.3 |
+
+### 1.3.3.2 Public Suggestion UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.3.2.1 | Create suggestion submission page | 1.3.3.1.3 |
+| 1.3.3.2.2 | Build suggestion form (text area, category select) | 1.3.3.2.1 |
+| 1.3.3.2.3 | Add character count/limit indicator | 1.3.3.2.2 |
+| 1.3.3.2.4 | Create submission confirmation message | 1.3.3.2.2 |
+| 1.3.3.2.5 | Add anonymity assurance messaging | 1.3.3.2.1 |
+| 1.3.3.2.6 | Implement spam prevention (honeypot, cooldown) | 1.3.3.1.8 |
+
+### 1.3.3.3 Admin Suggestion Management
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.3.3.3.1 | Create admin suggestions listing page | 1.1.2.3.5 |
+| 1.3.3.3.2 | Implement status filter (new, reviewed, archived) | 1.3.3.3.1 |
+| 1.3.3.3.3 | Create category filter | 1.3.3.1.7 |
+| 1.3.3.3.4 | Build suggestion detail view | 1.3.3.3.1 |
+| 1.3.3.3.5 | Implement status change functionality | 1.3.3.1.6 |
+| 1.3.3.3.6 | Create admin notes/comments on suggestions | 1.3.3.3.4 |
+| 1.3.3.3.7 | Add IP trace lookup (superadmin only) | 1.3.3.1.4 |
+| 1.3.3.3.8 | Create suggestion category management | 1.3.3.1.7 |
 
 ---
 
 # 1.4 PHASE 4: Advanced Features
 
-## 1.4.1 AI Chatbot (Claude Integration) ✅
+## 1.4.1 AI Chatbot (Claude Integration)
 
-### 1.4.1.1 Backend Development ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.1.1.1 | Set up Claude API integration | 1.1.1.1.1 | ✅ |
-| 1.4.1.1.2 | Create ChatMessage schema (session, role, content, timestamp) | 1.1.1.2.2 | ✅ |
-| 1.4.1.1.3 | Create POST /api/chat endpoint | 1.4.1.1.1, 1.4.1.1.2 | ✅ |
-| 1.4.1.1.4 | Implement session management for chat context | 1.4.1.1.2 | ✅ |
-| 1.4.1.1.5 | Create system prompt with company knowledge base | 1.4.1.1.1 | ✅ |
-| 1.4.1.1.6 | Implement response streaming | 1.4.1.1.3 | ⏳ |
-| 1.4.1.1.7 | Add rate limiting for chat requests | 1.4.1.1.3 | ✅ |
-| 1.4.1.1.8 | Create context retrieval for contacts, news, etc. | 1.4.1.1.5 | ✅ |
+### 1.4.1.1 Backend Development
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.1.1.1 | Set up Claude API integration | 1.1.1.1.1 |
+| 1.4.1.1.2 | Create ChatMessage schema (session, role, content, timestamp) | 1.1.1.2.2 |
+| 1.4.1.1.3 | Create POST /api/chat endpoint | 1.4.1.1.1, 1.4.1.1.2 |
+| 1.4.1.1.4 | Implement session management for chat context | 1.4.1.1.2 |
+| 1.4.1.1.5 | Create system prompt with company knowledge base | 1.4.1.1.1 |
+| 1.4.1.1.6 | Implement response streaming | 1.4.1.1.3 |
+| 1.4.1.1.7 | Add rate limiting for chat requests | 1.4.1.1.3 |
+| 1.4.1.1.8 | Create coye
+ntext retrieval for contacts, news, etc. | 1.4.1.1.5 |
 
-### 1.4.1.2 Knowledge Base Setup ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.1.2.1 | Create FAQ schema (question, answer, category) | 1.1.1.2.2 | ✅ |
-| 1.4.1.2.2 | Build FAQ seeding script | 1.4.1.2.1 | ✅ |
-| 1.4.1.2.3 | Create policy document schema | 1.1.1.2.2 | ⏳ |
-| 1.4.1.2.4 | Implement knowledge retrieval for chatbot | 1.4.1.1.5 | ✅ |
-| 1.4.1.2.5 | Create admin FAQ management interface | 1.4.1.2.1 | ✅ |
-| 1.4.1.2.6 | Create admin policy document upload | 1.4.1.2.3 | ⏳ |
+### 1.4.1.2 Knowledge Base Setup
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.1.2.1 | Create FAQ schema (question, answer, category) | 1.1.1.2.2 |
+| 1.4.1.2.2 | Build FAQ seeding script | 1.4.1.2.1 |
+| 1.4.1.2.3 | Create policy document schema | 1.1.1.2.2 |
+| 1.4.1.2.4 | Implement knowledge retrieval for chatbot | 1.4.1.1.5 |
+| 1.4.1.2.5 | Create admin FAQ management interface | 1.4.1.2.1 |
+| 1.4.1.2.6 | Create admin policy document upload | 1.4.1.2.3 |
 
-### 1.4.1.3 Chatbot UI ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.1.3.1 | Create floating chat button component | 1.4.1.1.3 | ✅ |
-| 1.4.1.3.2 | Build chat window/drawer component | 1.4.1.3.1 | ✅ |
-| 1.4.1.3.3 | Create message bubble components (user/bot) | 1.4.1.3.2 | ✅ |
-| 1.4.1.3.4 | Implement chat input with send button | 1.4.1.3.2 | ✅ |
-| 1.4.1.3.5 | Add typing indicator during response | 1.4.1.1.6 | ✅ |
-| 1.4.1.3.6 | Implement streaming response display | 1.4.1.1.6 | ⏳ |
-| 1.4.1.3.7 | Create suggested prompts/quick actions | 1.4.1.3.2 | ✅ |
-| 1.4.1.3.8 | Add chat history within session | 1.4.1.1.4 | ✅ |
-| 1.4.1.3.9 | Implement chat minimize/maximize | 1.4.1.3.2 | ✅ |
-| 1.4.1.3.10 | Add clear chat functionality | 1.4.1.3.2 | ✅ |
+### 1.4.1.3 Chatbot UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.1.3.1 | Create floating chat button component | 1.4.1.1.3 |
+| 1.4.1.3.2 | Build chat window/drawer component | 1.4.1.3.1 |
+| 1.4.1.3.3 | Create message bubble components (user/bot) | 1.4.1.3.2 |
+| 1.4.1.3.4 | Implement chat input with send button | 1.4.1.3.2 |
+| 1.4.1.3.5 | Add typing indicator during response | 1.4.1.1.6 |
+| 1.4.1.3.6 | Implement streaming response display | 1.4.1.1.6 |
+| 1.4.1.3.7 | Create suggested prompts/quick actions | 1.4.1.3.2 |
+| 1.4.1.3.8 | Add chat history within session | 1.4.1.1.4 |
+| 1.4.1.3.9 | Implement chat minimize/maximize | 1.4.1.3.2 |
+| 1.4.1.3.10 | Add clear chat functionality | 1.4.1.3.2 |
 
 ---
 
@@ -616,41 +665,41 @@
 
 ---
 
-## 1.4.3 Gold Industry News ✅
+## 1.4.3 Gold Industry News
 
-### 1.4.3.1 Backend Development ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.3.1.1 | Research and select news APIs/RSS feeds (Ghana, World) | None | ✅ |
-| 1.4.3.1.2 | Create ExternalNews schema (title, source, url, summary, date) | 1.1.1.2.2 | ✅ |
-| 1.4.3.1.3 | Build RSS feed parser utility | 1.4.3.1.1 | ✅ |
-| 1.4.3.1.4 | Build news API integration utility | 1.4.3.1.1 | ✅ |
-| 1.4.3.1.5 | Create news aggregation scheduled job | 1.4.3.1.3, 1.4.3.1.4 | ✅ |
-| 1.4.3.1.6 | Implement news deduplication | 1.4.3.1.5 | ✅ |
-| 1.4.3.1.7 | Create GET /api/gold-news endpoint | 1.4.3.1.2 | ✅ |
-| 1.4.3.1.8 | Implement news caching | 1.4.3.1.7 | ⏳ |
-| 1.4.3.1.9 | Create fallback for API/feed failures | 1.4.3.1.5 | ✅ |
+### 1.4.3.1 Backend Development
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.3.1.1 | Research and select news APIs/RSS feeds (Ghana, World) | None |
+| 1.4.3.1.2 | Create ExternalNews schema (title, source, url, summary, date) | 1.1.1.2.2 |
+| 1.4.3.1.3 | Build RSS feed parser utility | 1.4.3.1.1 |
+| 1.4.3.1.4 | Build news API integration utility | 1.4.3.1.1 |
+| 1.4.3.1.5 | Create news aggregation scheduled job | 1.4.3.1.3, 1.4.3.1.4 |
+| 1.4.3.1.6 | Implement news deduplication | 1.4.3.1.5 |
+| 1.4.3.1.7 | Create GET /api/gold-news endpoint | 1.4.3.1.2 |
+| 1.4.3.1.8 | Implement news caching | 1.4.3.1.7 |
+| 1.4.3.1.9 | Create fallback for API/feed failures | 1.4.3.1.5 |
 
-### 1.4.3.2 Public Gold News UI ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.3.2.1 | Create gold news listing page | 1.4.3.1.7 | ✅ |
-| 1.4.3.2.2 | Build news card component with source badge | 1.4.3.2.1 | ✅ |
-| 1.4.3.2.3 | Implement Ghana/World filter tabs | 1.4.3.2.1 | ✅ |
-| 1.4.3.2.4 | Add external link handling (opens in new tab) | 1.4.3.2.2 | ✅ |
-| 1.4.3.2.5 | Implement auto-refresh for latest news | 1.4.3.2.1 | ⏳ |
-| 1.4.3.2.6 | Add homepage gold news widget | 1.1.1.3.10 | ⏳ |
-| 1.4.3.2.7 | Create loading state for news fetching | 1.4.3.2.1 | ✅ |
+### 1.4.3.2 Public Gold News UI
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.3.2.1 | Create gold news listing page | 1.4.3.1.7 |
+| 1.4.3.2.2 | Build news card component with source badge | 1.4.3.2.1 |
+| 1.4.3.2.3 | Implement Ghana/World filter tabs | 1.4.3.2.1 |
+| 1.4.3.2.4 | Add external link handling (opens in new tab) | 1.4.3.2.2 |
+| 1.4.3.2.5 | Implement auto-refresh for latest news | 1.4.3.2.1 |
+| 1.4.3.2.6 | Add homepage gold news widget | 1.1.1.3.10 |
+| 1.4.3.2.7 | Create loading state for news fetching | 1.4.3.2.1 |
 
-### 1.4.3.3 Admin News Source Management ✅
-| Task ID | Task Description | Dependencies | Status |
-|---------|------------------|--------------|--------|
-| 1.4.3.3.1 | Create NewsSource schema (name, url, type, active) | 1.1.1.2.2 | ✅ |
-| 1.4.3.3.2 | Create admin news sources listing | 1.4.3.3.1 | ✅ |
-| 1.4.3.3.3 | Build news source add/edit form | 1.4.3.3.2 | ✅ |
-| 1.4.3.3.4 | Implement source enable/disable toggle | 1.4.3.3.2 | ✅ |
-| 1.4.3.3.5 | Create manual news fetch trigger | 1.4.3.1.5 | ✅ |
-| 1.4.3.3.6 | Add feed health status display | 1.4.3.3.2 | ✅ |
+### 1.4.3.3 Admin News Source Management
+| Task ID | Task Description | Dependencies |
+|---------|------------------|--------------|
+| 1.4.3.3.1 | Create NewsSource schema (name, url, type, active) | 1.1.1.2.2 |
+| 1.4.3.3.2 | Create admin news sources listing | 1.4.3.3.1 |
+| 1.4.3.3.3 | Build news source add/edit form | 1.4.3.3.2 |
+| 1.4.3.3.4 | Implement source enable/disable toggle | 1.4.3.3.2 |
+| 1.4.3.3.5 | Create manual news fetch trigger | 1.4.3.1.5 |
+| 1.4.3.3.6 | Add feed health status display | 1.4.3.3.2 |
 
 ---
 
@@ -781,16 +830,42 @@
 
 ## WBS Summary Statistics
 
-| Phase | Sections | Total Tasks |
-|-------|----------|-------------|
-| Phase 1: Foundation & Core | 5 | ~95 |
-| Phase 2: Safety & Operations | 4 | ~65 |
-| Phase 3: Engagement & Feedback | 2 | ~57 |
-| Phase 4: Advanced Features | 4 | ~95 |
-| Cross-Cutting | 3 | ~20 |
-| **Total** | **18** | **~312** |
+| Phase | Sections | Total Tasks | Completed | Status |
+|-------|----------|-------------|-----------|--------|
+| Phase 1: Foundation & Core | 5 | ~95 | ~95 | ✅ 100% |
+| Phase 2: Safety & Operations | 4 | ~65 | ~55 | 🔄 85% |
+| Phase 3: Engagement & Feedback | 3 | ~55 | ~30 | 🔄 55% |
+| Phase 4: Advanced Features | 4 | ~95 | ~16 | 🔄 17% |
+| New Features (Added) | 4 | ~37 | ~31 | 🔄 84% |
+| Cross-Cutting | 3 | ~20 | ~5 | 🔄 25% |
+| **Total** | **23** | **~367** | **~232** | **~63%** |
 
-> **Note:** Polls feature (1.3.2) was removed from scope.
+---
+
+## New Features Added (Not in Original WBS)
+
+The following features were added during development:
+
+### Policies Management ✅
+- Policy & PolicyCategory schemas
+- Full CRUD backend services
+- Admin: policies listing, create, edit, categories
+- Public: policies listing page, individual policy view
+
+### Executive Messages 🔄
+- ExecutiveMessage schema for CEO/leadership messages
+- Backend services implemented
+- Admin management interface
+
+### IT Tips 🔄
+- ITTip schema for IT department tips/guides
+- Backend services implemented
+- Admin management interface
+
+### Company Info / About Page ✅
+- CompanyInfo schema (vision, mission, core values)
+- Backend services implemented
+- Public About Us page
 
 ---
 
@@ -799,3 +874,5 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-11 | Developer | Initial WBS |
+| 1.1 | 2026-01-18 | Developer | Phase 2 progress update |
+| 1.2 | 2026-01-30 | Developer | Comprehensive status update - Phase 2-4 progress, new features added |

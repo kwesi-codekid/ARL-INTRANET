@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 export interface IDepartment extends Document {
   name: string;
   code: string;
-  category: "operations" | "support" | "dfsl" | "contractors";
+  category: "operations" | "support" | "hse" | "dfsl" | "contractors";
   description?: string;
   headOfDepartment?: Types.ObjectId;
   isActive: boolean;
@@ -12,10 +12,10 @@ export interface IDepartment extends Document {
   updatedAt: Date;
 }
 
+export type ContactLocation = "site" | "head-office";
+
 export interface IContact extends Document {
-  firstName: string;
-  lastName: string;
-  fullName: string;
+  name: string;
   phone: string;
   phoneExtension?: string;
   email?: string;
@@ -23,6 +23,8 @@ export interface IContact extends Document {
   position: string;
   photo?: string;
   isEmergencyContact: boolean;
+  isManagement: boolean;
+  location: ContactLocation;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -44,7 +46,7 @@ const DepartmentSchema = new Schema<IDepartment>(
     },
     category: {
       type: String,
-      enum: ["operations", "support", "dfsl", "contractors"],
+      enum: ["operations", "support", "hse", "dfsl", "contractors"],
       required: true,
       index: true,
     },
@@ -72,18 +74,9 @@ const DepartmentSchema = new Schema<IDepartment>(
 
 const ContactSchema = new Schema<IContact>(
   {
-    firstName: {
+    name: {
       type: String,
       required: true,
-      trim: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    fullName: {
-      type: String,
       trim: true,
       index: true,
     },
@@ -120,6 +113,17 @@ const ContactSchema = new Schema<IContact>(
       default: false,
       index: true,
     },
+    isManagement: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    location: {
+      type: String,
+      enum: ["site", "head-office"],
+      default: "site",
+      index: true,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -131,18 +135,12 @@ const ContactSchema = new Schema<IContact>(
   }
 );
 
-// Pre-save middleware to generate fullName
-ContactSchema.pre("save", function () {
-  this.fullName = `${this.firstName} ${this.lastName}`;
-});
-
 // Indexes for common queries
 DepartmentSchema.index({ category: 1, isActive: 1 });
 DepartmentSchema.index({ name: "text" });
 
 ContactSchema.index({ department: 1, isActive: 1 });
-ContactSchema.index({ lastName: 1, firstName: 1 });
-ContactSchema.index({ fullName: "text", position: "text" });
+ContactSchema.index({ name: "text", position: "text" });
 
 export const Department: Model<IDepartment> =
   mongoose.models.Department || mongoose.model<IDepartment>("Department", DepartmentSchema);

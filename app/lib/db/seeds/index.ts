@@ -4,6 +4,12 @@ import { seedNewsCategories } from "./news-categories.seed";
 import { seedAppCategories } from "./app-categories.seed";
 import { seedSuggestionCategories } from "./suggestion-categories.seed";
 import { seedFAQs } from "./faqs.seed";
+import { seedCompanyInfo } from "./company-info.seed";
+import { seedPolicyCategories } from "./policy.seed";
+import { seedITTips } from "./it-tip.seed";
+import { seedExecutiveMessages } from "./executive-message.seed";
+import { seedContacts } from "./contacts.seed";
+import { seedSettings } from "./settings.seed";
 
 export async function runAllSeeds(): Promise<void> {
   try {
@@ -15,6 +21,12 @@ export async function runAllSeeds(): Promise<void> {
     await seedAppCategories();
     await seedSuggestionCategories();
     await seedFAQs();
+    await seedCompanyInfo();
+    await seedPolicyCategories();
+    await seedITTips();
+    await seedExecutiveMessages();
+    await seedContacts();
+    await seedSettings();
 
     console.log("\nDatabase seeding completed successfully!");
   } catch (error) {
@@ -26,8 +38,13 @@ export async function runAllSeeds(): Promise<void> {
 }
 
 // Run seeds if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Using a more cross-platform compatible check
+const isMainModule = process.argv[1]?.includes('seeds') || process.argv[1]?.endsWith('index.ts');
+if (isMainModule) {
   runAllSeeds()
     .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }

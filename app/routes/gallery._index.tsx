@@ -11,7 +11,7 @@ import {
   Image,
   Input,
 } from "@heroui/react";
-import { Camera, Search, Image as ImageIcon, Calendar, ArrowRight } from "lucide-react";
+import { Camera, Search, Image as ImageIcon, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { useState } from "react";
@@ -54,8 +54,16 @@ function AlbumCard({ album }: { album: SerializedAlbum }) {
     year: "numeric",
   });
 
+  // If it's an external gallery, link to the external URL
+  const isExternal = album.isExternalGallery && album.externalGalleryUrl;
+  const linkProps = isExternal
+    ? { href: album.externalGalleryUrl!, target: "_blank", rel: "noopener noreferrer" }
+    : { to: `/gallery/${album.slug}` };
+
+  const CardWrapper = isExternal ? "a" : Link;
+
   return (
-    <Link to={`/gallery/${album.slug}`} className="group block">
+    <CardWrapper {...linkProps as any} className="group block">
       <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         {/* Image Section */}
         <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
@@ -81,23 +89,33 @@ function AlbumCard({ album }: { album: SerializedAlbum }) {
                 Featured
               </Chip>
             )}
+            {isExternal && (
+              <Chip size="sm" color="secondary" variant="solid" startContent={<ExternalLink size={10} />}>
+                External
+              </Chip>
+            )}
           </div>
           <div className="absolute top-2 right-2">
-            <Chip
-              size="sm"
-              variant="solid"
-              className="bg-black/70 text-white"
-              startContent={<Camera size={12} />}
-            >
-              {album.photoCount}
-            </Chip>
+            {!isExternal && (
+              <Chip
+                size="sm"
+                variant="solid"
+                className="bg-black/70 text-white"
+                startContent={<Camera size={12} />}
+              >
+                {album.photoCount}
+              </Chip>
+            )}
           </div>
         </div>
         {/* Content Section - Solid Background */}
         <CardBody className="p-3 bg-white">
-          <h3 className="font-semibold text-gray-900 line-clamp-1">
-            {album.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 line-clamp-1 flex-1">
+              {album.title}
+            </h3>
+            {isExternal && <ExternalLink size={14} className="text-gray-400 shrink-0" />}
+          </div>
           {album.description && (
             <p className="text-xs text-gray-600 line-clamp-1 mt-0.5">
               {album.description}
@@ -109,7 +127,7 @@ function AlbumCard({ album }: { album: SerializedAlbum }) {
           </div>
         </CardBody>
       </Card>
-    </Link>
+    </CardWrapper>
   );
 }
 

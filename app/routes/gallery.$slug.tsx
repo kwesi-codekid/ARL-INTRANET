@@ -46,7 +46,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response("Album not found", { status: 404 });
   }
 
-  const photos = await getPhotosByAlbum(album._id.toString());
+  const { photos } = await getPhotosByAlbum(album._id.toString(), 1, 500);
 
   return Response.json({
     album: serializeAlbum(album),

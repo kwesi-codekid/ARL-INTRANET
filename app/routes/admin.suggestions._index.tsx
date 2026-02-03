@@ -3,7 +3,7 @@
  * Task: 1.3.2.3 - Admin Suggestion Management
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Card,
   CardBody,
@@ -36,19 +36,58 @@ import {
 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getSuggestions,
-  getSuggestionStats,
-  getAllCategories,
-  updateSuggestionStatus,
-  addAdminNote,
-  deleteSuggestion,
-  getSuggestionById,
-} from "~/lib/services/suggestion.server";
+
+// Type definitions
+interface SuggestionCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+interface Suggestion {
+  id: string;
+  content: string;
+  category?: { name: string; slug: string };
+  status: string;
+  adminNotes?: string;
+  reviewedBy?: { name: string };
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+interface SuggestionStats {
+  total: number;
+  new: number;
+  reviewed: number;
+  inProgress: number;
+  resolved: number;
+  archived: number;
+  thisWeek: number;
+  thisMonth: number;
+}
+
+interface LoaderData {
+  suggestions: Suggestion[];
+  total: number;
+  page: number;
+  totalPages: number;
+  stats: SuggestionStats;
+  categories: SuggestionCategory[];
+}
+
+interface ActionData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getSuggestions, getSuggestionStats, getAllCategories } = await import(
+    "~/lib/services/suggestion.server"
+  );
+
   await requireAuth(request);
   await connectDB();
 
@@ -68,12 +107,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     suggestions: suggestionsResult.suggestions.map((s) => ({
       id: s._id.toString(),
       content: s.content,
-      category: s.category,
+      category: s.category ? {
+        name: (s.category as any).name,
+        slug: (s.category as any).slug,
+      } : null,
       status: s.status,
       adminNotes: s.adminNotes,
-      reviewedBy: s.reviewedBy,
-      reviewedAt: s.reviewedAt,
-      createdAt: s.createdAt,
+      reviewedBy: s.reviewedBy ? {
+        name: (s.reviewedBy as any).name,
+      } : null,
+      reviewedAt: s.reviewedAt ? s.reviewedAt.toISOString() : null,
+      createdAt: s.createdAt.toISOString(),
     })),
     total: suggestionsResult.total,
     page: suggestionsResult.page,
@@ -88,6 +132,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { updateSuggestionStatus, addAdminNote, deleteSuggestion } = await import(
+    "~/lib/services/suggestion.server"
+  );
+
   const user = await requireAuth(request);
   await connectDB();
 
@@ -130,8 +180,8 @@ const statusConfig = {
 
 export default function AdminSuggestionsPage() {
   const { suggestions, total, page, totalPages, stats, categories } =
-    useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+    useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
@@ -140,6 +190,7 @@ export default function AdminSuggestionsPage() {
   const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
   const [newStatus, setNewStatus] = useState<string>("");
   const [adminNotes, setAdminNotes] = useState("");
+  const deleteFormRef = useRef<HTMLFormElement | null>(null);
 
   const currentStatus = searchParams.get("status") || "";
   const currentCategory = searchParams.get("category") || "";
@@ -271,11 +322,9 @@ export default function AdminSuggestionsPage() {
                   const value = Array.from(keys)[0] as string;
                   handleFilterChange("category", value || "");
                 }}
+                items={[{ id: "", name: "All Categories" }, ...categories]}
               >
-                <SelectItem key="">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id}>{cat.name}</SelectItem>
-                ))}
+                {(item) => <SelectItem key={item.id}>{item.name}</SelectItem>}
               </Select>
             </div>
           </div>
@@ -447,19 +496,18 @@ export default function AdminSuggestionsPage() {
 
                   {/* Delete */}
                   <div className="border-t pt-4">
-                    <Form method="post">
+                    <Form ref={deleteFormRef} method="post">
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={selectedSuggestion.id} />
                       <Button
-                        type="submit"
+                        type="button"
                         color="danger"
                         variant="flat"
                         size="sm"
                         startContent={<Trash2 size={14} />}
                         onPress={() => {
-                          if (!confirm("Are you sure you want to delete this suggestion?")) {
-                            return;
-                          }
+                          if (!confirm("Are you sure you want to delete this suggestion?")) return;
+                          deleteFormRef.current?.requestSubmit();
                         }}
                       >
                         Delete Suggestion

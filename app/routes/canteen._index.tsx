@@ -38,13 +38,15 @@ import {
   getTodayMenu,
   getWeekMenus,
   serializeMenu,
+} from "~/lib/services/menu.server";
+import {
   dietaryInfo,
   mealTimeInfo,
   type SerializedMenu,
   type SerializedMeal,
   type MealType,
   type DietaryType,
-} from "~/lib/services/menu.server";
+} from "~/lib/utils/menu-constants";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await connectDB();

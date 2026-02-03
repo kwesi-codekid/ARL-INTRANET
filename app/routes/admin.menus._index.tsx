@@ -34,11 +34,13 @@ import {
   getMenuTemplates,
   serializeMenu,
   serializeMenuTemplate,
+} from "~/lib/services/menu.server";
+import {
   mealTimeInfo,
   type SerializedMenu,
   type SerializedMenuTemplate,
   type MealType,
-} from "~/lib/services/menu.server";
+} from "~/lib/utils/menu-constants";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireAuth(request);

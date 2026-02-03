@@ -146,6 +146,29 @@ import {
 } from "~/lib/services/app-link.server";
 import type { IAppLink, IAppLinkCategory } from "~/lib/db/models/app-link.server";
 
+// Type definitions for loader and action data
+interface AppLinkStats {
+  total: number;
+  active: number;
+  totalClicks: number;
+}
+
+interface LoaderData {
+  appLinks: IAppLink[];
+  total: number;
+  page: number;
+  totalPages: number;
+  categories: IAppLinkCategory[];
+  stats: AppLinkStats;
+  filters: { search?: string; category?: string };
+}
+
+interface ActionData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
 // Available lucide icons for selection - grouped by category
 const availableIcons = [
   // General
@@ -338,8 +361,8 @@ function AppIcon({ icon, iconType, className }: { icon?: string; iconType: strin
 
 export default function AdminApps() {
   const { appLinks: initialAppLinks, total, page, totalPages, categories, stats, filters } =
-    useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+    useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";

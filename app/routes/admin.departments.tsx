@@ -42,9 +42,31 @@ import {
 import { Contact } from "~/lib/db/models/contact.server";
 import type { IDepartment } from "~/lib/db/models/contact.server";
 
+// Type definitions
+interface DepartmentWithCount extends IDepartment {
+  contactCount: number;
+}
+
+interface DepartmentStats {
+  total: number;
+  byCategory: Record<string, number>;
+}
+
+interface LoaderData {
+  departments: DepartmentWithCount[];
+  stats: DepartmentStats;
+}
+
+interface ActionData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
 const CATEGORIES = [
   { key: "operations", label: "Operations" },
   { key: "support", label: "Support" },
+  { key: "hse", label: "HSE & Safety" },
   { key: "dfsl", label: "DFSL" },
   { key: "contractors", label: "Contractors" },
 ];
@@ -92,7 +114,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const data = {
       name: formData.get("name") as string,
       code: formData.get("code") as string,
-      category: formData.get("category") as "operations" | "support" | "dfsl" | "contractors",
+      category: formData.get("category") as "operations" | "support" | "hse" | "dfsl" | "contractors",
       description: formData.get("description") as string || undefined,
       order: parseInt(formData.get("order") as string) || 0,
       isActive: true,
@@ -129,7 +151,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const data = {
       name: formData.get("name") as string,
       code: formData.get("code") as string,
-      category: formData.get("category") as "operations" | "support" | "dfsl" | "contractors",
+      category: formData.get("category") as "operations" | "support" | "hse" | "dfsl" | "contractors",
       description: formData.get("description") as string || undefined,
       order: parseInt(formData.get("order") as string) || 0,
       isActive: formData.get("isActive") === "true",
@@ -190,8 +212,8 @@ interface DepartmentWithCount extends IDepartment {
 }
 
 export default function AdminDepartments() {
-  const { departments, stats } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { departments, stats } = useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -205,6 +227,8 @@ export default function AdminDepartments() {
         return "primary";
       case "support":
         return "secondary";
+      case "hse":
+        return "success";
       case "dfsl":
         return "warning";
       case "contractors":

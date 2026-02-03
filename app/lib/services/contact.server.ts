@@ -3,7 +3,7 @@
  * Task: 1.1.4.1.2, 1.1.4.2.2
  */
 
-import { Contact, Department, type IContact, type IDepartment } from "~/lib/db/models/contact.server";
+import { Contact, Department, type IContact, type IDepartment, type ContactLocation } from "~/lib/db/models/contact.server";
 import mongoose from "mongoose";
 
 // ============================================
@@ -13,7 +13,7 @@ import mongoose from "mongoose";
 export interface DepartmentInput {
   name: string;
   code: string;
-  category: "operations" | "support" | "dfsl" | "contractors";
+  category: "operations" | "support" | "hse" | "dfsl" | "contractors";
   description?: string;
   headOfDepartment?: string;
   isActive?: boolean;
@@ -101,8 +101,7 @@ export async function getDepartmentStats(): Promise<{
 // ============================================
 
 export interface ContactInput {
-  firstName: string;
-  lastName: string;
+  name: string;
   phone: string;
   phoneExtension?: string;
   email?: string;
@@ -110,6 +109,8 @@ export interface ContactInput {
   position: string;
   photo?: string;
   isEmergencyContact?: boolean;
+  isManagement?: boolean;
+  location?: ContactLocation;
   isActive?: boolean;
 }
 
@@ -127,7 +128,7 @@ export async function updateContact(
   if (!contact) return null;
 
   Object.assign(contact, data);
-  await contact.save(); // Triggers pre-save middleware for fullName
+  await contact.save();
   return contact.populate("department");
 }
 
@@ -145,6 +146,8 @@ export interface GetContactsOptions {
   search?: string;
   letter?: string; // First letter of last name for A-Z navigation
   isEmergencyContact?: boolean;
+  isManagement?: boolean;
+  location?: ContactLocation;
   isActive?: boolean;
   includeInactive?: boolean;
   page?: number;
@@ -169,20 +172,28 @@ export async function getContacts(options: GetContactsOptions = {}): Promise<Pag
 
   if (options.search) {
     filter.$or = [
-      { fullName: { $regex: options.search, $options: "i" } },
+      { name: { $regex: options.search, $options: "i" } },
       { position: { $regex: options.search, $options: "i" } },
       { phone: { $regex: options.search, $options: "i" } },
       { email: { $regex: options.search, $options: "i" } },
     ];
   }
 
-  // Filter by first letter of last name (A-Z navigation)
+  // Filter by first letter of name (A-Z navigation)
   if (options.letter) {
-    filter.lastName = { $regex: `^${options.letter}`, $options: "i" };
+    filter.name = { $regex: `^${options.letter}`, $options: "i" };
   }
 
   if (options.isEmergencyContact !== undefined) {
     filter.isEmergencyContact = options.isEmergencyContact;
+  }
+
+  if (options.isManagement !== undefined) {
+    filter.isManagement = options.isManagement;
+  }
+
+  if (options.location) {
+    filter.location = options.location;
   }
 
   if (!options.includeInactive) {
@@ -194,7 +205,7 @@ export async function getContacts(options: GetContactsOptions = {}): Promise<Pag
   const [contacts, total] = await Promise.all([
     Contact.find(filter)
       .populate("department")
-      .sort({ lastName: 1, firstName: 1 })
+      .sort({ name: 1 })
       .skip((page - 1) * limit)
       .limit(limit),
     Contact.countDocuments(filter),
@@ -211,26 +222,26 @@ export async function getContacts(options: GetContactsOptions = {}): Promise<Pag
 export async function getContactsByDepartment(departmentId: string): Promise<IContact[]> {
   return Contact.find({ department: departmentId, isActive: true })
     .populate("department")
-    .sort({ lastName: 1, firstName: 1 });
+    .sort({ name: 1 });
 }
 
 export async function getEmergencyContacts(): Promise<IContact[]> {
   return Contact.find({ isEmergencyContact: true, isActive: true })
     .populate("department")
-    .sort({ lastName: 1, firstName: 1 });
+    .sort({ name: 1 });
 }
 
 export async function searchContacts(query: string, limit = 10): Promise<IContact[]> {
   return Contact.find({
     isActive: true,
     $or: [
-      { fullName: { $regex: query, $options: "i" } },
+      { name: { $regex: query, $options: "i" } },
       { position: { $regex: query, $options: "i" } },
       { phone: { $regex: query, $options: "i" } },
     ],
   })
     .populate("department")
-    .sort({ lastName: 1, firstName: 1 })
+    .sort({ name: 1 })
     .limit(limit);
 }
 
@@ -239,7 +250,7 @@ export async function getContactLetters(): Promise<string[]> {
     { $match: { isActive: true } },
     {
       $group: {
-        _id: { $toUpper: { $substr: ["$lastName", 0, 1] } },
+        _id: { $toUpper: { $substr: ["$name", 0, 1] } },
       },
     },
     { $sort: { _id: 1 } },
@@ -251,11 +262,17 @@ export async function getContactLetters(): Promise<string[]> {
 export async function getContactStats(): Promise<{
   total: number;
   emergency: number;
+  management: number;
+  siteContacts: number;
+  headOfficeContacts: number;
   byDepartment: Array<{ department: string; count: number }>;
 }> {
-  const [total, emergency, byDepartment] = await Promise.all([
+  const [total, emergency, management, siteContacts, headOfficeContacts, byDepartment] = await Promise.all([
     Contact.countDocuments({ isActive: true }),
     Contact.countDocuments({ isActive: true, isEmergencyContact: true }),
+    Contact.countDocuments({ isActive: true, isManagement: true }),
+    Contact.countDocuments({ isActive: true, location: "site" }),
+    Contact.countDocuments({ isActive: true, location: "head-office" }),
     Contact.aggregate([
       { $match: { isActive: true } },
       { $group: { _id: "$department", count: { $sum: 1 } } },
@@ -273,7 +290,19 @@ export async function getContactStats(): Promise<{
     ]),
   ]);
 
-  return { total, emergency, byDepartment };
+  return { total, emergency, management, siteContacts, headOfficeContacts, byDepartment };
+}
+
+export async function getManagementContacts(): Promise<IContact[]> {
+  return Contact.find({ isManagement: true, isActive: true })
+    .populate("department")
+    .sort({ name: 1 });
+}
+
+export async function getContactsByLocation(location: ContactLocation): Promise<IContact[]> {
+  return Contact.find({ location, isActive: true })
+    .populate("department")
+    .sort({ name: 1 });
 }
 
 // ============================================
@@ -281,14 +310,15 @@ export async function getContactStats(): Promise<{
 // ============================================
 
 export interface CSVContactRow {
-  firstName: string;
-  lastName: string;
+  name: string;
   phone: string;
   phoneExtension?: string;
   email?: string;
   departmentCode: string;
   position: string;
   isEmergencyContact?: string;
+  isManagement?: string;
+  location?: string;
 }
 
 export interface CSVImportResult {
@@ -314,8 +344,8 @@ export async function importContactsFromCSV(rows: CSVContactRow[]): Promise<CSVI
 
     try {
       // Validate required fields
-      if (!row.firstName || !row.lastName) {
-        throw new Error("First name and last name are required");
+      if (!row.name) {
+        throw new Error("Name is required");
       }
       if (!row.phone) {
         throw new Error("Phone number is required");
@@ -333,10 +363,15 @@ export async function importContactsFromCSV(rows: CSVContactRow[]): Promise<CSVI
         throw new Error(`Department not found: ${row.departmentCode}`);
       }
 
+      // Parse location (default to "site" if not specified or invalid)
+      const locationValue = row.location?.toLowerCase().trim();
+      const location: ContactLocation = locationValue === "head-office" || locationValue === "accra"
+        ? "head-office"
+        : "site";
+
       // Create contact
       await createContact({
-        firstName: row.firstName.trim(),
-        lastName: row.lastName.trim(),
+        name: row.name.trim(),
         phone: row.phone.trim(),
         phoneExtension: row.phoneExtension?.trim(),
         email: row.email?.trim(),
@@ -344,6 +379,9 @@ export async function importContactsFromCSV(rows: CSVContactRow[]): Promise<CSVI
         position: row.position.trim(),
         isEmergencyContact: row.isEmergencyContact?.toLowerCase() === "yes" ||
                            row.isEmergencyContact?.toLowerCase() === "true",
+        isManagement: row.isManagement?.toLowerCase() === "yes" ||
+                      row.isManagement?.toLowerCase() === "true",
+        location,
       });
 
       result.success++;

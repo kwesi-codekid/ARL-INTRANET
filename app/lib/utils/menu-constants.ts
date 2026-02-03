@@ -63,3 +63,18 @@ export interface SerializedMenuTemplate {
   createdAt: string;
   updatedAt: string;
 }
+
+// Client-safe interfaces for form state (mirrors model types)
+export interface IMeal {
+  type: MealType;
+  items: IMenuItem[];
+  startTime?: string;
+  endTime?: string;
+}
+
+export interface IMenuItem {
+  name: string;
+  description?: string;
+  dietary: DietaryType[];
+  isAvailable: boolean;
+}

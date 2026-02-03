@@ -1,55 +1,64 @@
 import { type RouteConfig, index, route, layout } from "@react-router/dev/routes";
 
 export default [
-  // Public routes
-  index("routes/home.tsx"),
+  // Public routes wrapped with maintenance mode check
+  layout("routes/_public.tsx", [
+    index("routes/home.tsx"),
 
-  // Public news routes
-  route("news", "routes/news._index.tsx"),
-  route("news/:slug", "routes/news.$slug.tsx"),
+    // Public news routes
+    route("news", "routes/news._index.tsx"),
+    route("news/:slug", "routes/news.$slug.tsx"),
 
-  // Public directory routes
-  route("directory", "routes/directory._index.tsx"),
+    // Public directory routes
+    route("directory", "routes/directory._index.tsx"),
 
-  // Public apps routes
-  route("apps", "routes/apps._index.tsx"),
+    // Public apps routes
+    route("apps", "routes/apps._index.tsx"),
 
-  // Public toolbox talk routes (Phase 2)
-  route("toolbox-talk", "routes/toolbox-talk._index.tsx"),
-  route("toolbox-talk/:slug", "routes/toolbox-talk.$slug.tsx"),
+    // Public toolbox talk routes (Phase 2)
+    route("toolbox-talk", "routes/toolbox-talk._index.tsx"),
+    route("toolbox-talk/:slug", "routes/toolbox-talk.$slug.tsx"),
 
-  // Public alerts routes (Phase 2)
-  route("alerts", "routes/alerts._index.tsx"),
-  route("alerts/:id", "routes/alerts.$id.tsx"),
+    // Public alerts routes (Phase 2)
+    route("alerts", "routes/alerts._index.tsx"),
+    route("alerts/:id", "routes/alerts.$id.tsx"),
 
-  // Public safety tips routes (Phase 2)
-  route("safety-tips", "routes/safety-tips._index.tsx"),
-  route("safety-tips/:slug", "routes/safety-tips.$slug.tsx"),
+    // Public safety tips routes (Phase 2)
+    route("safety-tips", "routes/safety-tips._index.tsx"),
+    route("safety-tips/:slug", "routes/safety-tips.$slug.tsx"),
 
-  // Public safety videos routes (Phase 2)
-  route("safety-videos", "routes/safety-videos._index.tsx"),
+    // Public safety videos routes (Phase 2)
+    route("safety-videos", "routes/safety-videos._index.tsx"),
 
-  // Public safety hub route (Phase 2)
-  route("safety", "routes/safety._index.tsx"),
+    // Public safety hub route (Phase 2)
+    route("safety", "routes/safety._index.tsx"),
 
-  // Public events routes (Phase 3)
-  route("events", "routes/events._index.tsx"),
-  route("events/:slug", "routes/events.$slug.tsx"),
+    // Public events routes (Phase 3)
+    route("events", "routes/events._index.tsx"),
+    route("events/:slug", "routes/events.$slug.tsx"),
 
-  // Public gallery routes (Phase 3)
-  route("gallery", "routes/gallery._index.tsx"),
-  route("gallery/:slug", "routes/gallery.$slug.tsx"),
+    // Public gallery routes (Phase 3)
+    route("gallery", "routes/gallery._index.tsx"),
+    route("gallery/:slug", "routes/gallery.$slug.tsx"),
 
-  // Public canteen routes (Phase 2)
-  route("canteen", "routes/canteen._index.tsx"),
+    // Public canteen routes (Phase 2)
+    route("canteen", "routes/canteen._index.tsx"),
 
-  // Public suggestion box (Phase 3)
-  route("suggestions", "routes/suggestions._index.tsx"),
+    // Public suggestion box (Phase 3)
+    route("suggestions", "routes/suggestions._index.tsx"),
 
-  // Public gold news (Phase 4)
-  route("gold-news", "routes/gold-news._index.tsx"),
+    // Public gold news (Phase 4)
+    route("gold-news", "routes/gold-news._index.tsx"),
 
-  // API routes
+    // Public policies routes
+    route("policies", "routes/policies._index.tsx"),
+    route("policies/:slug", "routes/policies.$slug.tsx"),
+
+    // About page
+    route("about", "routes/about.tsx"),
+  ]),
+
+  // API routes (not affected by maintenance mode)
   route("api/quick-links", "routes/api.quick-links.tsx"),
   route("api/toolbox-talk-weekly", "routes/api.toolbox-talk-weekly.tsx"),
   route("api/upload", "routes/api.upload.tsx"),
@@ -62,6 +71,7 @@ export default [
   route("api/events", "routes/api.events.tsx"),
   route("api/albums", "routes/api.albums.tsx"),
   route("api/suggestions", "routes/api.suggestions.tsx"),
+  route("api/suggestions/categories", "routes/api.suggestions.categories.tsx"),
   route("api/chat", "routes/api.chat.tsx"),
   route("api/gold-news", "routes/api.gold-news.tsx"),
 
@@ -95,6 +105,7 @@ export default [
     // Admin alerts routes (Phase 2)
     route("admin/alerts", "routes/admin.alerts._index.tsx"),
     route("admin/alerts/new", "routes/admin.alerts.new.tsx"),
+    route("admin/alerts/:id/edit", "routes/admin.alerts.$id.edit.tsx"),
 
     // Admin safety tips routes (Phase 2)
     route("admin/safety-tips", "routes/admin.safety-tips._index.tsx"),
@@ -135,7 +146,19 @@ export default [
     // Admin chatbot routes (Phase 4)
     route("admin/faqs", "routes/admin.faqs._index.tsx"),
 
-    // Admin gold news routes (Phase 4)
-    route("admin/news-sources", "routes/admin.news-sources._index.tsx"),
+    // Admin IT tips route
+    route("admin/it-tips", "routes/admin.it-tips.tsx"),
+
+    // Admin executive messages route
+    route("admin/executive-messages", "routes/admin.executive-messages.tsx"),
+
+    // Admin policies routes
+    route("admin/policies", "routes/admin.policies._index.tsx"),
+    route("admin/policies/new", "routes/admin.policies.new.tsx"),
+    route("admin/policies/categories", "routes/admin.policies.categories.tsx"),
+    route("admin/policies/:id/edit", "routes/admin.policies.$id.edit.tsx"),
+
+    // Admin settings route (Superadmin only)
+    route("admin/settings", "routes/admin.settings.tsx"),
   ]),
 ] satisfies RouteConfig;

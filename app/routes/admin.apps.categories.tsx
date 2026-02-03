@@ -56,6 +56,27 @@ import {
 import { AppLink } from "~/lib/db/models/app-link.server";
 import type { IAppLinkCategory } from "~/lib/db/models/app-link.server";
 
+// Type definitions
+interface CategoryWithCount extends IAppLinkCategory {
+  linkCount: number;
+}
+
+interface CategoryStats {
+  total: number;
+  active: number;
+}
+
+interface LoaderData {
+  categories: CategoryWithCount[];
+  stats: CategoryStats;
+}
+
+interface ActionData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
 // Available lucide icons for categories
 const availableIcons = [
   "Folder", "AppWindow", "LayoutGrid", "FileText", "Mail", "Calendar",
@@ -205,8 +226,8 @@ interface CategoryWithCount extends IAppLinkCategory {
 }
 
 export default function AdminAppsCategories() {
-  const { categories, stats } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { categories, stats } = useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 

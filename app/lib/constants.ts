@@ -3,28 +3,32 @@
  * Shared constants used across the application
  */
 
-// Department structure for ARL
+// Department structure for ARL - Official departments
 export const DEPARTMENTS = [
-  { code: "MTS", name: "MTS", category: "Contractor" },
-  { code: "TSF", name: "TSF", category: "Contractor" },
-  { code: "LIEB", name: "Liebherr", category: "Contractor" },
-  { code: "DRILL", name: "Drill Masters", category: "Contractor" },
-  { code: "COMM", name: "Commercial", category: "Support" },
-  { code: "DFSL-EXP", name: "DFSL Exploration", category: "DFSL" },
-  { code: "DFSL-SAF", name: "DFSL Safety", category: "DFSL" },
-  { code: "DFSL-HR", name: "DFSL HR & Admin", category: "DFSL" },
-  { code: "DFSL-STR", name: "DFSL Stores", category: "DFSL" },
-  { code: "DFSL-WRK", name: "DFSL Workshop", category: "DFSL" },
+  // Operations
   { code: "MINING", name: "Mining", category: "Operations" },
   { code: "GEO", name: "Geology", category: "Operations" },
-  { code: "PROC", name: "Process", category: "Operations" },
-  { code: "SEC", name: "Security", category: "Support" },
-  { code: "HSE", name: "HSE", category: "Support" },
-  { code: "TOLL", name: "Toll", category: "Operations" },
-  { code: "SRD", name: "SRD", category: "Support" },
-  { code: "SUPPLY", name: "Supply", category: "Support" },
-  { code: "EXPLOR", name: "Exploration", category: "Operations" },
+  { code: "EXPL", name: "Exploration", category: "Operations" },
   { code: "ENG", name: "Engineering", category: "Operations" },
+  { code: "PROC", name: "Process", category: "Operations" },
+  { code: "SURV", name: "Survey", category: "Operations" },
+  { code: "NTL", name: "NTL", category: "Operations" },
+  { code: "TSF", name: "TSF", category: "Operations" },
+  { code: "HME", name: "HME", category: "Operations" },
+  // Support
+  { code: "HR", name: "HR & Admin", category: "Support" },
+  { code: "FIN", name: "Finance", category: "Support" },
+  { code: "SCM", name: "Supply", category: "Support" },
+  { code: "IT", name: "IT", category: "Support" },
+  { code: "COMM", name: "Commercial", category: "Support" },
+  { code: "SEC", name: "Security", category: "Support" },
+  { code: "SRD", name: "SRD", category: "Support" },
+  { code: "ACCRA", name: "Accra Office", category: "Support" },
+  // HSE & Safety
+  { code: "HSE", name: "HSE", category: "HSE" },
+  { code: "SHSESG", name: "SHSESG", category: "HSE" },
+  // DFSL
+  { code: "DFSL", name: "DFSL", category: "DFSL" },
 ] as const;
 
 export type Department = (typeof DEPARTMENTS)[number];

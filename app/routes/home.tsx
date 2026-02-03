@@ -26,12 +26,18 @@ import {
   Lightbulb,
   FileText,
   ExternalLink,
+  Zap,
+  Keyboard,
+  Monitor,
+  Cpu,
+  HelpCircle,
+  Pin,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
 import { AlertToast } from "~/components/alerts";
-import { EventCalendar, GoldPriceWidget } from "~/components/dashboard";
+import { EventCalendar } from "~/components/dashboard";
 import { connectDB } from "~/lib/db/connection.server";
 import { News } from "~/lib/db/models/news.server";
 import { Alert } from "~/lib/db/models/alert.server";
@@ -44,12 +50,17 @@ import {
   type SerializedSafetyVideo,
   type SerializedSafetyTip,
 } from "~/lib/services/safety.server";
+import { getActiveITTips } from "~/lib/services/it-tip.server";
+import { getActiveExecutiveMessages } from "~/lib/services/executive-message.server";
+import { getCompanyImages } from "~/lib/services/company-info.server";
+import { buildSlides } from "~/components/dashboard";
+import type { CompanyImages } from "~/components/dashboard";
 
 // Loader for homepage data
 export async function loader({ request }: LoaderFunctionArgs) {
   await connectDB();
 
-  const [recentNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult] = await Promise.all([
+  const [recentNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([
     News.find({ status: "published" })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(5)
@@ -65,6 +76,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getSafetyVideos({ status: "published", showInSlideshow: true, limit: 10 }),
     // Fetch safety tips marked for slideshow (with images or PDFs)
     getSafetyTips({ status: "published", showInSlideshow: true, limit: 10 }),
+    // Fetch active IT tips
+    getActiveITTips(5),
+    // Fetch active executive messages
+    getActiveExecutiveMessages(),
+    // Fetch company images for slideshow
+    getCompanyImages(),
   ]);
 
   return Response.json({
@@ -94,6 +111,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })),
     safetyVideos: safetyVideosResult.videos.map(serializeSafetyVideo),
     safetyTips: safetyTipsResult.tips.map(serializeSafetyTip),
+    itTips: itTips.map((tip) => ({
+      id: tip._id.toString(),
+      title: tip.title,
+      content: tip.content,
+      icon: tip.icon,
+      category: tip.category,
+      isPinned: tip.isPinned,
+    })),
+    executiveMessages: executiveMessages.map((msg) => ({
+      id: msg._id.toString(),
+      name: msg.name,
+      title: msg.title,
+      photo: msg.photo,
+      message: msg.message,
+    })),
+    companyImages,
   });
 }
 
@@ -119,14 +152,31 @@ interface LoaderData {
   }>;
   safetyVideos: SerializedSafetyVideo[];
   safetyTips: SerializedSafetyTip[];
+  itTips: Array<{
+    id: string;
+    title: string;
+    content: string;
+    icon: string;
+    category: string;
+    isPinned: boolean;
+  }>;
+  executiveMessages: Array<{
+    id: string;
+    name: string;
+    title: string;
+    photo: string;
+    message: string;
+  }>;
+  companyImages: CompanyImages;
 }
 
-// Type for carousel items (news, safety videos, safety tips, PDFs)
+// Type for carousel items (news, safety videos, safety tips, PDFs, company values)
 type CarouselItem =
   | { type: "news"; data: LoaderData["recentNews"][0] }
   | { type: "video"; data: SerializedSafetyVideo }
   | { type: "tip"; data: SerializedSafetyTip }
-  | { type: "pdf"; data: SerializedSafetyTip }; // PDF documents from safety tips
+  | { type: "pdf"; data: SerializedSafetyTip } // PDF documents from safety tips
+  | { type: "company"; data: { id: string; title: string; image: string; alt: string } }; // Company values slides
 
 // Helper to format relative time
 function formatRelativeTime(dateString: string): string {
@@ -154,14 +204,268 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// IT Tips Slideshow Component - Shows ONE big readable tip at a time
+function ITTipsSlideshow({
+  tips,
+}: {
+  tips: LoaderData["itTips"];
+}) {
+  const [currentTip, setCurrentTip] = useState(0);
+
+  // Auto-rotate tips every 8 seconds
+  useEffect(() => {
+    if (tips.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentTip((prev) => (prev + 1) % tips.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [tips.length]);
+
+  // Category styling
+  const categoryIcons: Record<string, typeof Lightbulb> = {
+    security: Shield,
+    productivity: Zap,
+    shortcuts: Keyboard,
+    software: Monitor,
+    hardware: Cpu,
+    general: HelpCircle,
+  };
+
+  const categoryColors: Record<string, { bg: string; text: string; gradient: string }> = {
+    security: { bg: "bg-red-100", text: "text-red-600", gradient: "from-red-500 to-rose-500" },
+    productivity: { bg: "bg-green-100", text: "text-green-600", gradient: "from-green-500 to-emerald-500" },
+    shortcuts: { bg: "bg-blue-100", text: "text-blue-600", gradient: "from-blue-500 to-indigo-500" },
+    software: { bg: "bg-purple-100", text: "text-purple-600", gradient: "from-purple-500 to-violet-500" },
+    hardware: { bg: "bg-orange-100", text: "text-orange-600", gradient: "from-orange-500 to-amber-500" },
+    general: { bg: "bg-gray-100", text: "text-gray-600", gradient: "from-gray-500 to-slate-500" },
+  };
+
+  if (tips.length === 0) {
+    return (
+      <Card className="shadow-sm h-full bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardBody className="flex flex-col items-center justify-center py-12">
+          <Lightbulb size={48} className="text-gray-300 mb-3" />
+          <p className="text-gray-500 font-medium">No IT Tips Available</p>
+          <p className="text-sm text-gray-400">Check back later for helpful tips</p>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  // Ensure currentTip is within bounds
+  const safeTipIndex = currentTip >= tips.length ? 0 : currentTip;
+  const tip = tips[safeTipIndex];
+  const TipIcon = categoryIcons[tip.category] || Lightbulb;
+  const colors = categoryColors[tip.category] || categoryColors.general;
+
+  return (
+    <Card className="shadow-sm h-full overflow-hidden">
+      <div className="h-full flex flex-col">
+        {/* Header with gradient based on category */}
+        <div className={`bg-gradient-to-r ${colors.gradient} p-4 text-white`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <TipIcon size={24} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">IT Tip of the Moment</h3>
+                <p className="text-white/80 text-sm capitalize">{tip.category}</p>
+              </div>
+            </div>
+            {tip.isPinned && (
+              <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-xs">
+                <Pin size={12} />
+                <span>Pinned</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content - Big, Bold and Eye-Catching */}
+        <CardBody className={`flex-1 flex flex-col justify-center p-6 bg-gradient-to-br ${colors.bg} to-white`}>
+          {/* Title with colored accent */}
+          <div className="mb-4">
+            <h4 className={`text-2xl font-extrabold ${colors.text} mb-1`}>{tip.title}</h4>
+            <div className={`h-1 w-16 rounded-full bg-gradient-to-r ${colors.gradient}`} />
+          </div>
+          {/* Tip content - Bold and prominent */}
+          <div className={`p-4 rounded-xl bg-white shadow-sm border-l-4 ${colors.text.replace('text-', 'border-')}`}>
+            <p className="text-lg font-semibold text-gray-800 leading-relaxed">
+              {tip.content}
+            </p>
+          </div>
+        </CardBody>
+
+        {/* Navigation Footer */}
+        {tips.length > 1 && (
+          <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
+            {/* Dot Indicators */}
+            <div className="flex gap-1.5">
+              {tips.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentTip(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    idx === safeTipIndex
+                      ? `w-6 ${colors.bg.replace("bg-", "bg-")}`
+                      : "w-2 bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  style={{
+                    backgroundColor: idx === safeTipIndex ? (colors.gradient.includes("blue") ? "#3b82f6" : undefined) : undefined,
+                  }}
+                  aria-label={`Go to tip ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            <div className="flex gap-1">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setCurrentTip((prev) => (prev - 1 + tips.length) % tips.length)}
+                aria-label="Previous tip"
+              >
+                <ChevronLeft size={16} />
+              </Button>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setCurrentTip((prev) => (prev + 1) % tips.length)}
+                aria-label="Next tip"
+              >
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+// Executive Messages Slideshow Component
+function ExecutiveMessagesCard({
+  messages,
+  currentSlide,
+  setCurrentSlide,
+}: {
+  messages: LoaderData["executiveMessages"];
+  currentSlide: number;
+  setCurrentSlide: (value: number | ((prev: number) => number)) => void;
+}) {
+  // Use database messages if available, otherwise show default CEO message
+  const messagesToShow = messages.length > 0
+    ? messages
+    : [{
+        id: "default-ceo",
+        name: "Angela List",
+        title: "CEO, Nguvu Mining Limited",
+        photo: "/images/ceo.jpg",
+        message: "Together, we are building a safer, stronger, and more connected workplace. This platform is your hub for staying informed, engaged, and part of our mining family. Safety first, always.",
+      }];
+
+  // Auto-rotate executive messages
+  useEffect(() => {
+    if (messagesToShow.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % messagesToShow.length);
+    }, 8000); // 8 seconds per slide
+    return () => clearInterval(timer);
+  }, [messagesToShow.length, setCurrentSlide]);
+
+  // Reset slide if it's out of bounds
+  const safeSlide = currentSlide >= messagesToShow.length ? 0 : currentSlide;
+  const currentExec = messagesToShow[safeSlide];
+
+  return (
+    <Card className="mb-6 overflow-hidden shadow-sm">
+      <CardBody className="p-0">
+        <div className="flex flex-col sm:flex-row">
+          {/* Executive Image */}
+          <div className="sm:w-48 md:w-56 flex-shrink-0 relative">
+            <img
+              src={currentExec.photo}
+              alt={currentExec.name}
+              className="w-full h-48 sm:h-full object-cover object-top"
+            />
+            {/* Slide indicators on image */}
+            {messagesToShow.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {messagesToShow.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      idx === safeSlide ? "w-4 bg-white" : "w-1.5 bg-white/50"
+                    }`}
+                    aria-label={`Go to message ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Welcome Message */}
+          <div className="flex-1 p-5 sm:p-6 flex flex-col justify-center bg-gradient-to-r from-gray-50 to-white relative">
+            <p className="text-primary-600 text-xs font-semibold uppercase tracking-wider mb-1">
+              Message from Leadership
+            </p>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+              Welcome to ARL Connect
+            </h3>
+            <p className="text-sm text-gray-600 leading-relaxed mb-3">
+              "{currentExec.message}"
+            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{currentExec.name}</p>
+                <p className="text-xs text-gray-500">{currentExec.title}</p>
+              </div>
+              {/* Navigation arrows */}
+              {messagesToShow.length > 1 && (
+                <div className="flex gap-1">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => setCurrentSlide((prev) => (prev - 1 + messagesToShow.length) % messagesToShow.length)}
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => setCurrentSlide((prev) => (prev + 1) % messagesToShow.length)}
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
 export default function Home() {
-  const { recentNews, upcomingEvents, activeAlerts, safetyVideos, safetyTips } = useLoaderData<LoaderData>();
+  const { recentNews, upcomingEvents, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages } = useLoaderData<LoaderData>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
+  // Build slides from company images (database or defaults)
+  const companySlides = buildSlides(companyImages);
+
   // Build carousel items array - only items marked for slideshow by admin
   const carouselItems: CarouselItem[] = [
+    // Add company values slides (Mission, Vision, Values) first
+    ...companySlides.map((slide): CarouselItem => ({ type: "company", data: slide })),
     // Add safety videos marked for slideshow
     ...safetyVideos
       .filter((v) => v.videoUrl) // Must have video URL
@@ -182,6 +486,7 @@ export default function Home() {
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [execSlide, setExecSlide] = useState(0);
 
   // Get current carousel item
   const currentItem = carouselItems[currentSlide];
@@ -202,9 +507,21 @@ export default function Home() {
   useEffect(() => {
     if (videoRef.current) {
       if (currentItem?.type === "video") {
-        // Auto-play video when it becomes active (muted for autoplay policy)
-        videoRef.current.play().catch(() => {});
-        setIsPlaying(true);
+        // Ensure muted for autoplay policy, then attempt autoplay
+        videoRef.current.muted = true;
+        setIsMuted(true);
+        setIsPlaying(false);
+
+        videoRef.current
+          .play()
+          .then(() => {
+            // onPlay will also run, but keep state consistent if it doesn't
+            setIsPlaying(true);
+          })
+          .catch(() => {
+            // Autoplay blocked: keep paused and show play button
+            setIsPlaying(false);
+          });
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -225,10 +542,13 @@ export default function Home() {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        setIsPlaying(false);
       } else {
-        videoRef.current.play().catch(() => {});
+        videoRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -246,6 +566,7 @@ export default function Home() {
       case "video": return `/safety-videos`;
       case "tip": return `/safety-tips/${item.data.slug}`;
       case "pdf": return item.data.documentUrl; // Direct PDF link
+      case "company": return `/policies`; // Link to policies page where full slideshow is
     }
   };
 
@@ -276,6 +597,12 @@ export default function Home() {
           color: "#2563eb", // blue
           icon: <FileText size={12} className="mr-1" />,
         };
+      case "company":
+        return {
+          label: item.data.title,
+          color: "#d2ab67", // brand gold
+          icon: null,
+        };
     }
   };
 
@@ -293,10 +620,12 @@ export default function Home() {
               <>
                 {/* Safety Video with full playback controls */}
                 <video
+                  key={currentItem.data.id}
                   ref={videoRef}
                   src={currentItem.data.videoUrl}
                   poster={currentItem.data.thumbnail || undefined}
                   className="absolute inset-0 w-full h-full object-cover"
+                  preload="metadata"
                   muted={isMuted}
                   playsInline
                   onClick={togglePlayPause}
@@ -394,6 +723,17 @@ export default function Home() {
                 <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
               </>
+            ) : currentItem.type === "company" ? (
+              <>
+                {/* Company Values - Mission, Vision, Values - full image display */}
+                <img
+                  src={currentItem.data.image}
+                  alt={currentItem.data.alt}
+                  className="absolute inset-0 w-full h-full object-contain sm:object-cover bg-gray-900"
+                />
+                {/* Minimal overlay to keep text readable without covering the branded image */}
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+              </>
             ) : (
               <>
                 {/* News item with featured image - fills entire card */}
@@ -407,45 +747,56 @@ export default function Home() {
               </>
             )}
 
-            {/* Text content - positioned at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-              <Chip
-                size="sm"
-                style={{ backgroundColor: getSlideBadge(currentItem).color }}
-                className="mb-3 text-white font-medium"
-              >
-                <span className="flex items-center">
-                  {getSlideBadge(currentItem).icon}
-                  {getSlideBadge(currentItem).label}
-                </span>
-              </Chip>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg leading-tight">
-                {currentItem.data.title}
-              </h1>
-              <p className="mt-2 text-sm sm:text-base text-white/90 line-clamp-2 max-w-2xl drop-shadow">
-                {currentItem.type === "news" ? (currentItem.data.excerpt || "Click to read more") :
-                 currentItem.type === "video" ? currentItem.data.description :
-                 currentItem.type === "pdf" ? (currentItem.data.summary || "Click to view document") :
-                 (currentItem.data.summary || "Click to read more")}
-              </p>
-              {currentItem.type === "pdf" ? (
-                <a
-                  href={currentItem.data.documentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full transition-colors"
-                >
-                  <FileText size={16} /> View Document <ExternalLink size={14} />
-                </a>
-              ) : (
+            {/* Text content - positioned at bottom (minimal for company slides since image has text) */}
+            {currentItem.type === "company" ? (
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
                 <Link
-                  to={getSlideLink(currentItem)}
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors backdrop-blur-sm"
+                  to="/policies"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-full transition-colors"
                 >
-                  {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={16} />
+                  View All Policies <ArrowRight size={16} />
                 </Link>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                <Chip
+                  size="sm"
+                  style={{ backgroundColor: getSlideBadge(currentItem).color }}
+                  className="mb-3 text-white font-medium"
+                >
+                  <span className="flex items-center">
+                    {getSlideBadge(currentItem).icon}
+                    {getSlideBadge(currentItem).label}
+                  </span>
+                </Chip>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg leading-tight">
+                  {currentItem.data.title}
+                </h1>
+                <p className="mt-2 text-sm sm:text-base text-white/90 line-clamp-2 max-w-2xl drop-shadow">
+                  {currentItem.type === "news" ? (currentItem.data.excerpt || "Click to read more") :
+                   currentItem.type === "video" ? currentItem.data.description :
+                   currentItem.type === "pdf" ? (currentItem.data.summary || "Click to view document") :
+                   (currentItem.data.summary || "Click to read more")}
+                </p>
+                {currentItem.type === "pdf" ? (
+                  <a
+                    href={currentItem.data.documentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full transition-colors"
+                  >
+                    <FileText size={16} /> View Document <ExternalLink size={14} />
+                  </a>
+                ) : (
+                  <Link
+                    to={getSlideLink(currentItem)}
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors backdrop-blur-sm"
+                  >
+                    {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={16} />
+                  </Link>
+                )}
+              </div>
+            )}
 
             {/* Carousel Controls */}
             {carouselItems.length > 1 && (
@@ -480,7 +831,9 @@ export default function Home() {
                               ? "w-2.5 bg-blue-500/80"
                               : item.type === "tip"
                                 ? "w-2.5 bg-green-500/80"
-                                : "w-2.5 bg-white/50"
+                                : item.type === "company"
+                                  ? "w-2.5 bg-primary-500/80"
+                                  : "w-2.5 bg-white/50"
                       }`}
                       aria-label={`Go to slide ${idx + 1} (${item.type})`}
                     />
@@ -497,43 +850,14 @@ export default function Home() {
         </Card>
       )}
 
-      {/* CEO Welcome Message */}
-      <Card className="mb-6 overflow-hidden shadow-sm">
-        <CardBody className="p-0">
-          <div className="flex flex-col sm:flex-row">
-            {/* CEO Image */}
-            <div className="sm:w-48 md:w-56 flex-shrink-0">
-              <img
-                src="/images/ceo.jpg"
-                alt="Angela List - CEO"
-                className="w-full h-48 sm:h-full object-cover object-top"
-              />
-            </div>
-            {/* Welcome Message */}
-            <div className="flex-1 p-5 sm:p-6 flex flex-col justify-center bg-gradient-to-r from-gray-50 to-white">
-              <p className="text-primary-600 text-xs font-semibold uppercase tracking-wider mb-1">
-                Message from the CEO
-              </p>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                Welcome to ARL Connect
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                "Together, we are building a safer, stronger, and more connected workplace.
-                This platform is your hub for staying informed, engaged, and part of our mining family.
-                Safety first, always."
-              </p>
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">Angela List</p>
-                  <p className="text-xs text-gray-500">CEO, Nguvu Mining Limited</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      {/* Executive Messages Slideshow */}
+      <ExecutiveMessagesCard
+        messages={executiveMessages}
+        currentSlide={execSlide}
+        setCurrentSlide={setExecSlide}
+      />
 
-      {/* Calendar and Gold Price Row */}
+      {/* Calendar and IT Tips Row */}
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
         {/* Events Calendar */}
         <div className="lg:col-span-2">
@@ -552,10 +876,8 @@ export default function Home() {
             }))}
           />
         </div>
-        {/* Gold Price Widget */}
-        <div>
-          <GoldPriceWidget />
-        </div>
+        {/* IT Tips Card - Slideshow Style (ONE tip at a time) */}
+        <ITTipsSlideshow tips={itTips} />
       </div>
 
       {/* News Posts Grid */}

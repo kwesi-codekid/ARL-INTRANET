@@ -21,18 +21,33 @@ import {
 } from "@heroui/react";
 import { ArrowLeft, Plus, Edit2, Trash2, FolderOpen } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useActionData, useNavigation, Form, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAllCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "~/lib/services/suggestion.server";
-import { Suggestion } from "~/lib/db/models/suggestion.server";
+import { useLoaderData, useActionData, useNavigation, Form, Link, useSubmit } from "react-router";
+
+type LoaderData = {
+  categories: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    isActive: boolean;
+    order: number;
+    suggestionCount: number;
+  }>;
+};
+
+type ActionData =
+  {
+    success?: boolean;
+    message?: string;
+    error?: string;
+  };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getAllCategories } = await import("~/lib/services/suggestion.server");
+  const { Suggestion } = await import("~/lib/db/models/suggestion.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -61,6 +76,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { createCategory, updateCategory, deleteCategory } = await import(
+    "~/lib/services/suggestion.server"
+  );
+
   await requireAuth(request);
   await connectDB();
 
@@ -120,10 +141,11 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AdminSuggestionCategoriesPage() {
-  const { categories } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const { categories } = useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const submit = useSubmit();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -169,7 +191,7 @@ export default function AdminSuggestionCategoriesPage() {
       </div>
 
       {/* Messages */}
-      {actionData?.success && (
+      {actionData?.success && actionData.message && (
         <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">
           {actionData.message}
         </div>
@@ -188,7 +210,7 @@ export default function AdminSuggestionCategoriesPage() {
         <CardBody>
           {categories.length > 0 ? (
             <div className="space-y-3">
-              {categories.map((category) => (
+              {categories.map((category: LoaderData["categories"][number]) => (
                 <div
                   key={category.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
@@ -210,32 +232,20 @@ export default function AdminSuggestionCategoriesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Form method="post">
-                      <input type="hidden" name="intent" value="toggle-active" />
-                      <input type="hidden" name="id" value={category.id} />
-                      <input
-                        type="hidden"
-                        name="isActive"
-                        value={(!category.isActive).toString()}
-                      />
-                      <Switch
-                        size="sm"
-                        isSelected={category.isActive}
-                        onChange={() => {}}
-                        onValueChange={() => {
-                          // Submit the form
-                          const form = document.createElement("form");
-                          form.method = "post";
-                          form.innerHTML = `
-                            <input type="hidden" name="intent" value="toggle-active" />
-                            <input type="hidden" name="id" value="${category.id}" />
-                            <input type="hidden" name="isActive" value="${!category.isActive}" />
-                          `;
-                          document.body.appendChild(form);
-                          form.submit();
-                        }}
-                      />
-                    </Form>
+                    <Switch
+                      size="sm"
+                      isSelected={category.isActive}
+                      onValueChange={(value) => {
+                        submit(
+                          {
+                            intent: "toggle-active",
+                            id: category.id,
+                            isActive: value.toString(),
+                          },
+                          { method: "post" }
+                        );
+                      }}
+                    />
                     <Button
                       isIconOnly
                       size="sm"
@@ -245,24 +255,19 @@ export default function AdminSuggestionCategoriesPage() {
                       <Edit2 size={16} />
                     </Button>
                     {category.suggestionCount === 0 && (
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="delete" />
-                        <input type="hidden" name="id" value={category.id} />
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          color="danger"
-                          variant="flat"
-                          type="submit"
-                          onPress={(e) => {
-                            if (!confirm("Delete this category?")) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </Form>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        color="danger"
+                        variant="flat"
+                        type="button"
+                        onPress={() => {
+                          if (!confirm("Delete this category?")) return;
+                          submit({ intent: "delete", id: category.id }, { method: "post" });
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                     )}
                   </div>
                 </div>

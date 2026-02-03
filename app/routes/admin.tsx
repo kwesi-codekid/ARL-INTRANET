@@ -37,8 +37,8 @@ import {
   UtensilsCrossed,
   MessageSquare,
   Bot,
-  Rss,
   HelpCircle,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { requireAuth, getSessionData } from "~/lib/services/session.server";
@@ -59,6 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 const sidebarItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Policies", href: "/admin/policies", icon: FileText },
   { label: "News", href: "/admin/news", icon: Newspaper },
   { label: "Events", href: "/admin/events", icon: Calendar },
   { label: "Gallery", href: "/admin/gallery", icon: Image },
@@ -68,7 +69,8 @@ const sidebarItems = [
   { label: "Menus", href: "/admin/menus", icon: UtensilsCrossed },
   { label: "Suggestions", href: "/admin/suggestions", icon: MessageSquare },
   { label: "Chatbot FAQs", href: "/admin/faqs", icon: Bot },
-  { label: "News Sources", href: "/admin/news-sources", icon: Rss },
+  { label: "IT Tips", href: "/admin/it-tips", icon: Lightbulb },
+  { label: "Executive Messages", href: "/admin/executive-messages", icon: Users },
 ];
 
 const safetyItems = [

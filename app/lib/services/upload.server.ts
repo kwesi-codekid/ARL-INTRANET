@@ -271,6 +271,55 @@ const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024; // 50MB
  * Upload a PDF document
  * Used for safety documents and other PDF files
  */
+export async function uploadPdf(
+  file: File,
+  subdir: string = "policies"
+): Promise<UploadResult> {
+  // Validate file type
+  if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
+    return {
+      success: false,
+      error: `Invalid file type. Only PDF files are allowed.`,
+    };
+  }
+
+  // Validate file size (20MB for policies)
+  const MAX_PDF_SIZE = 20 * 1024 * 1024;
+  if (file.size > MAX_PDF_SIZE) {
+    return {
+      success: false,
+      error: `File too large. Maximum size: ${MAX_PDF_SIZE / 1024 / 1024}MB`,
+    };
+  }
+
+  try {
+    const uploadDir = ensureUploadDir(subdir);
+
+    // Generate unique filename
+    const ext = ".pdf";
+    const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
+    const filepath = path.join(uploadDir, filename);
+
+    // Convert File to Buffer and save
+    const buffer = Buffer.from(await file.arrayBuffer());
+    fs.writeFileSync(filepath, buffer);
+
+    // Return the public URL
+    const url = `/uploads/${subdir}/${filename}`;
+    return { success: true, url };
+  } catch (error) {
+    console.error("PDF upload error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "PDF upload failed",
+    };
+  }
+}
+
+/**
+ * Upload a PDF document (legacy alias)
+ * Used for safety documents and other PDF files
+ */
 export async function uploadDocument(
   file: File,
   subdir: string = "documents"

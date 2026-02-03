@@ -17,7 +17,7 @@ import {
   Divider,
   Image,
 } from "@heroui/react";
-import { ArrowLeft, Save, ImagePlus, X, Camera, Calendar } from "lucide-react";
+import { ArrowLeft, Save, ImagePlus, X, Camera, Calendar, ExternalLink, Link as LinkIcon } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form, Link, redirect } from "react-router";
 import { requireAuth, getSessionData } from "~/lib/services/session.server";
@@ -65,6 +65,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const eventId = formData.get("event") as string;
   const status = formData.get("status") as "draft" | "published";
   const isFeatured = formData.get("isFeatured") === "true";
+  const isExternalGallery = formData.get("isExternalGallery") === "true";
+  const externalGalleryUrl = formData.get("externalGalleryUrl") as string;
 
   // Handle file upload
   let coverImage: string | null = null;
@@ -107,11 +109,16 @@ export async function action({ request }: ActionFunctionArgs) {
     coverImage,
     status,
     isFeatured,
+    isExternalGallery,
+    externalGalleryUrl: isExternalGallery ? externalGalleryUrl : undefined,
     photoCount: 0,
     createdBy: sessionData?.userId,
   });
 
-  // Redirect to photos management to add photos
+  // If external gallery, redirect to gallery list, otherwise to photos management
+  if (isExternalGallery) {
+    return redirect(`/admin/gallery?success=created`);
+  }
   return redirect(`/admin/gallery/${album._id}/photos?success=created`);
 }
 
@@ -122,6 +129,7 @@ export default function AdminGalleryNewPage() {
   const isSubmitting = navigation.state === "submitting";
 
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isExternalGallery, setIsExternalGallery] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -289,6 +297,40 @@ export default function AdminGalleryNewPage() {
                 >
                   Create & Add Photos
                 </Button>
+              </CardBody>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <h2 className="font-semibold">External Gallery</h2>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Use External Link</p>
+                    <p className="text-xs text-gray-500">
+                      Link to Google Drive, OneDrive, etc.
+                    </p>
+                  </div>
+                  <Switch
+                    isSelected={isExternalGallery}
+                    onValueChange={setIsExternalGallery}
+                    size="sm"
+                  />
+                </div>
+                <input type="hidden" name="isExternalGallery" value={isExternalGallery.toString()} />
+
+                {isExternalGallery && (
+                  <Input
+                    name="externalGalleryUrl"
+                    label="Gallery URL"
+                    placeholder="https://drive.google.com/..."
+                    isRequired={isExternalGallery}
+                    classNames={{ inputWrapper: "bg-gray-50" }}
+                    startContent={<LinkIcon size={16} className="text-gray-400" />}
+                    description="Paste the shareable link to your photos"
+                  />
+                )}
               </CardBody>
             </Card>
 

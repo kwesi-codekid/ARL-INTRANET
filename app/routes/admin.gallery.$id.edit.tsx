@@ -17,7 +17,7 @@ import {
   Divider,
   Image,
 } from "@heroui/react";
-import { ArrowLeft, Save, ImagePlus, X, Camera, Calendar, Trash2, Images } from "lucide-react";
+import { ArrowLeft, Save, ImagePlus, X, Camera, Calendar, Trash2, Images, ExternalLink, Link as LinkIcon } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
 import { requireAuth, getSessionData } from "~/lib/services/session.server";
@@ -61,6 +61,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       photoCount: album.photoCount,
       status: album.status,
       isFeatured: album.isFeatured,
+      isExternalGallery: album.isExternalGallery || false,
+      externalGalleryUrl: album.externalGalleryUrl,
     },
     events: events.map((e) => ({
       id: e._id.toString(),
@@ -91,6 +93,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const eventId = formData.get("event") as string;
   const status = formData.get("status") as "draft" | "published";
   const isFeatured = formData.get("isFeatured") === "true";
+  const isExternalGallery = formData.get("isExternalGallery") === "true";
+  const externalGalleryUrl = formData.get("externalGalleryUrl") as string;
 
   // Handle file upload
   let coverImage: string | undefined;
@@ -141,6 +145,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     event: eventId || undefined,
     status,
     isFeatured,
+    isExternalGallery,
+    externalGalleryUrl: isExternalGallery ? externalGalleryUrl : undefined,
   };
 
   if (coverImage) {
@@ -161,6 +167,7 @@ export default function AdminGalleryEditPage() {
   const successMessage = searchParams.get("success");
 
   const [isFeatured, setIsFeatured] = useState(album.isFeatured);
+  const [isExternalGallery, setIsExternalGallery] = useState(album.isExternalGallery);
   const [imagePreview, setImagePreview] = useState<string | null>(album.coverImage);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -202,15 +209,29 @@ export default function AdminGalleryEditPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            as={Link}
-            to={`/admin/gallery/${album.id}/photos`}
-            variant="flat"
-            color="primary"
-            startContent={<Images size={16} />}
-          >
-            Manage Photos ({album.photoCount})
-          </Button>
+          {!isExternalGallery && (
+            <Button
+              as={Link}
+              to={`/admin/gallery/${album.id}/photos`}
+              variant="flat"
+              color="primary"
+              startContent={<Images size={16} />}
+            >
+              Manage Photos ({album.photoCount})
+            </Button>
+          )}
+          {isExternalGallery && album.externalGalleryUrl && (
+            <Button
+              as="a"
+              href={album.externalGalleryUrl}
+              target="_blank"
+              variant="flat"
+              color="secondary"
+              startContent={<ExternalLink size={16} />}
+            >
+              View External Gallery
+            </Button>
+          )}
           <Button
             color="danger"
             variant="flat"
@@ -370,6 +391,41 @@ export default function AdminGalleryEditPage() {
 
             <Card className="shadow-sm">
               <CardHeader>
+                <h2 className="font-semibold">External Gallery</h2>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Use External Link</p>
+                    <p className="text-xs text-gray-500">
+                      Link to Google Drive, OneDrive, etc.
+                    </p>
+                  </div>
+                  <Switch
+                    isSelected={isExternalGallery}
+                    onValueChange={setIsExternalGallery}
+                    size="sm"
+                  />
+                </div>
+                <input type="hidden" name="isExternalGallery" value={isExternalGallery.toString()} />
+
+                {isExternalGallery && (
+                  <Input
+                    name="externalGalleryUrl"
+                    label="Gallery URL"
+                    placeholder="https://drive.google.com/..."
+                    defaultValue={album.externalGalleryUrl || ""}
+                    isRequired={isExternalGallery}
+                    classNames={{ inputWrapper: "bg-gray-50" }}
+                    startContent={<LinkIcon size={16} className="text-gray-400" />}
+                    description="Paste the shareable link to your photos"
+                  />
+                )}
+              </CardBody>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
                 <h2 className="font-semibold">Link to Event</h2>
               </CardHeader>
               <CardBody>
@@ -394,24 +450,39 @@ export default function AdminGalleryEditPage() {
                 <h2 className="font-semibold">Quick Actions</h2>
               </CardHeader>
               <CardBody className="space-y-2">
-                <Button
-                  as="a"
-                  href={`/gallery/${album.slug}`}
-                  target="_blank"
-                  variant="flat"
-                  fullWidth
-                >
-                  View Album Page
-                </Button>
-                <Button
-                  as={Link}
-                  to={`/admin/gallery/${album.id}/photos`}
-                  variant="flat"
-                  fullWidth
-                  startContent={<Images size={16} />}
-                >
-                  Manage Photos
-                </Button>
+                {isExternalGallery && album.externalGalleryUrl ? (
+                  <Button
+                    as="a"
+                    href={album.externalGalleryUrl}
+                    target="_blank"
+                    variant="flat"
+                    fullWidth
+                    startContent={<ExternalLink size={16} />}
+                  >
+                    View External Gallery
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      as="a"
+                      href={`/gallery/${album.slug}`}
+                      target="_blank"
+                      variant="flat"
+                      fullWidth
+                    >
+                      View Album Page
+                    </Button>
+                    <Button
+                      as={Link}
+                      to={`/admin/gallery/${album.id}/photos`}
+                      variant="flat"
+                      fullWidth
+                      startContent={<Images size={16} />}
+                    >
+                      Manage Photos
+                    </Button>
+                  </>
+                )}
               </CardBody>
             </Card>
           </div>

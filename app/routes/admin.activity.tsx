@@ -24,6 +24,34 @@ import { useLoaderData, useSearchParams } from "react-router";
 import { requireSuperAdmin } from "~/lib/services/session.server";
 import { getActivityLogs, getActivityStats } from "~/lib/services/activity-log.server";
 
+// Type definitions
+interface ActivityLog {
+  _id: string;
+  userId?: string;
+  userName?: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  details?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+}
+
+interface ActivityStats {
+  todayCount: number;
+  weekCount: number;
+  totalCount: number;
+  recentLogins: number;
+}
+
+interface LoaderData {
+  logs: ActivityLog[];
+  pagination: { page: number; totalPages: number; total: number };
+  stats: ActivityStats;
+  filters: { resource?: string; action?: string };
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireSuperAdmin(request);
 
@@ -77,7 +105,7 @@ const resourceLabels: Record<string, string> = {
 };
 
 export default function AdminActivityPage() {
-  const { logs, pagination, stats, filters } = useLoaderData<typeof loader>();
+  const { logs, pagination, stats, filters } = useLoaderData<LoaderData>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleFilterChange = (key: string, value: string) => {
@@ -119,7 +147,7 @@ export default function AdminActivityPage() {
     });
   };
 
-  const getActionDescription = (log: typeof logs[0]) => {
+  const getActionDescription = (log: ActivityLog) => {
     const resource = resourceLabels[log.resource] || log.resource;
 
     switch (log.action) {

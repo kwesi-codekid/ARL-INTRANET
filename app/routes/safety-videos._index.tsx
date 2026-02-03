@@ -23,6 +23,7 @@ import { Search, Video, Play, Eye, Clock, X } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
+import { VideoPlayer } from "~/components/ui";
 import { connectDB } from "~/lib/db/connection.server";
 import {
   getSafetyVideos,
@@ -271,22 +272,17 @@ export default function SafetyVideosPage() {
         size="4xl"
         classNames={{
           base: "bg-black",
-          closeButton: "text-white hover:bg-white/20",
+          closeButton: "text-white hover:bg-white/20 z-50",
         }}
       >
         <ModalContent>
           {selectedVideo && (
             <ModalBody className="p-0">
-              <div className="aspect-video">
-                <video
-                  src={selectedVideo.videoUrl}
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                >
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+              <VideoPlayer
+                src={selectedVideo.videoUrl}
+                title={selectedVideo.title}
+                autoPlay={true}
+              />
               <div className="p-4 bg-gray-900 text-white">
                 <h3 className="font-semibold text-lg">{selectedVideo.title}</h3>
                 <p className="text-gray-400 text-sm mt-1">{selectedVideo.description}</p>

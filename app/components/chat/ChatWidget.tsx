@@ -363,7 +363,7 @@ export function ChatWidget() {
               </Button>
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
-              Powered by Claude AI
+              ARL Knowledge Base Assistant
             </p>
           </div>
         </CardBody>

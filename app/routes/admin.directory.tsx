@@ -44,6 +44,9 @@ import {
   Camera,
   X,
   Download,
+  Crown,
+  Building2,
+  MapPin,
 } from "lucide-react";
 import { connectDB } from "~/lib/db/connection.server";
 import { requireAuth, getSessionData } from "~/lib/services/session.server";
@@ -58,7 +61,35 @@ import {
   importContactsFromCSV,
   type CSVContactRow,
 } from "~/lib/services/contact.server";
-import type { IContact, IDepartment } from "~/lib/db/models/contact.server";
+import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
+
+// Type definitions
+interface ContactStats {
+  total: number;
+  emergency: number;
+  management: number;
+  siteContacts: number;
+  headOfficeContacts: number;
+}
+
+interface LoaderData {
+  contacts: IContact[];
+  total: number;
+  page: number;
+  totalPages: number;
+  departments: IDepartment[];
+  stats: ContactStats;
+  filters: { search: string; department: string; management: string; location: string };
+}
+
+interface ActionData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  imported?: number;
+  skipped?: number;
+  errors?: string[];
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireAuth(request);
@@ -67,12 +98,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const department = url.searchParams.get("department") || "";
+  const management = url.searchParams.get("management") || "";
+  const location = url.searchParams.get("location") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
 
   const [contactsResult, departments, stats] = await Promise.all([
     getContacts({
       search: search || undefined,
       department: department || undefined,
+      isManagement: management === "true" ? true : undefined,
+      location: location as ContactLocation || undefined,
       includeInactive: true,
       page,
       limit: 20,
@@ -88,7 +123,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalPages: contactsResult.totalPages,
     departments: JSON.parse(JSON.stringify(departments)),
     stats,
-    filters: { search, department },
+    filters: { search, department, management, location },
   });
 }
 
@@ -103,8 +138,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Create Contact
   if (intent === "create") {
     const data = {
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
+      name: formData.get("name") as string,
       phone: formData.get("phone") as string,
       phoneExtension: formData.get("phoneExtension") as string || undefined,
       email: formData.get("email") as string || undefined,
@@ -112,10 +146,12 @@ export async function action({ request }: ActionFunctionArgs) {
       position: formData.get("position") as string,
       photo: formData.get("photo") as string || undefined,
       isEmergencyContact: formData.get("isEmergencyContact") === "true",
+      isManagement: formData.get("isManagement") === "true",
+      location: (formData.get("location") as ContactLocation) || "site",
       isActive: true,
     };
 
-    if (!data.firstName || !data.lastName || !data.phone || !data.department || !data.position) {
+    if (!data.name || !data.phone || !data.department || !data.position) {
       return Response.json({ error: "All required fields must be filled" });
     }
 
@@ -126,7 +162,7 @@ export async function action({ request }: ActionFunctionArgs) {
       action: "create",
       resource: "contact",
       resourceId: contact._id.toString(),
-      details: { name: `${data.firstName} ${data.lastName}` },
+      details: { name: data.name },
       request,
     });
 
@@ -137,8 +173,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "update") {
     const id = formData.get("id") as string;
     const data = {
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
+      name: formData.get("name") as string,
       phone: formData.get("phone") as string,
       phoneExtension: formData.get("phoneExtension") as string || undefined,
       email: formData.get("email") as string || undefined,
@@ -146,6 +181,8 @@ export async function action({ request }: ActionFunctionArgs) {
       position: formData.get("position") as string,
       photo: formData.get("photo") as string || undefined,
       isEmergencyContact: formData.get("isEmergencyContact") === "true",
+      isManagement: formData.get("isManagement") === "true",
+      location: (formData.get("location") as ContactLocation) || "site",
       isActive: formData.get("isActive") === "true",
     };
 
@@ -156,7 +193,7 @@ export async function action({ request }: ActionFunctionArgs) {
       action: "update",
       resource: "contact",
       resourceId: id,
-      details: { name: `${data.firstName} ${data.lastName}` },
+      details: { name: data.name },
       request,
     });
 
@@ -194,14 +231,15 @@ export async function action({ request }: ActionFunctionArgs) {
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(",").map(v => v.trim());
         const row: CSVContactRow = {
-          firstName: values[headers.indexOf("firstname")] || values[headers.indexOf("first name")] || "",
-          lastName: values[headers.indexOf("lastname")] || values[headers.indexOf("last name")] || "",
+          name: values[headers.indexOf("name")] || "",
           phone: values[headers.indexOf("phone")] || "",
           phoneExtension: values[headers.indexOf("extension")] || values[headers.indexOf("ext")] || "",
           email: values[headers.indexOf("email")] || "",
           departmentCode: values[headers.indexOf("department")] || values[headers.indexOf("dept")] || "",
           position: values[headers.indexOf("position")] || values[headers.indexOf("title")] || "",
           isEmergencyContact: values[headers.indexOf("emergency")] || "",
+          isManagement: values[headers.indexOf("management")] || "",
+          location: values[headers.indexOf("location")] || "",
         };
         rows.push(row);
       }
@@ -237,8 +275,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function AdminDirectory() {
   const { contacts, total, page, totalPages, departments, stats, filters } =
-    useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+    useLoaderData<LoaderData>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
@@ -323,6 +361,28 @@ export default function AdminDirectory() {
     setSearchParams(params);
   };
 
+  const handleManagementChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value && value !== "all") {
+      params.set("management", value);
+    } else {
+      params.delete("management");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  const handleLocationChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value && value !== "all") {
+      params.set("location", value);
+    } else {
+      params.delete("location");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", newPage.toString());
@@ -332,39 +392,63 @@ export default function AdminDirectory() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <Card>
-          <CardBody className="flex flex-row items-center gap-4">
-            <div className="rounded-lg bg-primary-100 p-3">
-              <Users className="h-6 w-6 text-primary-600" />
+          <CardBody className="flex flex-row items-center gap-3 p-4">
+            <div className="rounded-lg bg-primary-100 p-2.5">
+              <Users className="h-5 w-5 text-primary-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Contacts</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-xs text-gray-500">Total</p>
+              <p className="text-xl font-bold">{stats.total}</p>
             </div>
           </CardBody>
         </Card>
 
         <Card>
-          <CardBody className="flex flex-row items-center gap-4">
-            <div className="rounded-lg bg-warning-100 p-3">
-              <AlertTriangle className="h-6 w-6 text-warning-600" />
+          <CardBody className="flex flex-row items-center gap-3 p-4">
+            <div className="rounded-lg bg-amber-100 p-2.5">
+              <Crown className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Emergency Contacts</p>
-              <p className="text-2xl font-bold">{stats.emergency}</p>
+              <p className="text-xs text-gray-500">Management</p>
+              <p className="text-xl font-bold">{stats.management}</p>
             </div>
           </CardBody>
         </Card>
 
         <Card>
-          <CardBody className="flex flex-row items-center gap-4">
-            <div className="rounded-lg bg-secondary-100 p-3">
-              <Phone className="h-6 w-6 text-secondary-600" />
+          <CardBody className="flex flex-row items-center gap-3 p-4">
+            <div className="rounded-lg bg-blue-100 p-2.5">
+              <Building2 className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Departments</p>
-              <p className="text-2xl font-bold">{departments.length}</p>
+              <p className="text-xs text-gray-500">Head Office</p>
+              <p className="text-xl font-bold">{stats.headOfficeContacts}</p>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="flex flex-row items-center gap-3 p-4">
+            <div className="rounded-lg bg-green-100 p-2.5">
+              <MapPin className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Site</p>
+              <p className="text-xl font-bold">{stats.siteContacts}</p>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody className="flex flex-row items-center gap-3 p-4">
+            <div className="rounded-lg bg-warning-100 p-2.5">
+              <AlertTriangle className="h-5 w-5 text-warning-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Emergency</p>
+              <p className="text-xl font-bold">{stats.emergency}</p>
             </div>
           </CardBody>
         </Card>
@@ -372,47 +456,85 @@ export default function AdminDirectory() {
 
       {/* Filters & Actions */}
       <Card>
-        <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-col gap-4 sm:flex-row">
-            <Input
-              placeholder="Search contacts..."
-              startContent={<Search size={18} className="text-gray-400" />}
-              defaultValue={filters.search}
-              onValueChange={handleSearch}
-              className="sm:max-w-xs"
-              classNames={{ inputWrapper: "bg-gray-50" }}
-            />
+        <CardBody className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-1 flex-wrap gap-3">
+              <Input
+                placeholder="Search contacts..."
+                startContent={<Search size={18} className="text-gray-400" />}
+                defaultValue={filters.search}
+                onValueChange={handleSearch}
+                className="w-full sm:max-w-xs"
+                classNames={{ inputWrapper: "bg-gray-50" }}
+              />
 
-            <Select
-              placeholder="All Departments"
-              selectedKeys={filters.department ? [filters.department] : []}
-              onChange={(e) => handleDepartmentChange(e.target.value)}
-              className="sm:max-w-xs"
-              classNames={{ trigger: "bg-gray-50" }}
-            >
-              {departments.map((dept: IDepartment) => (
-                <SelectItem key={dept._id.toString()} textValue={dept.name}>
-                  {dept.name}
+              <Select
+                placeholder="All Departments"
+                selectedKeys={filters.department ? [filters.department] : []}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+                className="w-full sm:w-44"
+                classNames={{ trigger: "bg-gray-50" }}
+              >
+                {departments.map((dept: IDepartment) => (
+                  <SelectItem key={dept._id.toString()} textValue={dept.name}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </Select>
+
+              <Select
+                placeholder="All Staff"
+                selectedKeys={filters.management ? [filters.management] : []}
+                onChange={(e) => handleManagementChange(e.target.value)}
+                className="w-full sm:w-36"
+                classNames={{ trigger: "bg-gray-50" }}
+              >
+                <SelectItem key="true" textValue="Management Only">
+                  <div className="flex items-center gap-2">
+                    <Crown size={14} className="text-amber-500" />
+                    Management
+                  </div>
                 </SelectItem>
-              ))}
-            </Select>
-          </div>
+              </Select>
 
-          <div className="flex gap-2">
-            <Button
-              variant="bordered"
-              startContent={<Upload size={18} />}
-              onPress={() => setIsImportOpen(true)}
-            >
-              Import CSV
-            </Button>
-            <Button
-              color="primary"
-              startContent={<Plus size={18} />}
-              onPress={() => setIsCreateOpen(true)}
-            >
-              Add Contact
-            </Button>
+              <Select
+                placeholder="All Locations"
+                selectedKeys={filters.location ? [filters.location] : []}
+                onChange={(e) => handleLocationChange(e.target.value)}
+                className="w-full sm:w-40"
+                classNames={{ trigger: "bg-gray-50" }}
+              >
+                <SelectItem key="head-office" textValue="Head Office (Accra)">
+                  <div className="flex items-center gap-2">
+                    <Building2 size={14} className="text-blue-500" />
+                    Head Office
+                  </div>
+                </SelectItem>
+                <SelectItem key="site" textValue="Site">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="text-green-500" />
+                    Site
+                  </div>
+                </SelectItem>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="bordered"
+                startContent={<Upload size={18} />}
+                onPress={() => setIsImportOpen(true)}
+              >
+                Import CSV
+              </Button>
+              <Button
+                color="primary"
+                startContent={<Plus size={18} />}
+                onPress={() => setIsCreateOpen(true)}
+              >
+                Add Contact
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -448,7 +570,7 @@ export default function AdminDirectory() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar
-                        name={`${contact.firstName} ${contact.lastName}`}
+                        name={contact.name}
                         src={contact.photo}
                         size="sm"
                         classNames={{
@@ -458,8 +580,14 @@ export default function AdminDirectory() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium">
-                            {contact.firstName} {contact.lastName}
+                            {contact.name}
                           </span>
+                          {contact.isManagement && (
+                            <Crown
+                              size={14}
+                              className="text-amber-500"
+                            />
+                          )}
                           {contact.isEmergencyContact && (
                             <AlertTriangle
                               size={14}
@@ -467,11 +595,18 @@ export default function AdminDirectory() {
                             />
                           )}
                         </div>
-                        {contact.email && (
-                          <span className="text-xs text-gray-500">
-                            {contact.email}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {contact.email && (
+                            <span className="text-xs text-gray-500">
+                              {contact.email}
+                            </span>
+                          )}
+                          {contact.location === "head-office" && (
+                            <Chip size="sm" variant="flat" className="h-4 text-[10px] bg-blue-100 text-blue-700">
+                              Accra
+                            </Chip>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -595,16 +730,11 @@ export default function AdminDirectory() {
                 </div>
 
                 <Input
-                  name="firstName"
-                  label="First Name"
-                  placeholder="Enter first name"
+                  name="name"
+                  label="Full Name"
+                  placeholder="e.g., John Doe"
                   isRequired
-                />
-                <Input
-                  name="lastName"
-                  label="Last Name"
-                  placeholder="Enter last name"
-                  isRequired
+                  className="sm:col-span-2"
                 />
                 <Input
                   name="phone"
@@ -642,11 +772,41 @@ export default function AdminDirectory() {
                   label="Position"
                   placeholder="e.g., Senior Engineer"
                   isRequired
-                  className="sm:col-span-2"
                 />
-                <div className="flex items-center gap-2 sm:col-span-2">
-                  <Switch name="isEmergencyContact" value="true" />
-                  <span className="text-sm">Emergency Contact</span>
+                <Select
+                  name="location"
+                  label="Location"
+                  placeholder="Select location"
+                  defaultSelectedKeys={["site"]}
+                >
+                  <SelectItem key="site" textValue="Site">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-green-500" />
+                      Site
+                    </div>
+                  </SelectItem>
+                  <SelectItem key="head-office" textValue="Head Office (Accra)">
+                    <div className="flex items-center gap-2">
+                      <Building2 size={14} className="text-blue-500" />
+                      Head Office (Accra)
+                    </div>
+                  </SelectItem>
+                </Select>
+                <div className="flex flex-wrap items-center gap-6 sm:col-span-2">
+                  <div className="flex items-center gap-2">
+                    <Switch name="isManagement" value="true" />
+                    <span className="text-sm flex items-center gap-1">
+                      <Crown size={14} className="text-amber-500" />
+                      Management
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch name="isEmergencyContact" value="true" />
+                    <span className="text-sm flex items-center gap-1">
+                      <AlertTriangle size={14} className="text-warning-500" />
+                      Emergency Contact
+                    </span>
+                  </div>
                 </div>
               </div>
             </ModalBody>
@@ -677,7 +837,7 @@ export default function AdminDirectory() {
                   <div className="flex flex-col items-center gap-2 sm:col-span-2">
                     <div className="relative">
                       <Avatar
-                        name={`${editContact.firstName} ${editContact.lastName}`}
+                        name={editContact.name}
                         src={editPhoto}
                         size="lg"
                         className="h-24 w-24"
@@ -717,16 +877,11 @@ export default function AdminDirectory() {
                   </div>
 
                   <Input
-                    name="firstName"
-                    label="First Name"
-                    defaultValue={editContact.firstName}
+                    name="name"
+                    label="Full Name"
+                    defaultValue={editContact.name}
                     isRequired
-                  />
-                  <Input
-                    name="lastName"
-                    label="Last Name"
-                    defaultValue={editContact.lastName}
-                    isRequired
+                    className="sm:col-span-2"
                   />
                   <Input
                     name="phone"
@@ -764,16 +919,47 @@ export default function AdminDirectory() {
                     label="Position"
                     defaultValue={editContact.position}
                     isRequired
-                    className="sm:col-span-2"
                   />
-                  <div className="flex items-center gap-4 sm:col-span-2">
+                  <Select
+                    name="location"
+                    label="Location"
+                    defaultSelectedKeys={[editContact.location || "site"]}
+                  >
+                    <SelectItem key="site" textValue="Site">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} className="text-green-500" />
+                        Site
+                      </div>
+                    </SelectItem>
+                    <SelectItem key="head-office" textValue="Head Office (Accra)">
+                      <div className="flex items-center gap-2">
+                        <Building2 size={14} className="text-blue-500" />
+                        Head Office (Accra)
+                      </div>
+                    </SelectItem>
+                  </Select>
+                  <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        name="isManagement"
+                        value="true"
+                        defaultSelected={editContact.isManagement}
+                      />
+                      <span className="text-sm flex items-center gap-1">
+                        <Crown size={14} className="text-amber-500" />
+                        Management
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Switch
                         name="isEmergencyContact"
                         value="true"
                         defaultSelected={editContact.isEmergencyContact}
                       />
-                      <span className="text-sm">Emergency Contact</span>
+                      <span className="text-sm flex items-center gap-1">
+                        <AlertTriangle size={14} className="text-warning-500" />
+                        Emergency
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch
@@ -811,14 +997,11 @@ export default function AdminDirectory() {
                 <input
                   type="hidden"
                   name="name"
-                  value={`${deleteConfirm.firstName} ${deleteConfirm.lastName}`}
+                  value={deleteConfirm.name}
                 />
                 <p>
                   Are you sure you want to delete{" "}
-                  <strong>
-                    {deleteConfirm.firstName} {deleteConfirm.lastName}
-                  </strong>
-                  ? This action cannot be undone.
+                  <strong>{deleteConfirm.name}</strong>? This action cannot be undone.
                 </p>
               </ModalBody>
               <ModalFooter>
@@ -847,11 +1030,11 @@ export default function AdminDirectory() {
                     <div>
                       <p className="font-medium">CSV Format:</p>
                       <code className="mt-2 block text-xs">
-                        FirstName,LastName,Phone,Extension,Email,Department,Position,Emergency
+                        Name,Phone,Extension,Email,Department,Position,Emergency,Management,Location
                       </code>
                       <p className="mt-2 text-gray-600">
-                        Department should be the department code (e.g., MINING, HR, IT).
-                        Emergency should be &quot;yes&quot; or &quot;no&quot;.
+                        Department: code (e.g., MINING, HR, IT). Emergency/Management: &quot;yes&quot; or &quot;no&quot;.
+                        Location: &quot;site&quot; or &quot;head-office&quot; (or &quot;accra&quot;).
                       </p>
                     </div>
                     <Button

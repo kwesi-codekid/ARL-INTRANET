@@ -1,9 +1,11 @@
 /**
  * AI Chatbot Service
- * Task: 1.4.1 - AI Chatbot (Claude Integration)
+ * Task: 1.4.1 - Knowledge Base Chatbot (FAQ-based)
+ *
+ * This chatbot uses only the database (FAQs, contacts, news) to answer questions.
+ * It does not use external AI to generate responses.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import { connectDB } from "~/lib/db/connection.server";
 import {
   ChatSession,
@@ -13,90 +15,7 @@ import {
 } from "~/lib/db/models/chat.server";
 import { Contact } from "~/lib/db/models/contact.server";
 import { News } from "~/lib/db/models/news.server";
-
-// Check if API key is configured
-const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
-
-// Initialize Anthropic client (only if API key exists)
-const anthropic = hasApiKey
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
-
-// Comprehensive system prompt with company knowledge
-const SYSTEM_PROMPT = `You are ARL Assistant, the helpful AI assistant for Adamus Resources Limited (ARL), a gold mining company in Ghana. You help employees find information quickly and answer their questions about the company.
-
-## About Adamus Resources Limited (ARL)
-- Gold mining company located in Nzema area, Western Region, Ghana
-- Part of the Nguvu Mining group
-- Approximately 280km west of Accra, nearest town is Takoradi
-- Focus: Safety excellence, environmental stewardship, community development
-- Operations: Open-pit gold mining and processing
-
-## Key Departments & Extensions
-- Emergency Hotline: Extension 999 (or radio Channel 1)
-- Security Control Room: Extension 333
-- Site Clinic (Medical): Extension 444 (24/7 for emergencies)
-- Safety Department: Extension 555
-- IT Help Desk: Extension 100
-- HR Department: Extension 200
-- HR Manager: Extension 201
-- Payroll: Extension 202
-- Training: Extension 203
-- Admin/Reception: Extension 111
-- Transport Office: Extension 150
-
-## Working Hours
-- Office staff: 7:30 AM - 4:30 PM (Mon-Fri)
-- Operations Day shift: 6:00 AM - 6:00 PM
-- Operations Night shift: 6:00 PM - 6:00 AM
-- Canteen: Breakfast 5:30-7:30 AM, Lunch 11:30 AM-1:30 PM, Dinner 5:30-7:30 PM
-- Clinic: 24/7 emergencies, routine 7:30 AM - 4:30 PM
-
-## Important Information
-- Payday: 25th of each month
-- Site speed limit: 40 km/h (20 km/h near buildings)
-- Assembly Points: A (Main Gate), B (Processing Plant), C (Workshop), D (Magazine gate)
-
-## Safety Golden Rules (violations = dismissal)
-1. No alcohol/drugs at work
-2. Always wear PPE
-3. Never bypass safety devices
-4. Follow LOTO procedures
-5. No unauthorized entry to restricted areas
-6. Use fall protection at heights
-7. Follow driving rules
-8. Report all incidents
-
-## PPE Requirements
-Minimum: Hard hat, steel-toe boots, high-vis vest, safety glasses
-Processing Plant: Add ear protection, dust mask
-Pit area: Full PPE plus radio
-
-## Your Capabilities
-- Answer questions about company policies, procedures, safety
-- Provide contact information and extension numbers
-- Give directions to facilities (canteen, clinic, gym, prayer room)
-- Explain HR processes (leave, payroll, benefits)
-- Help with IT queries (password reset, email, WiFi)
-- Share safety procedures and emergency information
-- Direct users to appropriate departments
-
-## Response Guidelines
-- Be helpful, professional, and concise
-- Use the context provided from the company database when available
-- For emergencies, always emphasize calling Extension 999 immediately
-- If unsure, recommend contacting the specific department
-- Keep responses focused and practical
-- Use bullet points for lists
-- Include relevant extension numbers when applicable
-- Greet users warmly but briefly
-
-## Important Notes
-- You are an AI assistant, not a human
-- For sensitive HR matters, always recommend speaking with HR directly
-- For medical emergencies, emphasize calling the clinic (444) or emergency (999)
-- Don't make up specific names or details not provided in context
-- If asked about specific people, suggest checking the Directory on the intranet`;
+import { AppLink } from "~/lib/db/models/app-link.server";
 
 // Rate limiting
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -152,14 +71,15 @@ export async function getChatHistory(
     .lean();
 }
 
-// Search for relevant context from database
-async function getRelevantContext(query: string): Promise<string> {
+// Search for matching FAQs from database
+async function searchFAQs(query: string): Promise<{ question: string; answer: string }[]> {
   await connectDB();
-
-  const contextParts: string[] = [];
   const queryLower = query.toLowerCase();
+  const keywords = queryLower.split(' ').filter(w => w.length > 2);
 
-  // Search FAQs - always search for potential matches
+  if (keywords.length === 0) return [];
+
+  // Try text search first
   try {
     const faqs = await FAQ.find(
       { $text: { $search: query }, isActive: true },
@@ -170,184 +90,451 @@ async function getRelevantContext(query: string): Promise<string> {
       .lean();
 
     if (faqs.length > 0) {
-      contextParts.push("## Relevant Information from Knowledge Base:");
-      faqs.forEach((faq) => {
-        contextParts.push(`Q: ${faq.question}\nA: ${faq.answer}\n`);
-      });
+      return faqs.map(f => ({ question: f.question, answer: f.answer }));
     }
-  } catch (e) {
-    // Text index might not exist, try regex search as fallback
-    const faqs = await FAQ.find({
-      isActive: true,
-      $or: [
-        { question: { $regex: query.split(' ')[0], $options: 'i' } },
-        { keywords: { $in: query.toLowerCase().split(' ') } }
-      ]
-    })
-      .limit(3)
-      .lean();
-
-    if (faqs.length > 0) {
-      contextParts.push("## Relevant Information from Knowledge Base:");
-      faqs.forEach((faq) => {
-        contextParts.push(`Q: ${faq.question}\nA: ${faq.answer}\n`);
-      });
-    }
+  } catch {
+    // Text index might not exist
   }
 
-  // Search contacts if query seems to be about finding someone
-  const contactKeywords = ["contact", "phone", "email", "reach", "find", "who is", "number", "extension", "call", "manager", "director", "supervisor"];
-  if (contactKeywords.some((kw) => queryLower.includes(kw))) {
-    try {
-      const contacts = await Contact.find(
-        { $text: { $search: query } },
-        { score: { $meta: "textScore" } }
-      )
-        .sort({ score: { $meta: "textScore" } })
+  // Escape special regex characters in keywords
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const safeKeywords = keywords.map(escapeRegex);
+  const regexPattern = new RegExp(safeKeywords.join('|'), 'i');
+
+  // Fallback: keyword and regex matching
+  const faqs = await FAQ.find({
+    isActive: true,
+    $or: [
+      { keywords: { $in: keywords } },
+      { question: regexPattern },
+      { answer: regexPattern }
+    ]
+  })
+    .limit(3)
+    .lean();
+
+  return faqs.map(f => ({ question: f.question, answer: f.answer }));
+}
+
+// Search contacts specifically by position/job title
+async function searchContactsByPosition(query: string): Promise<string | null> {
+  await connectDB();
+
+  const queryLower = query.toLowerCase().trim();
+
+  // Skip very short queries or common words
+  if (queryLower.length < 3) return null;
+  const skipWords = ['the', 'and', 'for', 'what', 'how', 'where', 'when', 'why', 'can', 'does', 'will', 'about', 'arl', 'adamus'];
+  if (skipWords.includes(queryLower)) return null;
+
+  // Escape special regex characters
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Search by position - exact or partial match
+  const positionRegex = new RegExp(escapeRegex(query), 'i');
+  const contacts = await Contact.find({
+    position: positionRegex,
+    isActive: true
+  })
+    .populate('department', 'name')
+    .limit(5)
+    .lean();
+
+  if (contacts.length > 0) {
+    return formatContactsResponse(contacts, `Here's who holds the "${query}" position:`);
+  }
+
+  // Also try searching by name in case they typed a person's name
+  const nameContacts = await Contact.find({
+    name: positionRegex,
+    isActive: true
+  })
+    .populate('department', 'name')
+    .limit(5)
+    .lean();
+
+  if (nameContacts.length > 0) {
+    return formatContactsResponse(nameContacts);
+  }
+
+  return null;
+}
+
+// Search for contacts from database
+async function searchContacts(query: string): Promise<string | null> {
+  await connectDB();
+  const queryLower = query.toLowerCase();
+  const searchTerms = query.split(' ').filter(t => t.length > 2);
+
+  if (searchTerms.length === 0) return null;
+
+  // Escape special regex characters
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Check for position-specific queries like "Who is the COO?" or "Who is the HR Manager?"
+  const positionPatterns = [
+    /who\s+is\s+(?:the\s+)?(.+?)(?:\?|$)/i,
+    /who\s+holds\s+(?:the\s+)?(?:position\s+(?:of\s+)?)?(.+?)(?:\?|$)/i,
+    /who\s+is\s+(?:our\s+)?(.+?)(?:\?|$)/i,
+    /find\s+(?:the\s+)?(.+?)(?:\?|$)/i,
+  ];
+
+  for (const pattern of positionPatterns) {
+    const match = queryLower.match(pattern);
+    if (match) {
+      const positionSearch = match[1].trim();
+      // Search by position specifically
+      const positionRegex = new RegExp(escapeRegex(positionSearch), 'i');
+      const contacts = await Contact.find({
+        $or: [
+          { position: positionRegex },
+          { name: positionRegex }
+        ],
+        isActive: true
+      })
+        .populate('department', 'name')
         .limit(5)
         .lean();
 
       if (contacts.length > 0) {
-        contextParts.push("\n## Contacts from Directory:");
-        contacts.forEach((contact) => {
-          const parts = [`${contact.fullName}`];
-          if (contact.position) parts.push(`Position: ${contact.position}`);
-          if (contact.department) parts.push(`Department: ${contact.department}`);
-          if (contact.phone) parts.push(`Phone: ${contact.phone}`);
-          if (contact.email) parts.push(`Email: ${contact.email}`);
-          contextParts.push(`- ${parts.join(', ')}`);
-        });
+        return formatContactsResponse(contacts);
       }
-    } catch (e) {
-      // Fallback search
-      const searchTerms = query.split(' ').filter(t => t.length > 2);
-      if (searchTerms.length > 0) {
-        const contacts = await Contact.find({
-          $or: searchTerms.map(term => ({
-            $or: [
-              { name: { $regex: term, $options: 'i' } },
-              { position: { $regex: term, $options: 'i' } },
-              { department: { $regex: term, $options: 'i' } }
-            ]
-          }))
-        })
-          .limit(5)
+    }
+  }
+
+  // Check for management queries
+  if (queryLower.includes('management') || queryLower.includes('managers') || queryLower.includes('executives') || queryLower.includes('leadership')) {
+    const contacts = await Contact.find({ isManagement: true, isActive: true })
+      .populate('department', 'name')
+      .sort({ position: 1 })
+      .limit(10)
+      .lean();
+
+    if (contacts.length > 0) {
+      return formatContactsResponse(contacts, "Here are the management team members:");
+    }
+  }
+
+  // Check for department-specific queries
+  const deptPatterns = [
+    /(?:who\s+(?:works?\s+)?in|people\s+in|staff\s+in|contacts?\s+(?:in|for))\s+(?:the\s+)?(.+?)(?:\s+department)?(?:\?|$)/i,
+    /(.+?)\s+(?:department\s+)?(?:staff|team|people|contacts?)(?:\?|$)/i,
+  ];
+
+  for (const pattern of deptPatterns) {
+    const match = queryLower.match(pattern);
+    if (match) {
+      const deptSearch = match[1].trim();
+      // First find matching department
+      const { Department } = await import("~/lib/db/models/contact.server");
+      const deptRegex = new RegExp(escapeRegex(deptSearch), 'i');
+      const dept = await Department.findOne({ name: deptRegex, isActive: true }).lean();
+
+      if (dept) {
+        const contacts = await Contact.find({ department: dept._id, isActive: true })
+          .populate('department', 'name')
+          .sort({ isManagement: -1, name: 1 })
+          .limit(10)
           .lean();
 
         if (contacts.length > 0) {
-          contextParts.push("\n## Contacts from Directory:");
-          contacts.forEach((contact) => {
-            const parts = [`${contact.fullName}`];
-            if (contact.position) parts.push(`Position: ${contact.position}`);
-            if (contact.department) parts.push(`Department: ${contact.department}`);
-            if (contact.phone) parts.push(`Phone: ${contact.phone}`);
-            if (contact.email) parts.push(`Email: ${contact.email}`);
-            contextParts.push(`- ${parts.join(', ')}`);
-          });
+          return formatContactsResponse(contacts, `Here are the contacts in ${dept.name}:`);
         }
       }
     }
   }
 
-  // Search recent news if query seems news-related
-  const newsKeywords = ["news", "announcement", "update", "recent", "latest", "what's new", "happening"];
-  if (newsKeywords.some((kw) => queryLower.includes(kw))) {
-    const news = await News.find({ status: "published" })
-      .sort({ publishedAt: -1 })
-      .limit(5)
-      .select("title excerpt publishedAt")
+  // Check for location-specific queries
+  if (queryLower.includes('accra') || queryLower.includes('head office')) {
+    const contacts = await Contact.find({ location: 'head-office', isActive: true })
+      .populate('department', 'name')
+      .sort({ isManagement: -1, name: 1 })
+      .limit(10)
       .lean();
 
-    if (news.length > 0) {
-      contextParts.push("\n## Recent Company News:");
-      news.forEach((item) => {
-        const date = item.publishedAt
-          ? new Date(item.publishedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })
-          : 'Recent';
-        contextParts.push(`- ${item.title} (${date})`);
-        if (item.excerpt) contextParts.push(`  ${item.excerpt.substring(0, 100)}...`);
-      });
+    if (contacts.length > 0) {
+      return formatContactsResponse(contacts, "Here are the contacts at Head Office (Accra):");
     }
   }
 
-  return contextParts.join("\n");
-}
+  if (queryLower.includes('site') && (queryLower.includes('contact') || queryLower.includes('who') || queryLower.includes('staff'))) {
+    const contacts = await Contact.find({ location: 'site', isActive: true })
+      .populate('department', 'name')
+      .sort({ isManagement: -1, name: 1 })
+      .limit(10)
+      .lean();
 
-// Fallback response when no API key - search FAQs directly
-async function getFallbackResponse(query: string): Promise<string> {
-  await connectDB();
-  const queryLower = query.toLowerCase();
+    if (contacts.length > 0) {
+      return formatContactsResponse(contacts, "Here are some contacts at Site:");
+    }
+  }
 
-  // Try to find matching FAQ
   try {
-    // First try text search
-    const faqs = await FAQ.find(
+    // Try text search first
+    const contacts = await Contact.find(
       { $text: { $search: query }, isActive: true },
       { score: { $meta: "textScore" } }
     )
+      .populate('department', 'name')
       .sort({ score: { $meta: "textScore" } })
-      .limit(1)
+      .limit(5)
       .lean();
 
-    if (faqs.length > 0) {
-      return faqs[0].answer;
+    if (contacts.length > 0) {
+      return formatContactsResponse(contacts);
     }
-  } catch (e) {
-    // Text index might not exist
+  } catch {
+    // Fallback search
   }
 
-  // Fallback: keyword matching
-  const keywords = queryLower.split(' ').filter(w => w.length > 2);
+  // Build regex patterns for each search term
+  const contacts = await Contact.find({
+    isActive: true,
+    $or: searchTerms.map(term => {
+      const regex = new RegExp(escapeRegex(term), 'i');
+      return {
+        $or: [
+          { name: regex },
+          { position: regex }
+        ]
+      };
+    })
+  })
+    .populate('department', 'name')
+    .limit(5)
+    .lean();
 
-  for (const keyword of keywords) {
-    const faq = await FAQ.findOne({
-      isActive: true,
-      keywords: { $in: [keyword] }
-    }).lean();
+  if (contacts.length > 0) {
+    return formatContactsResponse(contacts);
+  }
 
-    if (faq) {
-      return faq.answer;
+  return null;
+}
+
+function formatContactsResponse(contacts: any[], header?: string): string {
+  const parts = [header || "Here are the contacts I found:"];
+  contacts.forEach((contact, index) => {
+    parts.push("");
+    const name = contact.name || contact.fullName;
+    const mgmtBadge = contact.isManagement ? " [Management]" : "";
+    parts.push(`${index + 1}. ${name}${mgmtBadge}`);
+    if (contact.position) parts.push(`   Position: ${contact.position}`);
+    if (contact.department) {
+      const deptName = typeof contact.department === 'object' ? contact.department.name : contact.department;
+      if (deptName) parts.push(`   Department: ${deptName}`);
+    }
+    if (contact.location) {
+      const locationLabel = contact.location === 'head-office' ? 'Head Office (Accra)' : 'Site';
+      parts.push(`   Location: ${locationLabel}`);
+    }
+    if (contact.phone) parts.push(`   Phone: ${contact.phone}`);
+    if (contact.phoneExtension) parts.push(`   Extension: ${contact.phoneExtension}`);
+    if (contact.email) parts.push(`   Email: ${contact.email}`);
+  });
+  parts.push("");
+  parts.push("Visit the Directory page for more details.");
+  return parts.join('\n');
+}
+
+// Search for recent news
+async function searchNews(): Promise<string | null> {
+  await connectDB();
+
+  const news = await News.find({ status: "published" })
+    .sort({ publishedAt: -1 })
+    .limit(5)
+    .select("title excerpt publishedAt slug")
+    .lean();
+
+  if (news.length === 0) return null;
+
+  const parts = ["Here are the latest news and announcements:"];
+  news.forEach((item, index) => {
+    const date = item.publishedAt
+      ? new Date(item.publishedAt).toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })
+      : 'Recent';
+    parts.push("");
+    parts.push(`${index + 1}. ${item.title} (${date})`);
+    if (item.excerpt) parts.push(`   ${item.excerpt.substring(0, 150)}...`);
+  });
+  parts.push("");
+  parts.push("You can view full articles on the News page.");
+  return parts.join('\n');
+}
+
+// Search for company apps from database
+async function searchApps(query?: string): Promise<string | null> {
+  await connectDB();
+
+  const apps = await AppLink.find({ isActive: true })
+    .sort({ clicks: -1 })
+    .limit(10)
+    .lean();
+
+  if (apps.length === 0) return null;
+
+  // If searching for specific app
+  if (query) {
+    const queryLower = query.toLowerCase();
+    const matchedApps = apps.filter(app =>
+      app.name.toLowerCase().includes(queryLower) ||
+      (app.description && app.description.toLowerCase().includes(queryLower))
+    );
+
+    if (matchedApps.length > 0) {
+      const parts = ["Here are the matching apps:"];
+      matchedApps.forEach((app, index) => {
+        parts.push("");
+        parts.push(`${index + 1}. ${app.name}`);
+        parts.push(`   ${app.url}`);
+        if (app.description) parts.push(`   ${app.description}`);
+      });
+      return parts.join('\n');
     }
   }
 
-  // Check for specific common queries
-  if (queryLower.includes('emergency') || queryLower.includes('urgent')) {
-    return "For ANY emergency, call Extension 999 immediately (or radio Channel 1). For medical emergencies, contact the Site Clinic at Extension 444. Security Control Room is at Extension 333. Remember: STOP work, SECURE the area, CALL for help, and REPORT to your supervisor.";
+  // Return all apps
+  const parts = ["Company Apps & Systems:"];
+  apps.forEach((app, index) => {
+    parts.push(`${index + 1}. ${app.name}: ${app.url}`);
+  });
+  parts.push("");
+  parts.push("You can access all apps from the Apps page on the intranet.");
+  return parts.join('\n');
+}
+
+// Generate response from database only (FAQs, contacts, news, apps)
+async function generateDatabaseResponse(query: string): Promise<string> {
+  await connectDB();
+  const queryLower = query.toLowerCase();
+
+  // Check for greetings
+  const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'howdy'];
+  if (greetings.some(g => queryLower.includes(g))) {
+    return "Hello! I'm the ARL Assistant. I can help you find information about:\n\n• Contacts & Directory - Find staff contact info\n• Company News - Latest announcements\n• Company Apps - Leave, HelpDesk, HSE Suite, Hazard Reporting\n• HR Information - Leave, payroll, benefits\n• IT Support - Help desk, passwords\n• Safety Information - Procedures, emergency contacts\n• Facilities - Canteen, clinic, transport\n\nWhat would you like to know?";
+  }
+
+  // CHECK SPECIFIC TOPICS FIRST (with actual app links)
+
+  // IT / HelpDesk queries - check BEFORE contact search
+  if (queryLower.includes('it ') || queryLower.includes('helpdesk') || queryLower.includes('help desk') || queryLower.includes('computer') || queryLower.includes('password') || queryLower.includes('wifi') || queryLower.includes('internet') || queryLower.includes('technical support')) {
+    const helpdeskApp = await AppLink.findOne({ name: { $regex: /helpdesk/i }, isActive: true }).lean();
+    let response = "IT Help Desk\n\n";
+    if (helpdeskApp) {
+      response += `HelpDesk Portal: ${helpdeskApp.url}\n\n`;
+    }
+    response += "Extension: 100\nEmail: ithelp@adamusresources.com\nLocation: Admin Building, 1st Floor\nHours: 7:00 AM - 5:00 PM\n\nFor password resets, please have your employee ID ready.";
+    return response;
+  }
+
+  // Leave queries
+  if (queryLower.includes('leave') || queryLower.includes('vacation') || queryLower.includes('time off') || queryLower.includes('annual leave')) {
+    const leaveApp = await AppLink.findOne({ name: { $regex: /leave/i }, isActive: true }).lean();
+    let response = "Leave Application\n\n";
+    if (leaveApp) {
+      response += `Leave Portal: ${leaveApp.url}\n\n`;
+    }
+    response += "Process:\n1. Log into the Leave Portal above\n2. Check your leave balance\n3. Submit leave request to supervisor\n4. After approval, HR will confirm\n\nFor emergency leave, contact HR at Extension 200.";
+    return response;
+  }
+
+  // Safety / HSE / Hazard queries
+  if (queryLower.includes('safety') || queryLower.includes('ppe') || queryLower.includes('hse') || queryLower.includes('hazard') || queryLower.includes('incident') || queryLower.includes('report')) {
+    const hseApp = await AppLink.findOne({ name: { $regex: /hse/i }, isActive: true }).lean();
+    const hazardApp = await AppLink.findOne({ name: { $regex: /hazard/i }, isActive: true }).lean();
+
+    let response = "Safety & HSE\n\n";
+    if (hseApp) response += `HSE Suite: ${hseApp.url}\n`;
+    if (hazardApp) response += `Hazard Reporting: ${hazardApp.url}\n\n`;
+
+    response += "Report hazards immediately:\n1. If danger - STOP work, warn others\n2. Report to supervisor\n3. Use Hazard Reporting app above\n\nSafety Dept: Extension 555\nEmergency: 999";
+    return response;
+  }
+
+  // Medical / Clinic queries
+  if (queryLower.includes('clinic') || queryLower.includes('medical') || queryLower.includes('doctor') || queryLower.includes('sick') || queryLower.includes('health') || queryLower.includes('treatment')) {
+    const medApp = await AppLink.findOne({ name: { $regex: /med|treatment/i }, isActive: true }).lean();
+
+    let response = "Site Clinic\n\n";
+    if (medApp) response += `Med Treatment App: ${medApp.url}\n\n`;
+
+    response += "Location: Next to Admin Building\nEmergency: 24/7 (Extension 444)\nRoutine: 7:30 AM - 4:30 PM\n\nFor emergencies, call 444 or radio 'Medical Emergency'.";
+    return response;
+  }
+
+  // Apps/Systems query - list all apps
+  if (queryLower.match(/\bapps?\b/) || queryLower.includes('systems') || queryLower.includes('portals') || queryLower.includes('software available')) {
+    const appsResult = await searchApps();
+    if (appsResult) {
+      return appsResult;
+    }
+  }
+
+  // Check for news-related queries
+  const newsKeywords = ["news", "announcement", "update", "recent", "latest", "what's new", "happening"];
+  if (newsKeywords.some((kw) => queryLower.includes(kw))) {
+    const newsResult = await searchNews();
+    if (newsResult) {
+      return newsResult;
+    }
+  }
+
+  // Check for contact-related queries (AFTER specific topics)
+  const contactKeywords = ["contact", "phone", "email", "reach", "find", "who is", "number", "extension", "call", "manager", "director", "supervisor", "talk to", "speak to", "superintendent", "officer", "engineer", "accountant", "coordinator", "clerk", "assistant", "analyst", "geologist", "surveyor", "operator", "technician", "nurse", "doctor", "driver"];
+  if (contactKeywords.some((kw) => queryLower.includes(kw))) {
+    const contactResult = await searchContacts(query);
+    if (contactResult) {
+      return contactResult;
+    }
+  }
+
+  // Also try to search contacts if query looks like a job title/position
+  // This catches queries like "Senior Mine Surveyor" without keywords
+  const positionResult = await searchContactsByPosition(query);
+  if (positionResult) {
+    return positionResult;
+  }
+
+  // Search FAQs for the query
+  const faqResults = await searchFAQs(query);
+  if (faqResults.length > 0) {
+    return faqResults[0].answer;
+  }
+
+  // Fallback topics
+  if (queryLower.includes('emergency') || queryLower.includes('urgent') || queryLower.includes('accident')) {
+    return "Emergency Contacts\n\nEmergency Hotline: Extension 999 (or radio Channel 1)\nSite Clinic: Extension 444 (24/7)\nSecurity: Extension 333\nSafety Dept: Extension 555\n\nIn emergency: STOP work, SECURE area, CALL 999, REPORT to supervisor.";
   }
 
   if (queryLower.includes('hr') || queryLower.includes('human resource')) {
-    return "HR Department contacts: Main HR Office - Extension 200, HR Manager - Extension 201, Payroll queries - Extension 202, Training & Development - Extension 203. The HR office is located in the Admin Building, Ground Floor. Office hours: 7:30 AM - 4:30 PM weekdays.";
+    return "HR Department\n\nMain Office: Extension 200\nHR Manager: Extension 201\nPayroll: Extension 202\nTraining: Extension 203\n\nLocation: Admin Building, Ground Floor\nHours: 7:30 AM - 4:30 PM weekdays";
   }
 
-  if (queryLower.includes('it') || queryLower.includes('computer') || queryLower.includes('password')) {
-    return "For IT support, contact the IT Help Desk at Extension 100 or email ithelp@adamusresources.com. The IT office is in the Admin Building, 1st Floor. Support hours: 7:00 AM - 5:00 PM. For password resets, have your employee ID ready.";
+  if (queryLower.includes('canteen') || queryLower.includes('food') || queryLower.includes('lunch') || queryLower.includes('breakfast') || queryLower.includes('dinner') || queryLower.includes('meal')) {
+    return "Canteen Hours\n\nBreakfast: 5:30 AM - 7:30 AM\nLunch: 11:30 AM - 1:30 PM\nDinner: 5:30 PM - 7:30 PM\nNight shift: 12:00 AM - 1:00 AM\n\nMenus posted on Canteen page.";
   }
 
-  if (queryLower.includes('canteen') || queryLower.includes('food') || queryLower.includes('lunch')) {
-    return "Canteen operating hours: Breakfast 5:30-7:30 AM, Lunch 11:30 AM-1:30 PM, Dinner 5:30-7:30 PM, Night shift meal 12:00-1:00 AM. Menus rotate weekly and are posted on the intranet. Special dietary requirements can be accommodated - speak to the canteen manager.";
+  if (queryLower.includes('pay') || queryLower.includes('salary') || queryLower.includes('wage') || queryLower.includes('payslip')) {
+    return "Payroll\n\nPay day: 25th of each month\nPayslips: Available from 23rd\nQueries: Extension 202";
   }
 
-  if (queryLower.includes('clinic') || queryLower.includes('medical') || queryLower.includes('doctor') || queryLower.includes('sick')) {
-    return "The Site Clinic is located next to the Admin Building. It operates 24/7 for emergencies, with routine consultations from 7:30 AM - 4:30 PM. For emergencies, call Extension 444 or radio 'Medical Emergency'. Services include first aid, basic medical care, and occupational health.";
+  if (queryLower.includes('transport') || queryLower.includes('bus') || queryLower.includes('shuttle')) {
+    return "Transport Office\n\nExtension: 150\nLocation: Near Main Gate";
   }
 
-  if (queryLower.includes('leave') || queryLower.includes('vacation') || queryLower.includes('time off')) {
-    return "To apply for leave: 1) Check your leave balance on HR portal, 2) Complete Leave Application Form, 3) Submit to supervisor at least 2 weeks in advance, 4) After approval, submit to HR. For emergency leave, contact HR immediately at Extension 200.";
+  if (queryLower.includes('help') || queryLower.includes('what can you do') || queryLower.includes('assist')) {
+    return "I can help you with:\n\n• Company Apps - Leave, HelpDesk, HSE, Hazard Reporting\n• Staff Directory - Find contact info\n• Company News - Latest announcements\n• HR - Leave, payroll, benefits\n• IT Support - Help desk, passwords\n• Safety - HSE, hazard reporting, PPE\n• Facilities - Canteen, clinic, transport\n\nTry asking a specific question!";
   }
 
-  if (queryLower.includes('pay') || queryLower.includes('salary') || queryLower.includes('wage')) {
-    return "Salaries are paid on the 25th of each month. If the 25th falls on a weekend or holiday, payment is made on the last working day before. Payslips are available on the HR portal from the 23rd. For payroll queries, contact Extension 202.";
-  }
-
-  // Default fallback
-  return "I can help you with information about ARL including: emergency contacts, HR queries, IT support, facilities (canteen, clinic, gym), safety procedures, and company policies. For specific questions, please try asking about a particular topic, or contact the relevant department directly:\n\n- Emergency: Extension 999\n- HR: Extension 200\n- IT Help Desk: Extension 100\n- Safety: Extension 555\n- Clinic: Extension 444";
+  // Default response
+  return "I couldn't find that information. Try asking about:\n\n• Apps - 'What apps are available?'\n• Leave - 'How do I apply for leave?'\n• IT - 'How do I contact helpdesk?'\n• Safety - 'How do I report a hazard?'\n• News - 'What's the latest news?'\n\nQuick Contacts:\nEmergency: 999\nHR: 200\nIT Help: 100\nClinic: 444";
 }
 
-// Send message and get response
+// Send message and get response (database-only, no external AI)
 export async function sendMessage(
   sessionId: string,
   userMessage: string
@@ -375,89 +562,22 @@ export async function sendMessage(
     content: userMessage,
   });
 
-  // If no API key, use fallback response system
-  if (!anthropic) {
-    const fallbackResponse = await getFallbackResponse(userMessage);
+  // Generate response from database only
+  const response = await generateDatabaseResponse(userMessage);
 
-    // Save assistant response
-    await ChatMessage.create({
-      session: session._id,
-      role: "assistant",
-      content: fallbackResponse,
-    });
+  // Save assistant response
+  await ChatMessage.create({
+    session: session._id,
+    role: "assistant",
+    content: response,
+  });
 
-    session.messageCount += 2;
-    session.lastActivity = new Date();
-    await session.save();
+  // Update session
+  session.messageCount += 2;
+  session.lastActivity = new Date();
+  await session.save();
 
-    return { response: fallbackResponse };
-  }
-
-  // Get conversation history
-  const history = await ChatMessage.find({ session: session._id })
-    .sort({ createdAt: 1 })
-    .limit(20)
-    .lean();
-
-  // Get relevant context
-  const context = await getRelevantContext(userMessage);
-
-  // Build messages array for Claude
-  const messages: { role: "user" | "assistant"; content: string }[] = history.map((msg) => ({
-    role: msg.role as "user" | "assistant",
-    content: msg.content,
-  }));
-
-  // Add context to the latest user message if available
-  if (context) {
-    const lastIndex = messages.length - 1;
-    messages[lastIndex].content = `${userMessage}\n\n[Context from company database:\n${context}]`;
-  }
-
-  try {
-    // Call Claude API
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: messages,
-    });
-
-    const assistantMessage =
-      response.content[0].type === "text" ? response.content[0].text : "";
-
-    // Save assistant response
-    await ChatMessage.create({
-      session: session._id,
-      role: "assistant",
-      content: assistantMessage,
-    });
-
-    // Update session
-    session.messageCount += 2;
-    session.lastActivity = new Date();
-    await session.save();
-
-    return { response: assistantMessage };
-  } catch (error: any) {
-    console.error("Claude API error:", error);
-
-    // Use fallback response on API error
-    const fallbackResponse = await getFallbackResponse(userMessage);
-
-    // Save fallback response
-    await ChatMessage.create({
-      session: session._id,
-      role: "assistant",
-      content: fallbackResponse,
-    });
-
-    session.messageCount += 2;
-    session.lastActivity = new Date();
-    await session.save();
-
-    return { response: fallbackResponse };
-  }
+  return { response };
 }
 
 // Clear session

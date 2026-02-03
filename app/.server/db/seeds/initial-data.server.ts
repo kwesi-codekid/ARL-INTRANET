@@ -87,7 +87,7 @@ export const contactSeeds: Partial<IContact>[] = [
     phone: "+233201234568",
     phoneExtension: "102",
     email: "akua.boateng@adamusresources.com",
-    department: "DFSL-HR",
+    department: "HR",
     position: "HR Manager",
     location: "Admin Building",
     isActive: true,

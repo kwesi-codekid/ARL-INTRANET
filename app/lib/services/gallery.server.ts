@@ -14,6 +14,8 @@ export interface CreateAlbumInput {
   event?: string;
   status?: "draft" | "published";
   isFeatured?: boolean;
+  externalGalleryUrl?: string;
+  isExternalGallery?: boolean;
   createdBy: string;
 }
 
@@ -364,6 +366,8 @@ export function serializeAlbum(album: IAlbum) {
     photoCount: album.photoCount,
     status: album.status,
     isFeatured: album.isFeatured,
+    externalGalleryUrl: album.externalGalleryUrl,
+    isExternalGallery: album.isExternalGallery,
     createdAt: album.createdAt.toISOString(),
     updatedAt: album.updatedAt.toISOString(),
   };

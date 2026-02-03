@@ -35,11 +35,14 @@ import {
   Building2,
   AlertTriangle,
   User,
+  MapPin,
+  Crown,
+  Users,
 } from "lucide-react";
 import { MainLayout } from "~/components/layout";
 import { connectDB } from "~/lib/db/connection.server";
 import { getContacts, getDepartments, getContactLetters, type PaginatedContacts } from "~/lib/services/contact.server";
-import type { IContact, IDepartment } from "~/lib/db/models/contact.server";
+import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await connectDB();
@@ -48,14 +51,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const search = url.searchParams.get("search") || "";
   const department = url.searchParams.get("department") || "";
   const letter = url.searchParams.get("letter") || "";
+  const location = url.searchParams.get("location") as ContactLocation | "" || "";
+  const role = url.searchParams.get("role") || ""; // "management" or "staff"
   const emergency = url.searchParams.get("emergency") === "true";
   const page = parseInt(url.searchParams.get("page") || "1");
+
+  // Determine isManagement filter based on role
+  let isManagement: boolean | undefined = undefined;
+  if (role === "management") {
+    isManagement = true;
+  } else if (role === "staff") {
+    isManagement = false;
+  }
 
   const [contactsResult, departments, availableLetters] = await Promise.all([
     getContacts({
       search: search || undefined,
       department: department || undefined,
       letter: letter || undefined,
+      location: location || undefined,
+      isManagement,
       isEmergencyContact: emergency || undefined,
       page,
       limit: 24,
@@ -71,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalPages: contactsResult.totalPages,
     departments: JSON.parse(JSON.stringify(departments)),
     availableLetters,
-    filters: { search, department, letter, emergency },
+    filters: { search, department, letter, location, role, emergency },
   });
 }
 
@@ -117,6 +132,28 @@ export default function DirectoryPage() {
     setSearchParams(params);
   };
 
+  const handleLocationChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value && value !== "all") {
+      params.set("location", value);
+    } else {
+      params.delete("location");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  const handleRoleChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value && value !== "all") {
+      params.set("role", value);
+    } else {
+      params.delete("role");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   const handleLetterClick = (letter: string) => {
     const params = new URLSearchParams(searchParams);
     if (filters.letter === letter) {
@@ -138,7 +175,7 @@ export default function DirectoryPage() {
     setSearchParams({});
   };
 
-  const hasFilters = filters.search || filters.department || filters.letter || filters.emergency;
+  const hasFilters = filters.search || filters.department || filters.letter || filters.location || filters.role || filters.emergency;
 
   return (
     <MainLayout>
@@ -168,7 +205,7 @@ export default function DirectoryPage() {
                 placeholder="All Departments"
                 selectedKeys={filters.department ? [filters.department] : []}
                 onChange={(e) => handleDepartmentChange(e.target.value)}
-                className="w-full sm:w-64"
+                className="w-full sm:w-48"
                 classNames={{ trigger: "bg-gray-50" }}
               >
                 {departments.map((dept: IDepartment) => (
@@ -178,6 +215,38 @@ export default function DirectoryPage() {
                 ))}
               </Select>
 
+              <Select
+                placeholder="All Locations"
+                selectedKeys={filters.location ? [filters.location] : []}
+                onChange={(e) => handleLocationChange(e.target.value)}
+                className="w-full sm:w-40"
+                classNames={{ trigger: "bg-gray-50" }}
+                startContent={<MapPin size={16} className="text-gray-400" />}
+              >
+                <SelectItem key="head-office" textValue="Head Office (Accra)">
+                  Head Office (Accra)
+                </SelectItem>
+                <SelectItem key="site" textValue="Site">
+                  Site
+                </SelectItem>
+              </Select>
+
+              <Select
+                placeholder="All Roles"
+                selectedKeys={filters.role ? [filters.role] : []}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                className="w-full sm:w-36"
+                classNames={{ trigger: "bg-gray-50" }}
+                startContent={<Users size={16} className="text-gray-400" />}
+              >
+                <SelectItem key="management" textValue="Management">
+                  Management
+                </SelectItem>
+                <SelectItem key="staff" textValue="Staff">
+                  Staff
+                </SelectItem>
+              </Select>
+
               <Button
                 variant={filters.emergency ? "solid" : "bordered"}
                 color={filters.emergency ? "warning" : "default"}
@@ -185,7 +254,7 @@ export default function DirectoryPage() {
                 onPress={handleEmergencyToggle}
                 className="shrink-0"
               >
-                Emergency Contacts
+                Emergency
               </Button>
             </div>
 
@@ -205,6 +274,20 @@ export default function DirectoryPage() {
                 {filters.letter && (
                   <Chip size="sm" color="primary" onClose={() => handleLetterClick(filters.letter)}>
                     Letter: {filters.letter}
+                  </Chip>
+                )}
+                {filters.location && (
+                  <Chip size="sm" color="secondary" onClose={() => handleLocationChange("")}>
+                    {filters.location === "head-office" ? "Head Office" : "Site"}
+                  </Chip>
+                )}
+                {filters.role && (
+                  <Chip
+                    size="sm"
+                    color={filters.role === "management" ? "success" : "default"}
+                    onClose={() => handleRoleChange("")}
+                  >
+                    {filters.role === "management" ? "Management" : "Staff"}
                   </Chip>
                 )}
                 {filters.emergency && (
@@ -303,7 +386,7 @@ export default function DirectoryPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar
-                              name={`${contact.firstName} ${contact.lastName}`}
+                              name={contact.name}
                               src={contact.photo}
                               size="sm"
                               classNames={{
@@ -312,8 +395,14 @@ export default function DirectoryPage() {
                             />
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-gray-900">
-                                {contact.firstName} {contact.lastName}
+                                {contact.name}
                               </span>
+                              {contact.isManagement && (
+                                <Crown
+                                  size={14}
+                                  className="shrink-0 text-amber-500"
+                                />
+                              )}
                               {contact.isEmergencyContact && (
                                 <AlertTriangle
                                   size={14}
@@ -327,9 +416,16 @@ export default function DirectoryPage() {
                           <span className="text-gray-600">{contact.position}</span>
                         </TableCell>
                         <TableCell>
-                          <Chip size="sm" variant="flat" color="primary">
-                            {(contact.department as IDepartment)?.name}
-                          </Chip>
+                          <div className="flex items-center gap-1">
+                            <Chip size="sm" variant="flat" color="primary">
+                              {(contact.department as IDepartment)?.name}
+                            </Chip>
+                            {contact.location === "head-office" && (
+                              <Chip size="sm" variant="flat" color="secondary" className="text-xs">
+                                Accra
+                              </Chip>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -415,7 +511,7 @@ export default function DirectoryPage() {
               <>
                 <ModalHeader className="flex items-center gap-4">
                   <Avatar
-                    name={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                    name={selectedContact.name}
                     src={selectedContact.photo}
                     size="lg"
                     classNames={{
@@ -423,13 +519,18 @@ export default function DirectoryPage() {
                     }}
                   />
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-xl font-bold">
-                        {selectedContact.firstName} {selectedContact.lastName}
+                        {selectedContact.name}
                       </h2>
+                      {selectedContact.isManagement && (
+                        <Chip size="sm" color="success" variant="flat" startContent={<Crown size={12} />}>
+                          Management
+                        </Chip>
+                      )}
                       {selectedContact.isEmergencyContact && (
                         <Chip size="sm" color="warning" variant="flat">
-                          Emergency Contact
+                          Emergency
                         </Chip>
                       )}
                     </div>
@@ -447,6 +548,18 @@ export default function DirectoryPage() {
                         <p className="text-sm text-gray-500">Department</p>
                         <p className="font-medium">
                           {(selectedContact.department as IDepartment)?.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                      <MapPin size={20} className="text-gray-500" />
+                      <div>
+                        <p className="text-sm text-gray-500">Location</p>
+                        <p className="font-medium">
+                          {selectedContact.location === "head-office"
+                            ? "Head Office (Accra)"
+                            : "Site"}
                         </p>
                       </div>
                     </div>

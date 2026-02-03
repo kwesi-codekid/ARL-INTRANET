@@ -26,6 +26,8 @@ import { connectDB } from "~/lib/db/connection.server";
 import {
   updateMenu,
   serializeMenu,
+} from "~/lib/services/menu.server";
+import {
   dietaryInfo,
   mealTimeInfo,
   type SerializedMenu,
@@ -33,7 +35,7 @@ import {
   type DietaryType,
   type IMeal,
   type IMenuItem,
-} from "~/lib/services/menu.server";
+} from "~/lib/utils/menu-constants";
 import { Menu } from "~/lib/db/models/menu.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
