@@ -13,23 +13,58 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Badge,
+  Chip,
 } from "@heroui/react";
-import { Search, Bell, Settings, LogOut, User } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User, AlertTriangle, AlertCircle, Info, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
+import { useAlertsSafe } from "~/components/alerts";
+import { GoldPriceTicker } from "~/components/ui";
 
 const navItems = [
   { label: "Home", href: "/" },
+  { label: "Policies", href: "/policies" },
   { label: "News", href: "/news" },
   { label: "Safety", href: "/safety" },
   { label: "Directory", href: "/directory" },
   { label: "Events", href: "/events" },
   { label: "Apps", href: "/apps" },
+  { label: "Suggestions", href: "/suggestions" },
 ];
+
+const severityIcons = {
+  critical: AlertTriangle,
+  warning: AlertCircle,
+  info: Info,
+};
+
+const severityColors = {
+  critical: "text-red-500",
+  warning: "text-amber-500",
+  info: "text-blue-500",
+};
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+
+  // Get alerts from context - returns null if AlertProvider not mounted
+  const alertContext = useAlertsSafe();
+
+  // Extract values safely
+  const alertCount = alertContext?.alertCount ?? 0;
+  const alerts = alertContext?.popupAlerts.slice(0, 5).map((a) => ({
+    id: a.id,
+    title: a.title,
+    message: a.message,
+    severity: a.severity,
+    type: a.type,
+  })) ?? [];
+  const openPopup = alertContext?.openPopup ?? null;
 
   const isActive = (href: string) => {
     if (href === "/") return location.pathname === "/";
@@ -37,16 +72,18 @@ export function Header() {
   };
 
   return (
-    <Navbar
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-      classNames={{
-        base: "bg-[#1a1a1a] shadow-md",
-        wrapper: "max-w-full px-4 sm:px-6",
-      }}
-      maxWidth="full"
-      height="4rem"
-    >
+    <div className="sticky top-0 z-50">
+      <Navbar
+        isMenuOpen={isMenuOpen}
+        onMenuOpenChange={setIsMenuOpen}
+        classNames={{
+          base: "bg-[#1a1a1a] shadow-md",
+          wrapper: "max-w-full px-4 sm:px-6",
+        }}
+        maxWidth="full"
+        height="4.5rem"
+        isBlurred={false}
+      >
       {/* Mobile menu toggle */}
       <NavbarContent className="sm:hidden" justify="start">
         <NavbarMenuToggle
@@ -62,7 +99,8 @@ export function Header() {
             <img
               src="/images/logo.png"
               alt="Adamus Resources"
-              className="h-14 object-contain"
+              className="h-10 sm:h-12 w-auto object-contain"
+              style={{ maxWidth: '180px' }}
             />
           </Link>
         </NavbarBrand>
@@ -87,12 +125,19 @@ export function Header() {
       </NavbarContent>
 
       {/* Search & Actions */}
-      <NavbarContent justify="end" className="gap-2 sm:gap-4">
+      <NavbarContent justify="end" className="gap-2 sm:gap-3">
+        {/* Gold Price Ticker - beside search */}
+        <NavbarItem className="hidden lg:block">
+          <div className="flex items-center h-[46px]">
+            <GoldPriceTicker />
+          </div>
+        </NavbarItem>
+
         {/* Search */}
         <NavbarItem className="hidden md:flex">
           <Input
             classNames={{
-              base: "max-w-[220px]",
+              base: "max-w-[200px]",
               inputWrapper: "bg-white/20 hover:bg-white/30 group-data-[focus=true]:bg-white/30 border-0",
               input: "text-white placeholder:text-white/60 text-sm",
             }}
@@ -103,22 +148,99 @@ export function Header() {
           />
         </NavbarItem>
 
-        {/* Notifications */}
+        {/* Notifications/Alerts */}
         <NavbarItem>
-          <Button
-            isIconOnly
-            variant="light"
-            aria-label="Notifications"
-            className="text-white hover:bg-white/20"
-            size="sm"
-          >
-            <div className="relative">
-              <Bell size={20} />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                3
-              </span>
-            </div>
-          </Button>
+          <Popover placement="bottom-end" showArrow>
+            <PopoverTrigger>
+              <Button
+                isIconOnly
+                variant="light"
+                aria-label="Alerts"
+                className="text-white hover:bg-white/20"
+                size="sm"
+              >
+                <Badge
+                  content={alertCount > 0 ? alertCount : undefined}
+                  color="danger"
+                  size="sm"
+                  isInvisible={alertCount === 0}
+                >
+                  <Bell size={20} />
+                </Badge>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0">
+              <div className="p-3 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">Alerts</h3>
+                  {alertCount > 0 && (
+                    <Chip size="sm" color="danger" variant="flat">
+                      {alertCount} active
+                    </Chip>
+                  )}
+                </div>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {alerts.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {alerts.map((alert) => {
+                      const Icon = severityIcons[alert.severity];
+                      return (
+                        <Link
+                          key={alert.id}
+                          to={`/alerts/${alert.id}`}
+                          className="flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className={`mt-0.5 ${severityColors[alert.severity]}`}>
+                            <Icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-gray-900 truncate">
+                              {alert.title}
+                            </p>
+                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
+                              {alert.message}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-gray-500">
+                    <Bell size={32} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No active alerts</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-2 border-t border-gray-200 bg-gray-50">
+                <div className="flex gap-2">
+                  {openPopup && alertCount > 0 && (
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      color="warning"
+                      className="flex-1"
+                      onPress={openPopup}
+                    >
+                      View Popup
+                    </Button>
+                  )}
+                  <Button
+                    as={Link}
+                    to="/alerts"
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    className="flex-1"
+                    endContent={<ChevronRight size={14} />}
+                  >
+                    View All Alerts
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </NavbarItem>
 
         {/* User Menu */}
@@ -194,5 +316,6 @@ export function Header() {
         </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>
+    </div>
   );
 }
