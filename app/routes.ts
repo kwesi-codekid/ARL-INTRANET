@@ -58,8 +58,15 @@ export default [
     route("about", "routes/about.tsx"),
   ]),
 
+  // User authentication routes
+  route("login", "routes/user.login.tsx"),
+
   // API routes (not affected by maintenance mode)
   route("api/quick-links", "routes/api.quick-links.tsx"),
+
+  // User auth API routes
+  route("api/user/auth", "routes/api.user.auth.ts"),
+  route("api/user/me", "routes/api.user.me.ts"),
   route("api/toolbox-talk-weekly", "routes/api.toolbox-talk-weekly.tsx"),
   route("api/upload", "routes/api.upload.tsx"),
   route("api/csv-template", "routes/api.csv-template.tsx"),
@@ -82,6 +89,11 @@ export default [
     route("admin/logout", "routes/admin.logout.tsx"),
     route("admin/users", "routes/admin.users.tsx"),
     route("admin/activity", "routes/admin.activity.tsx"),
+
+    // Admin portal users routes (employee management)
+    route("admin/portal-users", "routes/admin.portal-users.tsx"),
+    route("admin/portal-users/new", "routes/admin.portal-users.new.tsx"),
+    route("admin/portal-users/:id/edit", "routes/admin.portal-users.$id.edit.tsx"),
 
     // Admin news routes
     route("admin/news", "routes/admin.news._index.tsx"),

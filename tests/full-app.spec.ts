@@ -15,7 +15,7 @@ test.setTimeout(60000);
 test.describe("Public Pages", () => {
   test("Home page loads correctly", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Title could be "ARL Connect" or contain "ARL"
+    // Title could be "ARL Intranet" or contain "ARL"
     await expect(page).toHaveTitle(/ARL/);
 
     // Check header exists

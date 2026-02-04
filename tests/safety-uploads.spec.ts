@@ -268,7 +268,7 @@ test.describe("Homepage Safety Carousel Integration", () => {
     await page.goto("/");
 
     // Check for CEO welcome section
-    const ceoSection = page.locator("text=Welcome to ARL Connect");
+    const ceoSection = page.locator("text=Welcome to ARL Intranet");
     const hasCeoSection = await ceoSection.isVisible().catch(() => false);
 
     expect(hasCeoSection).toBeTruthy();
