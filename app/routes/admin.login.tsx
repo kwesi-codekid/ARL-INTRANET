@@ -232,7 +232,7 @@ export default function AdminLogin() {
           </div>
 
           {/* Text */}
-          <h2 className="text-3xl font-bold mb-3">ARL Connect</h2>
+          <h2 className="text-3xl font-bold mb-3">ARL Intranet</h2>
           <p className="text-white/80 text-center max-w-sm">
             Secure admin portal for Adamus Resources Limited
           </p>

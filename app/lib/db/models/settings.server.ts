@@ -60,7 +60,7 @@ export const Settings: Model<ISettings> =
 // Default settings configuration
 export const DEFAULT_SETTINGS = {
   // General
-  siteName: { value: "ARL Connect", type: "string", category: "general", description: "Site name displayed in header" },
+  siteName: { value: "ARL Intranet", type: "string", category: "general", description: "Site name displayed in header" },
   siteDescription: { value: "Adamus Resources Limited Intranet Portal", type: "string", category: "general", description: "Site description" },
   maintenanceMode: { value: false, type: "boolean", category: "general", description: "Enable maintenance mode" },
   maintenanceMessage: { value: "The site is currently under maintenance. Please check back later.", type: "string", category: "general", description: "Message shown during maintenance" },

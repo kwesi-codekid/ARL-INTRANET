@@ -77,7 +77,7 @@ export function MaintenancePage({
 
           {/* Footer */}
           <p className="text-xs text-gray-400 mt-6">
-            ARL Connect - Adamus Resources Limited
+            ARL Intranet - Adamus Resources Limited
           </p>
         </CardBody>
       </Card>

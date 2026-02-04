@@ -215,7 +215,7 @@ export default function AdminDashboard() {
             Welcome back, {user.name}!
           </h1>
           <p className="mt-1 text-white/80">
-            Here's what's happening with ARL Connect today.
+            Here's what's happening with ARL Intranet today.
           </p>
         </CardBody>
       </Card>

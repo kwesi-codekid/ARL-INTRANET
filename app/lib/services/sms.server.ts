@@ -88,7 +88,7 @@ export async function sendSMS(
  * Send OTP SMS
  */
 export async function sendOTP(phoneNumber: string, otp: string): Promise<SMSResponse> {
-  const message = `Your ARL Connect verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+  const message = `Your ARL Intranet verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
   return sendSMS(phoneNumber, message);
 }
 

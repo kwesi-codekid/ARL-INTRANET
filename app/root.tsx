@@ -31,7 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>ARL Connect | Adamus Resources Limited</title>
+        <title>ARL Intranet | Adamus Resources Limited</title>
         <Meta />
         <Links />
       </head>

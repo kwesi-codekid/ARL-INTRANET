@@ -32,7 +32,7 @@ export function Footer() {
                 className="h-10 object-contain"
               />
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-primary-500">ARL Connect</span>
+                <span className="text-lg font-bold text-primary-500">ARL Intranet</span>
                 <span className="text-xs text-gray-400">Nguvu Mining Limited</span>
               </div>
             </div>

@@ -418,7 +418,7 @@ function ExecutiveMessagesCard({
               Message from Leadership
             </p>
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-              Welcome to ARL Connect
+              Welcome to ARL Intranet
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed mb-3">
               "{currentExec.message}"

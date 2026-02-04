@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ARL Intranet (ARL Connect) - Internal intranet portal for Adamus Resources Limited, a mining company in Ghana. This is a full-stack React Router v7 application with SSR, replacing an existing WordPress-based intranet.
+ARL Intranet (ARL Intranet) - Internal intranet portal for Adamus Resources Limited, a mining company in Ghana. This is a full-stack React Router v7 application with SSR, replacing an existing WordPress-based intranet.
 
 ## Commands
 

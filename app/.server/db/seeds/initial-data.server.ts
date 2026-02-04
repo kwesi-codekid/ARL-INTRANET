@@ -21,9 +21,9 @@ export const adminSeeds: Partial<IAdmin>[] = [
  */
 export const newsSeeds: Partial<INews>[] = [
   {
-    title: "Welcome to ARL Connect",
+    title: "Welcome to ARL Intranet",
     content: `
-      <p>Welcome to <strong>ARL Connect</strong>, the official intranet portal for Adamus Resources Limited.</p>
+      <p>Welcome to <strong>ARL Intranet</strong>, the official intranet portal for Adamus Resources Limited.</p>
       <p>This platform is designed to keep you informed about company news, safety updates, and provide easy access to important resources and tools.</p>
       <h3>What you can do here:</h3>
       <ul>
