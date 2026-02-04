@@ -20,9 +20,4 @@ export default defineConfig({
       },
     },
   },
-  ssr: {
-    // Ensure FullCalendar packages are not bundled for SSR (they're client-only)
-    noExternal: [],
-    external: ["@fullcalendar/react", "@fullcalendar/daygrid", "@fullcalendar/interaction"],
-  },
 });
