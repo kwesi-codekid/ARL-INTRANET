@@ -5,6 +5,9 @@
  */
 
 import { useEffect, useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
 import {
   Card,
   CardBody,
@@ -21,8 +24,18 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Skeleton,
 } from "@heroui/react";
-import { Calendar, Clock, MapPin, ArrowRight, Users, Search, List, Grid3X3 } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  ArrowRight,
+  Users,
+  Search,
+  List,
+  Grid3X3,
+} from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { MainLayout } from "~/components/layout";
@@ -151,7 +164,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
-function formatEventDate(dateString: string): { month: string; day: string; full: string } {
+function formatEventDate(dateString: string): {
+  month: string;
+  day: string;
+  full: string;
+} {
   const date = new Date(dateString);
   return {
     month: date.toLocaleDateString("en-US", { month: "short" }),
@@ -167,24 +184,14 @@ function formatEventDate(dateString: string): { month: string; day: string; full
 
 // Calendar View Component
 function EventCalendarView({ events }: { events: SerializedEvent[] }) {
-  const [selectedEvent, setSelectedEvent] = useState<SerializedEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<SerializedEvent | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [CalendarComponent, setCalendarComponent] = useState<React.ComponentType<Record<string, unknown>> | null>(null);
-  const [plugins, setPlugins] = useState<unknown[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Load FullCalendar only on client side
   useEffect(() => {
-    setIsClient(true);
-
-    Promise.all([
-      import("@fullcalendar/react"),
-      import("@fullcalendar/daygrid"),
-      import("@fullcalendar/interaction"),
-    ]).then(([fcModule, daygridModule, interactionModule]) => {
-      setCalendarComponent(() => fcModule.default);
-      setPlugins([daygridModule.default, interactionModule.default]);
-    });
+    setIsMounted(true);
   }, []);
 
   // Convert events to FullCalendar format
@@ -198,14 +205,18 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
     borderColor: event.isFeatured ? "#D4AF37" : "#1B365D",
   }));
 
-  const handleEventClick = (info: { event: { extendedProps: Record<string, unknown> } }) => {
+  const handleEventClick = (info: {
+    event: { extendedProps: Record<string, unknown> };
+  }) => {
     const eventData = info.event.extendedProps as unknown as SerializedEvent;
     setSelectedEvent(eventData);
     setIsModalOpen(true);
   };
 
   const handleDateClick = (info: { dateStr: string }) => {
-    const dateEvents = events.filter((e) => e.date.split("T")[0] === info.dateStr);
+    const dateEvents = events.filter(
+      (e) => e.date.split("T")[0] === info.dateStr
+    );
     if (dateEvents.length === 1) {
       setSelectedEvent(dateEvents[0]);
       setIsModalOpen(true);
@@ -221,49 +232,62 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
     });
   };
 
+  if (!isMounted) {
+    return (
+      <Card className="shadow-sm">
+        <CardBody className="p-4 md:p-6">
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-12 rounded-lg w-40" />
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-11 rounded-lg w-28" />
+                <Skeleton className="h-10 rounded-lg w-16" />
+              </div>
+            </div>
+            <Skeleton className="rounded-xl w-full h-96" />
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
   return (
     <>
       <Card className="shadow-sm">
         <CardBody className="p-4 md:p-6">
           <div className="events-calendar-full">
-            {isClient && CalendarComponent && plugins.length > 0 ? (
-              <CalendarComponent
-                plugins={plugins}
-                initialView="dayGridMonth"
-                events={calendarEvents}
-                eventClick={handleEventClick}
-                dateClick={handleDateClick}
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "dayGridMonth,dayGridWeek",
-                }}
-                height="auto"
-                contentHeight="auto"
-                aspectRatio={1.5}
-                dayMaxEvents={3}
-                moreLinkClick="popover"
-                eventDisplay="block"
-                eventTimeFormat={{
-                  hour: "numeric",
-                  minute: "2-digit",
-                  meridiem: "short",
-                }}
-                titleFormat={{ year: "numeric", month: "long" }}
-                dayHeaderFormat={{ weekday: "short" }}
-                fixedWeekCount={false}
-                nowIndicator={true}
-                navLinks={true}
-              />
-            ) : (
-              <div className="flex items-center justify-center py-16">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-              </div>
-            )}
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={calendarEvents}
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,dayGridWeek",
+              }}
+              height="auto"
+              contentHeight="auto"
+              aspectRatio={1.5}
+              dayMaxEvents={3}
+              moreLinkClick="popover"
+              eventDisplay="block"
+              eventTimeFormat={{
+                hour: "numeric",
+                minute: "2-digit",
+                meridiem: "short",
+              }}
+              titleFormat={{ year: "numeric", month: "long" }}
+              dayHeaderFormat={{ weekday: "short" }}
+              fixedWeekCount={false}
+              nowIndicator={true}
+              navLinks={true}
+            />
           </div>
 
           {/* Legend */}
-          <div className="mt-4 flex items-center justify-center gap-6 text-sm border-t pt-4">
+          <div className="mt-4 flex items-center justify-center gap-6 border-t pt-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-[#1B365D]" />
               <span className="text-gray-600">Regular Event</span>
@@ -277,12 +301,16 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
       </Card>
 
       {/* Event Detail Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="lg">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        size="lg"
+      >
         <ModalContent>
           {selectedEvent && (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-wrap items-center gap-2">
                   {selectedEvent.isFeatured && (
                     <Chip size="sm" color="warning" variant="flat">
                       Featured
@@ -299,7 +327,7 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
                     </Chip>
                   )}
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mt-1">
+                <h2 className="mt-1 text-xl font-bold text-gray-900">
                   {selectedEvent.title}
                 </h2>
               </ModalHeader>
@@ -307,10 +335,12 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
               <ModalBody>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-                    <Calendar size={18} className="text-gray-500 shrink-0" />
+                    <Calendar size={18} className="shrink-0 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Date</p>
-                      <p className="font-medium">{formatFullDate(selectedEvent.date)}</p>
+                      <p className="font-medium">
+                        {formatFullDate(selectedEvent.date)}
+                      </p>
                       {selectedEvent.endDate && (
                         <p className="text-sm text-gray-500">
                           to {formatFullDate(selectedEvent.endDate)}
@@ -321,7 +351,7 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
 
                   {selectedEvent.time && (
                     <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-                      <Clock size={18} className="text-gray-500 shrink-0" />
+                      <Clock size={18} className="shrink-0 text-gray-500" />
                       <div>
                         <p className="text-sm text-gray-500">Time</p>
                         <p className="font-medium">{selectedEvent.time}</p>
@@ -330,7 +360,7 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
                   )}
 
                   <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-                    <MapPin size={18} className="text-gray-500 shrink-0" />
+                    <MapPin size={18} className="shrink-0 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Location</p>
                       <p className="font-medium">{selectedEvent.location}</p>
@@ -339,7 +369,7 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
 
                   {selectedEvent.organizer && (
                     <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-                      <Users size={18} className="text-gray-500 shrink-0" />
+                      <Users size={18} className="shrink-0 text-gray-500" />
                       <div>
                         <p className="text-sm text-gray-500">Organizer</p>
                         <p className="font-medium">{selectedEvent.organizer}</p>
@@ -348,7 +378,7 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
                   )}
 
                   {selectedEvent.description && (
-                    <p className="text-sm text-gray-600 leading-relaxed pt-2">
+                    <p className="pt-2 text-sm leading-relaxed text-gray-600">
                       {selectedEvent.description}
                     </p>
                   )}
@@ -362,16 +392,16 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
                 {new Date(selectedEvent.date) > new Date() &&
                   selectedEvent.registrationRequired &&
                   selectedEvent.registrationLink && (
-                  <Button
-                    as="a"
-                    href={selectedEvent.registrationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    color="secondary"
-                  >
-                    Register
-                  </Button>
-                )}
+                    <Button
+                      as="a"
+                      href={selectedEvent.registrationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="secondary"
+                    >
+                      Register
+                    </Button>
+                  )}
                 <Button
                   as={Link}
                   to={`/events/${selectedEvent.slug}`}
@@ -389,42 +419,56 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
   );
 }
 
-function EventCard({ event, isPast = false }: { event: SerializedEvent; isPast?: boolean }) {
+function EventCard({
+  event,
+  isPast = false,
+}: {
+  event: SerializedEvent;
+  isPast?: boolean;
+}) {
   const dateInfo = formatEventDate(event.date);
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
       <CardBody className="p-0">
         <div className="flex flex-col sm:flex-row">
           {/* Featured Image - Full height on left */}
           {event.featuredImage ? (
             <Link
               to={`/events/${event.slug}`}
-              className="relative w-full sm:w-48 md:w-56 h-40 sm:h-auto shrink-0 overflow-hidden"
+              className="relative h-40 w-full shrink-0 overflow-hidden sm:h-auto sm:w-48 md:w-56"
             >
               <Image
                 src={event.featuredImage}
                 alt={event.title}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                 radius="none"
               />
               {/* Date Badge Overlay */}
-              <div className={`absolute top-2 left-2 flex flex-col items-center justify-center px-3 py-1.5 rounded-lg ${isPast ? "bg-gray-800/80" : "bg-primary-600/90"}`}>
+              <div
+                className={`absolute top-2 left-2 flex flex-col items-center justify-center rounded-lg px-3 py-1.5 ${isPast ? "bg-gray-800/80" : "bg-primary-600/90"}`}
+              >
                 <span className="text-xs font-medium text-white">
                   {dateInfo.month}
                 </span>
-                <span className="text-xl font-bold text-white leading-tight">
+                <span className="text-xl leading-tight font-bold text-white">
                   {dateInfo.day}
                 </span>
               </div>
             </Link>
           ) : (
             /* Date Badge without image */
-            <div className={`flex w-full sm:w-20 shrink-0 flex-col items-center justify-center py-4 sm:py-0 ${isPast ? "bg-gray-100" : "bg-primary-50"}`}>
-              <span className={`text-sm font-medium ${isPast ? "text-gray-500" : "text-primary-600"}`}>
+            <div
+              className={`flex w-full shrink-0 flex-col items-center justify-center py-4 sm:w-20 sm:py-0 ${isPast ? "bg-gray-100" : "bg-primary-50"}`}
+            >
+              <span
+                className={`text-sm font-medium ${isPast ? "text-gray-500" : "text-primary-600"}`}
+              >
                 {dateInfo.month}
               </span>
-              <span className={`text-2xl font-bold ${isPast ? "text-gray-700" : "text-primary-700"}`}>
+              <span
+                className={`text-2xl font-bold ${isPast ? "text-gray-700" : "text-primary-700"}`}
+              >
                 {dateInfo.day}
               </span>
             </div>
@@ -432,7 +476,7 @@ function EventCard({ event, isPast = false }: { event: SerializedEvent; isPast?:
 
           {/* Event Details */}
           <div className="flex-1 p-3 sm:p-4">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
               {event.isFeatured && (
                 <Chip size="sm" color="warning" variant="flat">
                   Featured
@@ -452,12 +496,12 @@ function EventCard({ event, isPast = false }: { event: SerializedEvent; isPast?:
 
             <Link
               to={`/events/${event.slug}`}
-              className="text-base font-semibold text-gray-900 hover:text-primary-600 line-clamp-1"
+              className="hover:text-primary-600 line-clamp-1 text-base font-semibold text-gray-900"
             >
               {event.title}
             </Link>
 
-            <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+            <p className="mt-1 line-clamp-2 text-sm text-gray-600">
               {event.description}
             </p>
 
@@ -493,18 +537,20 @@ function EventCard({ event, isPast = false }: { event: SerializedEvent; isPast?:
                 View Details
               </Button>
 
-              {!isPast && event.registrationRequired && event.registrationLink && (
-                <Button
-                  as="a"
-                  href={event.registrationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="sm"
-                  color="primary"
-                >
-                  Register
-                </Button>
-              )}
+              {!isPast &&
+                event.registrationRequired &&
+                event.registrationLink && (
+                  <Button
+                    as="a"
+                    href={event.registrationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    color="primary"
+                  >
+                    Register
+                  </Button>
+                )}
             </div>
           </div>
         </div>
@@ -580,9 +626,7 @@ export default function EventsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-            <p className="text-gray-500">
-              Company events and activities
-            </p>
+            <p className="text-gray-500">Company events and activities</p>
           </div>
           <div className="flex items-center gap-3">
             {/* View Toggle */}
@@ -602,7 +646,7 @@ export default function EventsPage() {
                 Calendar
               </Button>
             </ButtonGroup>
-            <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+            <div className="bg-primary-100 hidden h-12 w-12 items-center justify-center rounded-full sm:flex">
               <Calendar size={24} className="text-primary-600" />
             </div>
           </div>
@@ -671,16 +715,15 @@ export default function EventsPage() {
             {/* Calendar view info */}
             {currentView === "calendar" && (
               <p className="text-sm text-gray-500">
-                Showing all {events.length} events. Click on an event to view details.
+                Showing all {events.length} events. Click on an event to view
+                details.
               </p>
             )}
           </CardBody>
         </Card>
 
         {/* Calendar View */}
-        {currentView === "calendar" && (
-          <EventCalendarView events={events} />
-        )}
+        {currentView === "calendar" && <EventCalendarView events={events} />}
 
         {/* List View */}
         {currentView === "list" && (
@@ -696,7 +739,11 @@ export default function EventsPage() {
             {events.length > 0 ? (
               <div className="space-y-4">
                 {events.map((event) => (
-                  <EventCard key={event.id} event={event} isPast={isPast || new Date(event.date) < new Date()} />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    isPast={isPast || new Date(event.date) < new Date()}
+                  />
                 ))}
               </div>
             ) : (
@@ -727,7 +774,7 @@ export default function EventsPage() {
         )}
 
         {/* Gallery Link */}
-        <Card className="shadow-sm bg-gradient-to-r from-primary-50 to-primary-100">
+        <Card className="from-primary-50 to-primary-100 bg-gradient-to-r shadow-sm">
           <CardBody className="flex flex-row items-center justify-between p-6">
             <div>
               <h3 className="font-semibold text-gray-900">Event Photos</h3>
