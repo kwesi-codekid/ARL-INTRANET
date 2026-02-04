@@ -5,7 +5,6 @@ import type { AppLinksGroupedByCategory } from "~/lib/services/app-link.server";
  * Task: 1.1.5.2.1
  */
 
-import React from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
 import {

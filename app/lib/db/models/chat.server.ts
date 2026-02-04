@@ -3,7 +3,8 @@
  * Task: 1.4.1.1.2 - Create ChatMessage schema
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // Chat Session Interface
 export interface IChatSession extends Document {

@@ -3,7 +3,8 @@
  * Task: 1.1.2.1.3
  */
 
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document } from "mongoose";
 
 export interface IOTP extends Document {
   phone: string;

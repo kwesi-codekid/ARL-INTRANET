@@ -3,7 +3,7 @@
  * Task: 1.1.5.3.1, 1.1.5.3.4 (drag-and-drop reordering)
  */
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Form, useNavigation, useActionData, Link, useFetcher } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";

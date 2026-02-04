@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // Task: 1.2.1.1.1 - Create ToolboxTalk schema (title, content, date, media, author)
 

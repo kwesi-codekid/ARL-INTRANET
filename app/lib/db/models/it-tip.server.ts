@@ -3,7 +3,8 @@
  * Task: IT Tips Feature - Small cards for IT tips that admins can push out
  */
 
-import mongoose, { Schema, Document, Types, Model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Types, Model } from "mongoose";
 
 export interface IITTip extends Document {
   _id: Types.ObjectId;

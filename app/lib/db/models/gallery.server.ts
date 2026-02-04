@@ -3,7 +3,8 @@
  * Task: 1.3.1.2 - Photo Gallery Backend
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 export interface IAlbum extends Document {
   _id: Types.ObjectId;

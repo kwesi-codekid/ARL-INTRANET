@@ -3,7 +3,8 @@
  * Task: 1.3.1.1 - Events Backend
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 export interface IEvent extends Document {
   _id: Types.ObjectId;

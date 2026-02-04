@@ -3,7 +3,8 @@
  * Task: 1.1.2.4.7
  */
 
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model } from "mongoose";
 
 export interface IActivityLog extends Document {
   userId?: mongoose.Types.ObjectId;

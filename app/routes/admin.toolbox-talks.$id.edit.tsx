@@ -15,7 +15,6 @@ import {
   SelectItem,
   Chip,
   Divider,
-  addToast,
 } from "@heroui/react";
 import { ArrowLeft, Save, Calendar, Trash2, Video, Volume2, Image as ImageIcon, Eye } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";

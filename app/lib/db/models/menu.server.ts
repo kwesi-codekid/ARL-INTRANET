@@ -4,7 +4,8 @@
  * Task: 1.2.4.1.2 - Create MenuItem schema (name, description, dietary info)
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // Dietary types
 export type DietaryType = "vegetarian" | "vegan" | "halal" | "gluten-free" | "dairy-free" | "nut-free" | "spicy";

@@ -3,7 +3,8 @@
  * Task: 1.3.2.1 - Anonymous Suggestion Box Backend
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // Suggestion Category Interface
 export interface ISuggestionCategory extends Document {

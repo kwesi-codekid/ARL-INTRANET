@@ -15,7 +15,6 @@ import {
 import {
   MessageCircle,
   Share2,
-  MoreHorizontal,
   Shield,
   ArrowRight,
   ThumbsUp,

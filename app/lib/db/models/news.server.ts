@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 export interface INewsCategory extends Document {
   name: string;

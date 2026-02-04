@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, RefreshCw } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, RefreshCw } from "lucide-react";
 import { Button, Slider } from "@heroui/react";
 
 interface VideoPlayerProps {

@@ -3,7 +3,7 @@
  * Task: 1.1.5.3.2
  */
 
-import React, { useState } from "react";
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Form, useNavigation, useActionData, Link } from "react-router";
 import {

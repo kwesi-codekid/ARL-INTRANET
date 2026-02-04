@@ -3,7 +3,8 @@
  * Task: CEO Talk Slideshow - Multiple executives/managers messages
  */
 
-import mongoose, { Schema, Document, Types, Model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Types, Model } from "mongoose";
 
 export interface IExecutiveMessage extends Document {
   _id: Types.ObjectId;

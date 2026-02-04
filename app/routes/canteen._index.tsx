@@ -27,7 +27,6 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Leaf,
   AlertCircle,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";

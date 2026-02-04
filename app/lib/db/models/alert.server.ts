@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // Task: 1.2.3.1.1 - Create Alert schema (title, message, severity, type, active, dates)
 

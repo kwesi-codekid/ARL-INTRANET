@@ -3,7 +3,8 @@
  * System-wide configuration stored in database
  */
 
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model } from "mongoose";
 
 export interface ISettings extends Document {
   key: string;

@@ -3,7 +3,8 @@
  * Task: 1.4.3.1.2 - Create ExternalNews schema
  */
 
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Document, Model, Types } from "mongoose";
 
 // External News Interface
 export interface IExternalNews extends Document {
