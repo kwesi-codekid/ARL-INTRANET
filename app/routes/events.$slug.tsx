@@ -23,8 +23,9 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { getEventBySlug, serializeEvent } = await import("~/lib/services/event.server");
@@ -50,6 +51,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function EventDetailPage() {
   const { event, albums } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const eventDate = new Date(event.date);
   const isPast = eventDate < new Date();
@@ -62,7 +64,7 @@ export default function EventDetailPage() {
   });
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Back Button */}
         <Button

@@ -14,8 +14,9 @@ import {
   User,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { getPolicyBySlug, incrementPolicyViews, serializePolicy } = await import("~/lib/services/policy.server");
@@ -44,6 +45,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function PolicyDetailPage() {
   const { policy } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
@@ -55,7 +57,7 @@ export default function PolicyDetailPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Back Link */}
         <Link

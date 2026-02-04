@@ -25,8 +25,9 @@ import {
 } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlbum, SerializedPhoto } from "~/lib/services/gallery.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -176,6 +177,7 @@ export default function AlbumDetailPage() {
     album: SerializedAlbum;
     photos: SerializedPhoto[];
   }>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -188,7 +190,7 @@ export default function AlbumDetailPage() {
   });
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Back Button */}
         <Button

@@ -13,8 +13,9 @@ import {
 } from "@heroui/react";
 import { AlertTriangle, AlertCircle, Info, ArrowLeft, Calendar, Eye, Clock } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlert } from "~/lib/services/alert.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -82,11 +83,12 @@ const typeLabels: Record<string, string> = {
 
 export default function AlertDetailPage() {
   const { alert } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const config = severityConfig[alert.severity];
   const Icon = config.icon;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Back Button */}
       <Button
         as={Link}

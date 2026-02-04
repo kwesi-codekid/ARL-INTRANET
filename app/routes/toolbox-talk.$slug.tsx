@@ -25,8 +25,9 @@ import {
   User,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 
 
@@ -94,6 +95,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function ToolboxTalkDetailPage() {
   const { talk, navigation, relatedTalks } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -129,7 +131,7 @@ export default function ToolboxTalkDetailPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-4xl">
         {/* Back Button */}
         <Link

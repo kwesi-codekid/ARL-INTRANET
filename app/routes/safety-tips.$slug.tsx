@@ -13,8 +13,9 @@ import {
 } from "@heroui/react";
 import { Shield, ArrowLeft, Eye, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedSafetyTip } from "~/lib/services/safety.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -60,9 +61,10 @@ interface LoaderData {
 
 export default function SafetyTipDetailPage() {
   const { tip, relatedTips } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Back Button */}
       <Button
         as={Link}

@@ -13,9 +13,10 @@ import {
 } from "@heroui/react";
 import { Camera, Search, Image as ImageIcon, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useOutletContext } from "react-router";
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlbum } from "~/lib/services/gallery.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -137,6 +138,7 @@ export default function GalleryPage() {
     page: number;
     search: string;
   }>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(search);
@@ -165,7 +167,7 @@ export default function GalleryPage() {
     : albums;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

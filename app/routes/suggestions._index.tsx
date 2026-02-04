@@ -16,8 +16,9 @@ import {
 } from "@heroui/react";
 import { Send, Shield, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
+import { useLoaderData, useActionData, useNavigation, Form, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 type LoaderData = {
   categories: Array<{
@@ -152,6 +153,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function SuggestionsPage() {
   const { categories, rateLimit } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -171,7 +173,7 @@ export default function SuggestionsPage() {
   }, [actionData?.success]);
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

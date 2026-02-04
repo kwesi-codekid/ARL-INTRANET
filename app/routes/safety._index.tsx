@@ -33,8 +33,9 @@ import {
   Lightbulb,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { VideoPlayer } from "~/components/ui";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -102,6 +103,7 @@ const quickPlaylists = [
 
 export default function SafetyHubPage() {
   const { stats, tips, videos, activeAlerts, hazardAppUrl } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   // Video playlist state
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
@@ -143,7 +145,7 @@ export default function SafetyHubPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-4">
         {/* Top Bar - Title + Emergency + Stats */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-5 text-white">

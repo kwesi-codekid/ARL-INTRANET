@@ -17,8 +17,9 @@ import {
 } from "@heroui/react";
 import { Search, Shield, Eye, ArrowRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedSafetyTip, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -69,10 +70,11 @@ interface LoaderData {
 export default function SafetyTipsPage() {
   const { tips, total, page, totalPages, categories, selectedCategory, searchQuery } =
     useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [search, setSearch] = useState(searchQuery);
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

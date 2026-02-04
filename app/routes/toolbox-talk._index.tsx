@@ -18,8 +18,9 @@ import {
 } from "@heroui/react";
 import { Search, Calendar, Eye, PlayCircle, Volume2, ChevronRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 
 
@@ -110,6 +111,7 @@ export default function ToolboxTalkPage() {
     currentYear,
     currentMonth,
   } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (value: string) => {
@@ -166,7 +168,7 @@ export default function ToolboxTalkPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

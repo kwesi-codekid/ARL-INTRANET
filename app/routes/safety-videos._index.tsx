@@ -21,8 +21,9 @@ import {
 } from "@heroui/react";
 import { Search, Video, Play, Eye, Clock, X } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { VideoPlayer } from "~/components/ui";
 import type { SerializedSafetyVideo, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
@@ -81,6 +82,7 @@ function formatDuration(seconds: number): string {
 export default function SafetyVideosPage() {
   const { videos, total, page, totalPages, categories, selectedCategory, searchQuery } =
     useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [search, setSearch] = useState(searchQuery);
   const [selectedVideo, setSelectedVideo] = useState<SerializedSafetyVideo | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -91,7 +93,7 @@ export default function SafetyVideosPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

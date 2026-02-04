@@ -14,8 +14,9 @@ import {
 } from "@heroui/react";
 import { Clock, Eye, ArrowLeft, Share2, Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 // Types for loader data
 interface ArticleData {
@@ -129,6 +130,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function NewsDetailPage() {
   const { article, relatedNews, prevArticle, nextArticle } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "";
@@ -141,7 +143,7 @@ export default function NewsDetailPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-4xl">
         {/* Back Button */}
         <Link

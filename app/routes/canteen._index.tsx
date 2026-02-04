@@ -30,8 +30,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams } from "react-router";
+import { useLoaderData, useSearchParams, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import {
   dietaryInfo,
   mealTimeInfo,
@@ -341,6 +342,7 @@ function WeekView({
 
 export default function CanteenMenuPage() {
   const { todayMenu, weekMenus, weekOffset } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<"daily" | "weekly">("daily");
 
@@ -351,7 +353,7 @@ export default function CanteenMenuPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

@@ -13,8 +13,9 @@ import {
 } from "@heroui/react";
 import { Search, FileText, Download, Calendar, Eye } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { CompanyValuesSlideshow } from "~/components/dashboard";
 import type { CompanyImages } from "~/components/dashboard";
 
@@ -78,6 +79,7 @@ export default function PoliciesPage() {
       searchQuery: string;
       companyImages: CompanyImages;
     };
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleCategoryFilter = (categoryId: string) => {
@@ -118,7 +120,7 @@ export default function PoliciesPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="container mx-auto max-w-6xl px-4 py-8">
         {/* Company Values Slideshow - Mission, Vision, Values */}
         <CompanyValuesSlideshow images={companyImages} className="mb-8" />

@@ -37,8 +37,9 @@ import {
   Grid3X3,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -566,6 +567,7 @@ export default function EventsPage() {
     counts: { upcoming: number; past: number };
     filters: { search: string; category: string; filter: string; view: string };
   }>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentView = filters.view || "list";
@@ -620,7 +622,7 @@ export default function EventsPage() {
   const isPast = filters.filter === "past";
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
