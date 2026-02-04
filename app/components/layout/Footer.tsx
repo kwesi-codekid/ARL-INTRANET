@@ -1,5 +1,5 @@
 import { Link } from "@heroui/react";
-import { Phone, Mail } from "lucide-react";
+import { Phone, Mail, Settings } from "lucide-react";
 
 const quickLinks = [
   { label: "Home", href: "/" },
@@ -94,9 +94,18 @@ export function Footer() {
             <p className="text-sm text-gray-500">
               © {currentYear} Nguvu Mining Limited. All rights reserved.
             </p>
-            <p className="text-xs text-gray-600">
-              Internal Use Only - Accessible on Company Network
-            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/admin"
+                className="flex items-center gap-1.5 text-xs text-gray-500 transition-colors hover:text-primary-500"
+              >
+                <Settings size={14} />
+                Admin Portal
+              </Link>
+              <p className="text-xs text-gray-600">
+                Internal Use Only
+              </p>
+            </div>
           </div>
         </div>
       </div>
