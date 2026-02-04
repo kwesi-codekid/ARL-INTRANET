@@ -28,17 +28,6 @@ import {
   redirect,
 } from "react-router";
 import { RichTextEditor } from "~/components/admin";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getPolicyCategories,
-  getPolicyById,
-  updatePolicy,
-  deletePolicy,
-  serializePolicy,
-} from "~/lib/services/policy.server";
-import { uploadPdf } from "~/lib/services/upload.server";
-import { logActivity } from "~/lib/services/activity-log.server";
 
 // Type definitions for loader data
 interface PolicyCategory {
@@ -86,6 +75,12 @@ interface ActionData {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, getPolicyById, updatePolicy, deletePolicy, serializePolicy } = await import("~/lib/services/policy.server");
+  const { uploadPdf } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -113,6 +108,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, getPolicyById, updatePolicy, deletePolicy, serializePolicy } = await import("~/lib/services/policy.server");
+  const { uploadPdf } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

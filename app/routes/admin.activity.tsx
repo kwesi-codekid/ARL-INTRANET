@@ -21,8 +21,8 @@ import {
 import { Activity, User, FileText, Settings, LogIn, LogOut, Eye, Pencil, Trash2, Plus, ToggleLeft } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams } from "react-router";
-import { requireSuperAdmin } from "~/lib/services/session.server";
-import { getActivityLogs, getActivityStats } from "~/lib/services/activity-log.server";
+
+
 
 // Type definitions
 interface ActivityLog {
@@ -53,6 +53,9 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireSuperAdmin } = await import("~/lib/services/session.server");
+  const { getActivityLogs, getActivityStats } = await import("~/lib/services/activity-log.server");
+
   await requireSuperAdmin(request);
 
   const url = new URL(request.url);

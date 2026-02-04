@@ -1,3 +1,5 @@
+import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
+
 /**
  * Admin Toolbox Talks Listing Page
  * Task: 1.2.1.4.1, 1.2.1.4.6 (Calendar view)
@@ -40,17 +42,9 @@ import {
 } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getToolboxTalks,
-  getToolboxTalkStats,
-  deleteToolboxTalk,
-  toggleToolboxTalkStatus,
-  archiveToolboxTalk,
-  serializeToolboxTalk,
-  type SerializedToolboxTalk,
-} from "~/lib/services/toolbox-talk.server";
+
+
+
 import { ToolboxTalkCalendar } from "~/components/admin";
 
 const ITEMS_PER_PAGE = 10;
@@ -76,6 +70,10 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getToolboxTalks, getToolboxTalkStats, deleteToolboxTalk, toggleToolboxTalkStatus, archiveToolboxTalk, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -121,6 +119,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getToolboxTalks, getToolboxTalkStats, deleteToolboxTalk, toggleToolboxTalkStatus, archiveToolboxTalk, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

@@ -26,8 +26,6 @@ import { Calendar, Clock, MapPin, ArrowRight, Users, Search, List, Grid3X3 } fro
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import { Event } from "~/lib/db/models/event.server";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -61,6 +59,9 @@ interface SerializedEvent {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Event } = await import("~/lib/db/models/event.server");
+
   await connectDB();
 
   const url = new URL(request.url);

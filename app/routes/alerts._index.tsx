@@ -24,16 +24,12 @@ import { AlertTriangle, AlertCircle, Info, Bell, Calendar, Filter } from "lucide
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAlerts,
-  getAlertHistory,
-  serializeAlert,
-  type SerializedAlert,
-  type AlertSeverity,
-} from "~/lib/services/alert.server";
+import type { SerializedAlert, AlertSeverity } from "~/lib/services/alert.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getAlerts, getAlertHistory, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

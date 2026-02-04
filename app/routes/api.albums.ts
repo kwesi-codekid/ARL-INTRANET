@@ -4,16 +4,12 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAlbums,
-  getPublishedAlbums,
-  getFeaturedAlbums,
-  getAlbumsByEvent,
-  serializeAlbum,
-} from "~/lib/services/gallery.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getAlbums, getFeaturedAlbums, getAlbumsByEvent, serializeAlbum } =
+    await import("~/lib/services/gallery.server");
+
   await connectDB();
 
   const url = new URL(request.url);

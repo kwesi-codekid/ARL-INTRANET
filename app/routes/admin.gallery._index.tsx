@@ -26,13 +26,14 @@ import {
 import { Plus, Search, MoreVertical, Edit, Trash2, Eye, Star, Camera, Images } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Album, Photo } from "~/lib/db/models/gallery.server";
 
 const ITEMS_PER_PAGE = 10;
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -100,6 +101,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+
   await requireAuth(request);
   await connectDB();
 

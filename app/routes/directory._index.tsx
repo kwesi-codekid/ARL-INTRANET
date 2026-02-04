@@ -1,3 +1,5 @@
+import type { PaginatedContacts } from "~/lib/services/contact.server";
+
 /**
  * Company Directory Listing
  * Task: 1.1.4.2.1
@@ -40,11 +42,14 @@ import {
   Users,
 } from "lucide-react";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import { getContacts, getDepartments, getContactLetters, type PaginatedContacts } from "~/lib/services/contact.server";
+
+
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getContacts, getDepartments, getContactLetters } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

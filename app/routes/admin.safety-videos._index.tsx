@@ -37,19 +37,7 @@ import {
 } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link, Form, useSubmit } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getSafetyVideos,
-  getSafetyCategories,
-  getSafetyStats,
-  deleteSafetyVideo,
-  updateSafetyVideo,
-  serializeSafetyVideo,
-  serializeSafetyCategory,
-  type SerializedSafetyVideo,
-  type SerializedSafetyCategory,
-} from "~/lib/services/safety.server";
+import type { SerializedSafetyVideo, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -75,6 +63,10 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyVideos, getSafetyCategories, getSafetyStats, deleteSafetyVideo, updateSafetyVideo, serializeSafetyVideo, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -113,6 +105,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyVideos, getSafetyCategories, getSafetyStats, deleteSafetyVideo, updateSafetyVideo, serializeSafetyVideo, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

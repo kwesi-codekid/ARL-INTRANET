@@ -32,15 +32,6 @@ import {
 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAllExecutiveMessages,
-  createExecutiveMessage,
-  updateExecutiveMessage,
-  deleteExecutiveMessage,
-  toggleExecutiveMessageActive,
-} from "~/lib/services/executive-message.server";
 
 interface ExecutiveMessage {
   id: string;
@@ -64,6 +55,10 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getAllExecutiveMessages, createExecutiveMessage, updateExecutiveMessage, deleteExecutiveMessage, toggleExecutiveMessageActive } = await import("~/lib/services/executive-message.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -84,6 +79,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getAllExecutiveMessages, createExecutiveMessage, updateExecutiveMessage, deleteExecutiveMessage, toggleExecutiveMessageActive } = await import("~/lib/services/executive-message.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

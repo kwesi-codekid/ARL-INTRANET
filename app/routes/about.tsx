@@ -8,11 +8,6 @@ import { Target, Eye, Heart, Shield, Users, Award } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getCompanyInfo,
-  serializeCompanyInfo,
-} from "~/lib/services/company-info.server";
 
 interface CoreValue {
   title: string;
@@ -45,6 +40,9 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getCompanyInfo, serializeCompanyInfo } = await import("~/lib/services/company-info.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const companyInfo = await getCompanyInfo();

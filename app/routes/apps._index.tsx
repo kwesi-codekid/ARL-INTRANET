@@ -1,3 +1,5 @@
+import type { AppLinksGroupedByCategory } from "~/lib/services/app-link.server";
+
 /**
  * Company Apps Listing
  * Task: 1.1.5.2.1
@@ -100,13 +102,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAppLinksGroupedByCategory,
-  searchAppLinks,
-  incrementClicks,
-  type AppLinksGroupedByCategory,
-} from "~/lib/services/app-link.server";
+
+
 import type { IAppLink, IAppLinkCategory } from "~/lib/db/models/app-link.server";
 
 // Icon mapping for lucide icons
@@ -204,6 +201,9 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getAppLinksGroupedByCategory, searchAppLinks, incrementClicks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);
@@ -222,6 +222,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { getAppLinksGroupedByCategory, searchAppLinks, incrementClicks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const formData = await request.formData();

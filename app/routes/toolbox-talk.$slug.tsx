@@ -1,3 +1,5 @@
+import type { SerializedToolboxTalk, AdjacentTalks } from "~/lib/services/toolbox-talk.server";
+
 /**
  * Single Toolbox Talk Detail Page
  * Task: 1.2.1.3.3-4 (Video/Audio Player Integration)
@@ -25,16 +27,8 @@ import {
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getToolboxTalkBySlug,
-  incrementViews,
-  getPastToolboxTalks,
-  getAdjacentToolboxTalks,
-  serializeToolboxTalk,
-  type SerializedToolboxTalk,
-  type AdjacentTalks,
-} from "~/lib/services/toolbox-talk.server";
+
+
 
 interface LoaderData {
   talk: SerializedToolboxTalk;
@@ -49,6 +43,9 @@ interface LoaderData {
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getToolboxTalkBySlug, incrementViews, getPastToolboxTalks, getAdjacentToolboxTalks, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const { slug } = params;

@@ -132,18 +132,10 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   // Additional
   Eye, Megaphone, Bell, BookOpen, GraduationCap, Layers, PieChart, TrendingUp,
 };
-import { connectDB } from "~/lib/db/connection.server";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import {
-  getAppLinks,
-  getCategories,
-  createAppLink,
-  updateAppLink,
-  deleteAppLink,
-  getAppLinkStats,
-  reorderAppLinks,
-} from "~/lib/services/app-link.server";
+
+
+
+
 import type { IAppLink, IAppLinkCategory } from "~/lib/db/models/app-link.server";
 
 // Type definitions for loader and action data
@@ -199,6 +191,11 @@ const availableIcons = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getAppLinks, getCategories, createAppLink, updateAppLink, deleteAppLink, getAppLinkStats, reorderAppLinks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -231,6 +228,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getAppLinks, getCategories, createAppLink, updateAppLink, deleteAppLink, getAppLinkStats, reorderAppLinks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

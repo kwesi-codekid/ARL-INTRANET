@@ -27,17 +27,12 @@ import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAlbumBySlug,
-  getPhotosByAlbum,
-  serializeAlbum,
-  serializePhoto,
-  type SerializedAlbum,
-  type SerializedPhoto,
-} from "~/lib/services/gallery.server";
+import type { SerializedAlbum, SerializedPhoto } from "~/lib/services/gallery.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getAlbumBySlug, getPhotosByAlbum, serializeAlbum, serializePhoto } = await import("~/lib/services/gallery.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const album = await getAlbumBySlug(params.slug!);

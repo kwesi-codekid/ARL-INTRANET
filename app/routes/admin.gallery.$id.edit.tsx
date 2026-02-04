@@ -20,11 +20,6 @@ import {
 import { ArrowLeft, Save, ImagePlus, X, Camera, Calendar, Trash2, Images, ExternalLink, Link as LinkIcon } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Album, Photo } from "~/lib/db/models/gallery.server";
-import { Event } from "~/lib/db/models/event.server";
-import { uploadImage } from "~/lib/services/upload.server";
 
 function generateSlug(title: string): string {
   return title
@@ -34,6 +29,11 @@ function generateSlug(title: string): string {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album } = await import("~/lib/db/models/gallery.server");
+  const { Event } = await import("~/lib/db/models/event.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -73,6 +73,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+  const { uploadImage } = await import("~/lib/services/upload.server");
+
   await requireAuth(request);
   await connectDB();
 

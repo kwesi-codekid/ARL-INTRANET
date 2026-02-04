@@ -27,9 +27,9 @@ import {
 import { Plus, Edit, Trash2, GripVertical } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Form, useNavigation, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { NewsCategory, News } from "~/lib/db/models/news.server";
+
+
+
 
 function generateSlug(name: string): string {
   return name
@@ -39,6 +39,10 @@ function generateSlug(name: string): string {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { NewsCategory, News } = await import("~/lib/db/models/news.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -65,6 +69,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { NewsCategory, News } = await import("~/lib/db/models/news.server");
+
   await requireAuth(request);
   await connectDB();
 

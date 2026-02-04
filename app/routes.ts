@@ -69,7 +69,7 @@ export default [
   route("api/safety-tips", "routes/api.safety-tips.tsx"),
   route("api/safety-videos", "routes/api.safety-videos.tsx"),
   route("api/events", "routes/api.events.tsx"),
-  route("api/albums", "routes/api.albums.tsx"),
+  route("api/albums", "routes/api.albums.ts"),
   route("api/suggestions", "routes/api.suggestions.tsx"),
   route("api/suggestions/categories", "routes/api.suggestions.categories.tsx"),
   route("api/chat", "routes/api.chat.tsx"),

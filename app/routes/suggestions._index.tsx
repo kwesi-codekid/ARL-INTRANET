@@ -18,13 +18,6 @@ import { Send, Shield, MessageSquare, CheckCircle, AlertCircle } from "lucide-re
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getActiveCategories,
-  createSuggestion,
-  hashIP,
-  checkRateLimit,
-} from "~/lib/services/suggestion.server";
 
 type LoaderData = {
   categories: Array<{
@@ -46,6 +39,9 @@ type ActionData = {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getActiveCategories, createSuggestion, hashIP, checkRateLimit } = await import("~/lib/services/suggestion.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const categories = await getActiveCategories();
@@ -76,6 +72,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { getActiveCategories, createSuggestion, hashIP, checkRateLimit } = await import("~/lib/services/suggestion.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   // Get client IP

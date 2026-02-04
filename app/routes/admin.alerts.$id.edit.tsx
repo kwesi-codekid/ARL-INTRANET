@@ -20,11 +20,13 @@ import {
 import { ArrowLeft, Save, AlertTriangle, AlertCircle, Info, Eye } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, Link, redirect, useNavigation, useLoaderData } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { getAlertById, updateAlert, serializeAlert, type SerializedAlert } from "~/lib/services/alert.server";
+import type { SerializedAlert } from "~/lib/services/alert.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAlertById, updateAlert, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -37,6 +39,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAlertById, updateAlert, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

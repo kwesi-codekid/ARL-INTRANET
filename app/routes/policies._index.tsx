@@ -17,18 +17,14 @@ import { useLoaderData, useSearchParams, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
 import { CompanyValuesSlideshow } from "~/components/dashboard";
 import type { CompanyImages } from "~/components/dashboard";
-import { connectDB } from "~/lib/db/connection.server";
-import { getCompanyImages } from "~/lib/services/company-info.server";
-import {
-  getPublishedPolicies,
-  getPolicyCategories,
-  serializePolicy,
-  serializePolicyCategory,
-} from "~/lib/services/policy.server";
 
 const ITEMS_PER_PAGE = 9;
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getCompanyImages } = await import("~/lib/services/company-info.server");
+  const { getPublishedPolicies, getPolicyCategories, serializePolicy, serializePolicyCategory } = await import("~/lib/services/policy.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

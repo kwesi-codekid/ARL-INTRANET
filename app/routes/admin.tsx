@@ -41,9 +41,11 @@ import {
   FileText,
 } from "lucide-react";
 import { useState } from "react";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
+
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+
   // Check if this is the login page
   const url = new URL(request.url);
   if (url.pathname === "/admin/login") {

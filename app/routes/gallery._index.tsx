@@ -16,15 +16,12 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAlbums,
-  getFeaturedAlbums,
-  serializeAlbum,
-  type SerializedAlbum,
-} from "~/lib/services/gallery.server";
+import type { SerializedAlbum } from "~/lib/services/gallery.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getAlbums, getFeaturedAlbums, serializeAlbum } = await import("~/lib/services/gallery.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

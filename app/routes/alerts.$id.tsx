@@ -15,15 +15,12 @@ import { AlertTriangle, AlertCircle, Info, ArrowLeft, Calendar, Eye, Clock } fro
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getAlertById,
-  incrementAlertViews,
-  serializeAlert,
-  type SerializedAlert,
-} from "~/lib/services/alert.server";
+import type { SerializedAlert } from "~/lib/services/alert.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getAlertById, incrementAlertViews, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const { id } = params;

@@ -34,18 +34,12 @@ import {
 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getNewsSources,
-  createNewsSource,
-  updateNewsSource,
-  deleteNewsSource,
-  fetchAllNews,
-  getNewsStats,
-} from "~/lib/services/gold-news.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getNewsSources, createNewsSource, updateNewsSource, deleteNewsSource, fetchAllNews, getNewsStats } = await import("~/lib/services/gold-news.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -72,6 +66,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getNewsSources, createNewsSource, updateNewsSource, deleteNewsSource, fetchAllNews, getNewsStats } = await import("~/lib/services/gold-news.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

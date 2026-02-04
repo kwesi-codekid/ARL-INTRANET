@@ -36,13 +36,14 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
 import { VideoPlayer } from "~/components/ui";
-import { connectDB } from "~/lib/db/connection.server";
-import { SafetyTip } from "~/lib/db/models/safety-tip.server";
-import { SafetyVideo } from "~/lib/db/models/safety-video.server";
-import { Alert } from "~/lib/db/models/alert.server";
-import { AppLink } from "~/lib/db/models/app-link.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { SafetyTip } = await import("~/lib/db/models/safety-tip.server");
+  const { SafetyVideo } = await import("~/lib/db/models/safety-video.server");
+  const { Alert } = await import("~/lib/db/models/alert.server");
+  const { AppLink } = await import("~/lib/db/models/app-link.server");
+
   await connectDB();
 
   const [tipCount, videoCount, alertCount, recentTips, allVideos, activeAlerts, hazardApp] = await Promise.all([

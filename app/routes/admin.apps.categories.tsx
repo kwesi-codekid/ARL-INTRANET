@@ -43,17 +43,11 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Building2, Calculator, CreditCard, DollarSign, Heart, HeartPulse, Activity,
   Stethoscope, AlertTriangle, ShieldCheck, Flame, HardHat, Factory,
 };
-import { connectDB } from "~/lib/db/connection.server";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import {
-  getCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  getCategoryStats,
-} from "~/lib/services/app-link.server";
-import { AppLink } from "~/lib/db/models/app-link.server";
+
+
+
+
+
 import type { IAppLinkCategory } from "~/lib/db/models/app-link.server";
 
 // Type definitions
@@ -87,6 +81,12 @@ const availableIcons = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getCategories, createCategory, updateCategory, deleteCategory, getCategoryStats } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { AppLink } = await import("~/lib/db/models/app-link.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -116,6 +116,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getCategories, createCategory, updateCategory, deleteCategory, getCategoryStats } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { AppLink } = await import("~/lib/db/models/app-link.server");
+
   await requireAuth(request);
   await connectDB();
 

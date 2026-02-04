@@ -1,3 +1,6 @@
+import type { SerializedEvent } from "~/lib/services/event.server";
+import type { SerializedSafetyVideo, SerializedSafetyTip } from "~/lib/services/safety.server";
+
 import { useState, useEffect, useRef } from "react";
 import {
   Card,
@@ -38,26 +41,28 @@ import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
 import { AlertToast } from "~/components/alerts";
 import { EventCalendar } from "~/components/dashboard";
-import { connectDB } from "~/lib/db/connection.server";
-import { News } from "~/lib/db/models/news.server";
-import { Alert } from "~/lib/db/models/alert.server";
-import { getUpcomingEvents, serializeEvent, type SerializedEvent } from "~/lib/services/event.server";
-import {
-  getSafetyVideos,
-  getSafetyTips,
-  serializeSafetyVideo,
-  serializeSafetyTip,
-  type SerializedSafetyVideo,
-  type SerializedSafetyTip,
-} from "~/lib/services/safety.server";
-import { getActiveITTips } from "~/lib/services/it-tip.server";
-import { getActiveExecutiveMessages } from "~/lib/services/executive-message.server";
-import { getCompanyImages } from "~/lib/services/company-info.server";
+
+
+
+
+
+
+
+
 import { buildSlides } from "~/components/dashboard";
 import type { CompanyImages } from "~/components/dashboard";
 
 // Loader for homepage data
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getUpcomingEvents, serializeEvent } = await import("~/lib/services/event.server");
+  const { getSafetyVideos, getSafetyTips, serializeSafetyVideo, serializeSafetyTip } = await import("~/lib/services/safety.server");
+  const { getActiveITTips } = await import("~/lib/services/it-tip.server");
+  const { getActiveExecutiveMessages } = await import("~/lib/services/executive-message.server");
+  const { getCompanyImages } = await import("~/lib/services/company-info.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News } = await import("~/lib/db/models/news.server");
+  const { Alert } = await import("~/lib/db/models/alert.server");
+
   await connectDB();
 
   const [recentNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([

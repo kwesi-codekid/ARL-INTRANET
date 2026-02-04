@@ -1,3 +1,5 @@
+import type { CSVContactRow } from "~/lib/services/contact.server";
+
 /**
  * Admin Contact Directory Management
  * Task: 1.1.4.3.1
@@ -48,19 +50,10 @@ import {
   Building2,
   MapPin,
 } from "lucide-react";
-import { connectDB } from "~/lib/db/connection.server";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import {
-  getContacts,
-  getDepartments,
-  createContact,
-  updateContact,
-  deleteContact,
-  getContactStats,
-  importContactsFromCSV,
-  type CSVContactRow,
-} from "~/lib/services/contact.server";
+
+
+
+
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 // Type definitions
@@ -92,6 +85,11 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getContacts, getDepartments, createContact, updateContact, deleteContact, getContactStats, importContactsFromCSV } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -128,6 +126,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getContacts, getDepartments, createContact, updateContact, deleteContact, getContactStats, importContactsFromCSV } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

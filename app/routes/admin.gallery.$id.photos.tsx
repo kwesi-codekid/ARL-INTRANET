@@ -35,12 +35,13 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Album, Photo } from "~/lib/db/models/gallery.server";
-import { uploadImage } from "~/lib/services/upload.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { uploadImage } = await import("~/lib/services/upload.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -73,6 +74,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { uploadImage } = await import("~/lib/services/upload.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+
   await requireAuth(request);
   await connectDB();
 

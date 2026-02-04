@@ -17,12 +17,15 @@ import { Search, Clock, Eye, ArrowRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import { News, NewsCategory } from "~/lib/db/models/news.server";
+
+
 
 const ITEMS_PER_PAGE = 9;
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News, NewsCategory } = await import("~/lib/db/models/news.server");
+
   await connectDB();
 
   const url = new URL(request.url);

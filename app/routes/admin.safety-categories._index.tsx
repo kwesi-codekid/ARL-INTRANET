@@ -29,23 +29,17 @@ import {
 import { Plus, Edit, Trash2, Tag } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useSubmit } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getSafetyCategories,
-  createSafetyCategory,
-  updateSafetyCategory,
-  deleteSafetyCategory,
-  generateUniqueCategorySlug,
-  serializeSafetyCategory,
-  type SerializedSafetyCategory,
-} from "~/lib/services/safety.server";
+import type { SerializedSafetyCategory } from "~/lib/services/safety.server";
 
 interface LoaderData {
   categories: SerializedSafetyCategory[];
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyCategories, createSafetyCategory, updateSafetyCategory, deleteSafetyCategory, generateUniqueCategorySlug, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -57,6 +51,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyCategories, createSafetyCategory, updateSafetyCategory, deleteSafetyCategory, generateUniqueCategorySlug, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

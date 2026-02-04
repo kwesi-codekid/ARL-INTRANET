@@ -1,3 +1,5 @@
+import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
+
 /**
  * Public Toolbox Talk Listing Page
  * Task: 1.2.1.3.1-7 (Public Toolbox Talk UI)
@@ -18,14 +20,8 @@ import { Search, Calendar, Eye, PlayCircle, Volume2, ChevronRight } from "lucide
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getTodaysToolboxTalk,
-  getToolboxTalks,
-  getArchiveMonths,
-  serializeToolboxTalk,
-  type SerializedToolboxTalk,
-} from "~/lib/services/toolbox-talk.server";
+
+
 
 const ITEMS_PER_PAGE = 12;
 
@@ -50,6 +46,9 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getTodaysToolboxTalk, getToolboxTalks, getArchiveMonths, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

@@ -24,17 +24,12 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
 import { VideoPlayer } from "~/components/ui";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getSafetyVideos,
-  getSafetyCategories,
-  serializeSafetyVideo,
-  serializeSafetyCategory,
-  type SerializedSafetyVideo,
-  type SerializedSafetyCategory,
-} from "~/lib/services/safety.server";
+import type { SerializedSafetyVideo, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getSafetyVideos, getSafetyCategories, serializeSafetyVideo, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

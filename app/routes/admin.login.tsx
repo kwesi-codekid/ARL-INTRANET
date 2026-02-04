@@ -8,15 +8,22 @@ import { Input, Button, Divider } from "@heroui/react";
 import { Phone, KeyRound, ArrowRight, RefreshCw, Shield } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useActionData, useNavigation, redirect } from "react-router";
-import { connectDB } from "~/lib/db/connection.server";
-import { requestOTP, verifyOTP } from "~/lib/services/otp.server";
-import { authenticateByPhone, userExistsByPhone } from "~/lib/services/auth.server";
-import { getUserSession, createUserSession, getFlashMessages } from "~/lib/services/session.server";
-import { isValidGhanaPhone } from "~/lib/services/sms.server";
-import { logActivity } from "~/lib/services/activity-log.server";
+
+
+
+
+
+
 
 // Loader - redirect if already logged in
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requestOTP, verifyOTP } = await import("~/lib/services/otp.server");
+  const { authenticateByPhone, userExistsByPhone } = await import("~/lib/services/auth.server");
+  const { getUserSession, createUserSession, getFlashMessages } = await import("~/lib/services/session.server");
+  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   const session = await getUserSession(request);
   const userId = session.get("userId");
 
@@ -31,6 +38,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Action - handle form submissions
 export async function action({ request }: ActionFunctionArgs) {
+  const { requestOTP, verifyOTP } = await import("~/lib/services/otp.server");
+  const { authenticateByPhone, userExistsByPhone } = await import("~/lib/services/auth.server");
+  const { getUserSession, createUserSession, getFlashMessages } = await import("~/lib/services/session.server");
+  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const formData = await request.formData();

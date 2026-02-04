@@ -29,17 +29,11 @@ import {
   Switch,
 } from "@heroui/react";
 import { Plus, Edit, Trash2, Building2, Users } from "lucide-react";
-import { connectDB } from "~/lib/db/connection.server";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import {
-  getDepartments,
-  createDepartment,
-  updateDepartment,
-  deleteDepartment,
-  getDepartmentStats,
-} from "~/lib/services/contact.server";
-import { Contact } from "~/lib/db/models/contact.server";
+
+
+
+
+
 import type { IDepartment } from "~/lib/db/models/contact.server";
 
 // Type definitions
@@ -72,6 +66,12 @@ const CATEGORIES = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentStats } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Contact } = await import("~/lib/db/models/contact.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -102,6 +102,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentStats } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Contact } = await import("~/lib/db/models/contact.server");
+
   await requireAuth(request);
   await connectDB();
 

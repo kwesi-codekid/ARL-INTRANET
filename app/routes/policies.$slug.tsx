@@ -16,14 +16,11 @@ import {
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getPolicyBySlug,
-  incrementPolicyViews,
-  serializePolicy,
-} from "~/lib/services/policy.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getPolicyBySlug, incrementPolicyViews, serializePolicy } = await import("~/lib/services/policy.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const slug = params.slug;

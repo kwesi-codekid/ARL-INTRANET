@@ -25,11 +25,12 @@ import {
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import { getEventBySlug, serializeEvent } from "~/lib/services/event.server";
-import { getAlbumsByEvent, serializeAlbum } from "~/lib/services/gallery.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getEventBySlug, serializeEvent } = await import("~/lib/services/event.server");
+  const { getAlbumsByEvent, serializeAlbum } = await import("~/lib/services/gallery.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const event = await getEventBySlug(params.slug!);

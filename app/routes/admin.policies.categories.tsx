@@ -27,20 +27,14 @@ import {
 import { Plus, Edit, Trash2, ArrowLeft, GripVertical } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useNavigation, Link } from "react-router";
-import { requireAuth, getSessionData } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getPolicyCategories,
-  createPolicyCategory,
-  updatePolicyCategory,
-  deletePolicyCategory,
-  reorderPolicyCategories,
-  serializePolicyCategory,
-} from "~/lib/services/policy.server";
-import { Policy } from "~/lib/db/models/policy.server";
-import { logActivity } from "~/lib/services/activity-log.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, createPolicyCategory, updatePolicyCategory, deletePolicyCategory, reorderPolicyCategories, serializePolicyCategory } = await import("~/lib/services/policy.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Policy } = await import("~/lib/db/models/policy.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -61,6 +55,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, createPolicyCategory, updatePolicyCategory, deletePolicyCategory, reorderPolicyCategories, serializePolicyCategory } = await import("~/lib/services/policy.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Policy } = await import("~/lib/db/models/policy.server");
+
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

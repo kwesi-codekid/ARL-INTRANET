@@ -15,16 +15,12 @@ import { Shield, ArrowLeft, Eye, Calendar, ChevronLeft, ChevronRight } from "luc
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { MainLayout } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import {
-  getSafetyTipBySlug,
-  getSafetyTips,
-  incrementTipViews,
-  serializeSafetyTip,
-  type SerializedSafetyTip,
-} from "~/lib/services/safety.server";
+import type { SerializedSafetyTip } from "~/lib/services/safety.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getSafetyTipBySlug, getSafetyTips, incrementTipViews, serializeSafetyTip } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const { slug } = params;
