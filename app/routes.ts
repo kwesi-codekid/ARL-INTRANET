@@ -60,6 +60,7 @@ export default [
 
   // User authentication routes
   route("login", "routes/user.login.tsx"),
+  route("logout", "routes/user.logout.tsx"),
 
   // API routes (not affected by maintenance mode)
   route("api/quick-links", "routes/api.quick-links.tsx"),

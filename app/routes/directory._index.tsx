@@ -7,7 +7,7 @@ import type { PaginatedContacts } from "~/lib/services/contact.server";
 
 import { useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Form } from "react-router";
+import { useLoaderData, useSearchParams, Form, useOutletContext } from "react-router";
 import {
   Card,
   CardBody,
@@ -42,7 +42,7 @@ import {
   Users,
 } from "lucide-react";
 import { MainLayout } from "~/components/layout";
-
+import type { PublicOutletContext } from "~/routes/_public";
 
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
@@ -105,6 +105,7 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export default function DirectoryPage() {
   const { contacts, total, page, totalPages, departments, availableLetters, filters } =
     useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedContact, setSelectedContact] = useState<IContact | null>(null);
 
@@ -187,7 +188,7 @@ export default function DirectoryPage() {
   const hasFilters = filters.search || filters.department || filters.letter || filters.location || filters.role || filters.emergency;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">

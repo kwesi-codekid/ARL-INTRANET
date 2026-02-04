@@ -6,7 +6,8 @@ import type { AppLinksGroupedByCategory } from "~/lib/services/app-link.server";
  */
 
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, useOutletContext } from "react-router";
+import type { PublicOutletContext } from "~/routes/_public";
 import {
   Card,
   CardBody,
@@ -268,6 +269,7 @@ function CategoryIcon({ icon }: { icon?: string }) {
 
 export default function AppsPage() {
   const { grouped, searchResults, search } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const fetcher = useFetcher();
   const [searchValue, setSearchValue] = useState(search);
 
@@ -282,7 +284,7 @@ export default function AppsPage() {
   const hasResults = searchResults ? searchResults.length > 0 : grouped && grouped.length > 0;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">

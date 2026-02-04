@@ -15,8 +15,9 @@ import {
 } from "@heroui/react";
 import { Search, Clock, Eye, ArrowRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 
 
@@ -139,6 +140,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function NewsListingPage() {
   const { news, featuredNews, categories, pagination, currentCategory, searchQuery } =
     useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleCategoryChange = (category: string) => {
@@ -175,7 +177,7 @@ export default function NewsListingPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

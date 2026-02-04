@@ -36,8 +36,9 @@ import {
   Pin,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { AlertToast } from "~/components/alerts";
 import { EventCalendar } from "~/components/dashboard";
 
@@ -459,6 +460,7 @@ function ExecutiveMessagesCard({
 
 export default function Home() {
   const { recentNews, upcomingEvents, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -611,7 +613,7 @@ export default function Home() {
   };
 
   return (
-    <MainLayout showRightSidebar>
+    <MainLayout showRightSidebar user={portalUser}>
       {/* Alert Toast Notifications - Auto-dismissing popups */}
       <AlertToast alerts={activeAlerts} autoHideDuration={8000} />
 

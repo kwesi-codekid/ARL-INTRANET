@@ -1,6 +1,6 @@
 export { Header } from "./Header";
 export { Footer } from "./Footer";
-export { MainLayout } from "./MainLayout";
+export { MainLayout, type PortalUser } from "./MainLayout";
 export { Breadcrumb, type BreadcrumbItem } from "./Breadcrumb";
 export { LeftSidebar } from "./LeftSidebar";
 export { RightSidebar } from "./RightSidebar";

@@ -19,11 +19,16 @@ import {
   Badge,
   Chip,
 } from "@heroui/react";
-import { Search, Bell, Settings, LogOut, User, AlertTriangle, AlertCircle, Info, ChevronRight } from "lucide-react";
+import { Search, Bell, LogOut, User, AlertTriangle, AlertCircle, Info, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { useAlertsSafe } from "~/components/alerts";
 import { GoldPriceTicker } from "~/components/ui";
+import type { PortalUser } from "./MainLayout";
+
+interface HeaderProps {
+  user?: PortalUser | null;
+}
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -48,9 +53,18 @@ const severityColors = {
   info: "text-blue-500",
 };
 
-export function Header() {
+export function Header({ user }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+
+  // Get user initials for avatar
+  const getUserInitials = (name: string) => {
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
 
   // Get alerts from context - returns null if AlertProvider not mounted
   const alertContext = useAlertsSafe();
@@ -245,33 +259,58 @@ export function Header() {
 
         {/* User Menu */}
         <NavbarItem>
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                as="button"
-                name="PK"
-                size="sm"
-                classNames={{
-                  base: "bg-white text-primary-600 font-semibold cursor-pointer",
-                }}
-              />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="User menu">
-              <DropdownItem key="profile" startContent={<User size={16} />}>
-                My Profile
-              </DropdownItem>
-              <DropdownItem key="settings" startContent={<Settings size={16} />}>
-                Settings
-              </DropdownItem>
-              <DropdownItem
-                key="logout"
-                color="danger"
-                startContent={<LogOut size={16} />}
-              >
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          {user ? (
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Button variant="light" className="gap-2 px-2">
+                  <Avatar
+                    name={getUserInitials(user.name)}
+                    size="sm"
+                    classNames={{
+                      base: "bg-white text-primary-600 font-semibold cursor-pointer",
+                    }}
+                  />
+                  <span className="hidden sm:inline text-white text-sm font-medium max-w-[120px] truncate">
+                    {user.name}
+                  </span>
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="User menu">
+                <DropdownItem
+                  key="user-info"
+                  isReadOnly
+                  className="cursor-default opacity-100"
+                  textValue={user.name}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{user.name}</span>
+                    {user.position && (
+                      <span className="text-xs text-gray-500">{user.position}</span>
+                    )}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="logout"
+                  color="danger"
+                  startContent={<LogOut size={16} />}
+                  href="/logout"
+                >
+                  Log Out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <Button
+              as={Link}
+              to="/login"
+              variant="flat"
+              size="sm"
+              className="bg-white/20 text-white font-medium hover:bg-white/30"
+              startContent={<User size={16} />}
+            >
+              Login
+            </Button>
+          )}
         </NavbarItem>
       </NavbarContent>
 
