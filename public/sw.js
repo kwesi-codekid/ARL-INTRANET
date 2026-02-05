@@ -42,7 +42,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - network first with cache fallback for HTML, cache first for assets
+// Fetch event - cache static assets only, let React Router handle navigation
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -53,10 +53,15 @@ self.addEventListener('fetch', (event) => {
   // Skip API requests - always go to network
   if (url.pathname.startsWith('/api/')) return;
 
-  // Skip admin routes for now
+  // Skip admin routes
   if (url.pathname.startsWith('/admin')) return;
 
-  // For static assets (images, icons, fonts) - cache first
+  // Skip HTML navigation requests - let React Router handle client-side navigation
+  // This prevents full page reloads when using Link/NavLink components
+  if (request.mode === 'navigate') return;
+  if (request.headers.get('accept')?.includes('text/html')) return;
+
+  // Only cache static assets (images, icons, fonts, JS, CSS)
   if (
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/images/') ||
@@ -64,7 +69,12 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.woff2') ||
-    url.pathname.endsWith('.woff')
+    url.pathname.endsWith('.woff') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.jpeg') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.webp')
   ) {
     event.respondWith(
       caches.match(request).then((cached) => {
@@ -91,36 +101,6 @@ self.addEventListener('fetch', (event) => {
           return response;
         });
       })
-    );
-    return;
-  }
-
-  // For HTML pages - network first with cache fallback
-  if (request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then((cached) => {
-            if (cached) return cached;
-            // Return offline page if available
-            return caches.match('/').then((homeCache) => {
-              if (homeCache) return homeCache;
-              return new Response('Offline - Please check your connection', {
-                status: 503,
-                headers: { 'Content-Type': 'text/html' },
-              });
-            });
-          });
-        })
     );
     return;
   }
