@@ -903,17 +903,17 @@ export default function Home() {
         </div>
 
         {recentNews.length > 0 ? (
-          <div className="space-y-6">
-            {/* Featured News Card (first item) - Full width on mobile */}
-            {recentNews[0] && (
-              <Link to={`/news/${recentNews[0].slug}`}>
+          <div className="space-y-4">
+            {/* All news cards - consistent full-width layout */}
+            {recentNews.map((post, index) => (
+              <Link key={post.id} to={`/news/${post.slug}`}>
                 <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                   <div className="flex flex-col sm:flex-row">
                     {/* Image Section */}
-                    <div className="relative aspect-[16/9] sm:aspect-[4/3] sm:w-2/5 overflow-hidden">
+                    <div className="relative h-48 sm:h-auto sm:w-2/5 overflow-hidden">
                       <Image
-                        src={recentNews[0].featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
-                        alt={recentNews[0].title}
+                        src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
+                        alt={post.title}
                         classNames={{
                           wrapper: "w-full h-full",
                           img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
@@ -924,12 +924,12 @@ export default function Home() {
                       <div className="absolute top-2 left-2 flex gap-2">
                         <Chip
                           size="sm"
-                          style={{ backgroundColor: recentNews[0].category.color }}
+                          style={{ backgroundColor: post.category.color }}
                           className="text-white font-medium"
                         >
-                          {recentNews[0].category.name}
+                          {post.category.name}
                         </Chip>
-                        {recentNews[0].isPinned && (
+                        {post.isPinned && (
                           <Chip size="sm" color="warning">
                             Pinned
                           </Chip>
@@ -940,21 +940,21 @@ export default function Home() {
                     <CardBody className="p-4 sm:w-3/5 bg-white flex flex-col justify-center">
                       <div className="flex items-center gap-2 mb-2">
                         <Avatar
-                          name={getInitials(recentNews[0].author.name)}
+                          name={getInitials(post.author.name)}
                           size="sm"
                           classNames={{
                             base: "bg-primary-500 text-white font-semibold text-xs",
                           }}
                         />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{recentNews[0].author.name}</p>
+                          <p className="text-sm font-medium text-gray-900">{post.author.name}</p>
                           <p className="text-xs text-gray-500">
-                            {formatRelativeTime(recentNews[0].publishedAt)}
+                            {formatRelativeTime(post.publishedAt)}
                           </p>
                         </div>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2">{recentNews[0].title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{recentNews[0].excerpt || "Click to read more..."}</p>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2">{post.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{post.excerpt || "Click to read more..."}</p>
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-3">
                           <span className="flex items-center gap-1 text-sm text-gray-500">
@@ -974,64 +974,7 @@ export default function Home() {
                   </div>
                 </Card>
               </Link>
-            )}
-
-            {/* Rest of news items - Grid layout */}
-            {recentNews.length > 1 && (
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {recentNews.slice(1).map((post) => (
-                  <Link key={post.id} to={`/news/${post.slug}`}>
-                    <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group h-full">
-                      {/* Horizontal layout on mobile, vertical on larger screens */}
-                      <div className="flex flex-row sm:flex-col h-full">
-                        {/* Image Section */}
-                        <div className="relative w-28 h-28 sm:w-full sm:aspect-[16/10] shrink-0 overflow-hidden">
-                          <Image
-                            src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
-                            alt={post.title}
-                            classNames={{
-                              wrapper: "w-full h-full",
-                              img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                            }}
-                            radius="none"
-                          />
-                          {/* Category badge on image - hidden on mobile horizontal layout */}
-                          <div className="absolute top-2 left-2 hidden sm:flex gap-2">
-                            <Chip
-                              size="sm"
-                              style={{ backgroundColor: post.category.color }}
-                              className="text-white font-medium text-[10px]"
-                            >
-                              {post.category.name}
-                            </Chip>
-                          </div>
-                        </div>
-                        {/* Content Section */}
-                        <CardBody className="p-2.5 sm:p-3 bg-white flex flex-col justify-center flex-1 min-w-0">
-                          {/* Mobile: Category chip inline */}
-                          <div className="sm:hidden mb-1">
-                            <Chip
-                              size="sm"
-                              style={{ backgroundColor: post.category.color }}
-                              className="text-white font-medium text-[10px] h-5"
-                            >
-                              {post.category.name}
-                            </Chip>
-                          </div>
-                          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{post.title}</h3>
-                          <p className="text-xs text-gray-600 line-clamp-1 sm:line-clamp-2 mt-1 hidden sm:block">{post.excerpt || "Click to read more..."}</p>
-                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                            <span>{post.author.name}</span>
-                            <span>•</span>
-                            <span>{formatRelativeTime(post.publishedAt)}</span>
-                          </div>
-                        </CardBody>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         ) : (
           <Card className="shadow-sm">
