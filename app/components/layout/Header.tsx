@@ -36,7 +36,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useAlertsSafe } from "~/components/alerts";
 import { GoldPriceTicker } from "~/components/ui";
 import type { PortalUser } from "./MainLayout";
@@ -70,7 +70,6 @@ const severityColors = {
 
 export function Header({ user }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
 
   // Get user initials for avatar
   const getUserInitials = (name: string) => {
@@ -94,11 +93,6 @@ export function Header({ user }: HeaderProps) {
     type: a.type,
   })) ?? [];
   const openPopup = alertContext?.openPopup ?? null;
-
-  const isActive = (href: string) => {
-    if (href === "/") return location.pathname === "/";
-    return location.pathname.startsWith(href);
-  };
 
   return (
     <div className="sticky top-0 z-50">
@@ -138,16 +132,19 @@ export function Header({ user }: HeaderProps) {
         <div className="hidden gap-1 sm:flex">
           {navItems.map((item) => (
             <NavbarItem key={item.href}>
-              <Link
+              <NavLink
                 to={item.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
+                end={item.href === "/"}
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`
+                }
               >
                 {item.label}
-              </Link>
+              </NavLink>
             </NavbarItem>
           ))}
         </div>
@@ -348,17 +345,20 @@ export function Header({ user }: HeaderProps) {
         {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>
-            <Link
+            <NavLink
               to={item.href}
-              className={`block w-full rounded-lg px-3 py-2 text-lg ${
-                isActive(item.href)
-                  ? "bg-white/20 font-semibold text-white"
-                  : "text-white/80"
-              }`}
+              end={item.href === "/"}
+              className={({ isActive }) =>
+                `block w-full rounded-lg px-3 py-2 text-lg ${
+                  isActive
+                    ? "bg-white/20 font-semibold text-white"
+                    : "text-white/80"
+                }`
+              }
               onClick={() => setIsMenuOpen(false)}
             >
               {item.label}
-            </Link>
+            </NavLink>
           </NavbarMenuItem>
         ))}
 
