@@ -9,7 +9,6 @@ import {
   CardBody,
   CardHeader,
   Input,
-  Textarea,
   Button,
   Select,
   SelectItem,
@@ -39,8 +38,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
-  const summary = formData.get("summary") as string;
   const week = parseInt(formData.get("week") as string);
   const month = parseInt(formData.get("month") as string);
   const year = parseInt(formData.get("year") as string);
@@ -84,8 +81,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const talk = await createToolboxTalk({
     title,
     slug,
-    content: content || summary || title,
-    summary: summary || title,
+    content: title,
+    summary: title,
     author: sessionData?.userId || "",
     scheduledDate,
     week,
@@ -193,30 +190,6 @@ export default function AdminToolboxTalkNewPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <h2 className="font-semibold">Talk Details</h2>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <Input
-                  name="title"
-                  label="Title"
-                  placeholder="e.g., Working at Heights Safety"
-                  isRequired
-                  classNames={{ inputWrapper: "bg-gray-50" }}
-                />
-
-                <Textarea
-                  name="summary"
-                  label="Brief Description"
-                  placeholder="Short description of what this week's talk covers..."
-                  maxLength={500}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
-                  minRows={3}
-                />
-              </CardBody>
-            </Card>
-
             {/* PDF Upload */}
             <Card className="shadow-sm">
               <CardHeader>
@@ -331,6 +304,16 @@ export default function AdminToolboxTalkNewPage() {
                 </div>
               </CardHeader>
               <CardBody className="space-y-4">
+                <Input
+                  name="title"
+                  label="Title"
+                  placeholder="e.g., Working at Heights Safety"
+                  isRequired
+                  classNames={{ inputWrapper: "bg-gray-50" }}
+                />
+
+                <Divider />
+
                 {/* Week-based scheduling */}
                 <Select
                   label="Week"
