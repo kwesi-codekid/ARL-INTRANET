@@ -903,14 +903,14 @@ export default function Home() {
         </div>
 
         {recentNews.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Featured News Card (first item) - Full width on mobile */}
             {recentNews[0] && (
               <Link to={`/news/${recentNews[0].slug}`}>
                 <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
                   <div className="flex flex-col sm:flex-row">
                     {/* Image Section */}
-                    <div className="relative aspect-[16/9] sm:aspect-auto sm:w-2/5 sm:min-h-[200px]">
+                    <div className="relative aspect-[16/9] sm:aspect-[4/3] sm:w-2/5 overflow-hidden">
                       <Image
                         src={recentNews[0].featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
                         alt={recentNews[0].title}
@@ -978,14 +978,14 @@ export default function Home() {
 
             {/* Rest of news items - Grid layout */}
             {recentNews.length > 1 && (
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {recentNews.slice(1).map((post) => (
                   <Link key={post.id} to={`/news/${post.slug}`}>
                     <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group h-full">
                       {/* Horizontal layout on mobile, vertical on larger screens */}
-                      <div className="flex flex-row sm:flex-col">
+                      <div className="flex flex-row sm:flex-col h-full">
                         {/* Image Section */}
-                        <div className="relative w-28 h-28 sm:w-full sm:h-auto sm:aspect-[16/10] shrink-0">
+                        <div className="relative w-28 h-28 sm:w-full sm:aspect-[16/10] shrink-0 overflow-hidden">
                           <Image
                             src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
                             alt={post.title}
