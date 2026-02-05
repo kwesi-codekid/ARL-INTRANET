@@ -193,53 +193,97 @@ export default function ToolboxTalkDetailPage() {
             {talk.featuredMedia && talk.featuredMedia.type === "pdf" && (
               <div className="mb-6">
                 <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
-                  <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-                      <FileText className="text-green-600" size={24} />
-                    </div>
-                    <div className="flex-1 text-center sm:text-left">
-                      <h3 className="font-semibold text-gray-900">
-                        {talk.featuredMedia.fileName || `${talk.title}.pdf`}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Weekly Safety Talk Document
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
+                  {/* Mobile: Large tap-to-open button */}
+                  <div className="sm:hidden">
+                    <div className="flex flex-col items-center gap-4 py-6">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-green-100">
+                        <FileText className="text-green-600" size={40} />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="font-semibold text-gray-900 text-lg">
+                          {talk.featuredMedia.fileName || `${talk.title}.pdf`}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Tap to read the safety talk document
+                        </p>
+                      </div>
                       <Button
                         as="a"
                         href={talk.featuredMedia.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         color="success"
-                        variant="flat"
-                        size="sm"
-                        startContent={<ExternalLink size={14} />}
+                        size="lg"
+                        className="w-full max-w-xs font-semibold"
+                        startContent={<ExternalLink size={20} />}
                       >
-                        Open in New Tab
+                        Open PDF to Read
                       </Button>
                       <Button
                         as="a"
                         href={talk.featuredMedia.url}
                         download={talk.featuredMedia.fileName || `${talk.title}.pdf`}
                         color="success"
-                        size="sm"
-                        startContent={<Download size={14} />}
+                        variant="flat"
+                        size="md"
+                        className="w-full max-w-xs"
+                        startContent={<Download size={18} />}
                       >
-                        Download
+                        Download for Offline
                       </Button>
                     </div>
                   </div>
-                  {/* Embedded PDF viewer using Google Docs Viewer for better mobile support */}
-                  <iframe
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(talk.featuredMedia.url)}&embedded=true`}
-                    className="h-[70vh] min-h-[500px] w-full rounded-lg border border-gray-200 bg-white"
-                    title={talk.title}
-                    allow="autoplay"
-                  />
-                  <p className="mt-2 text-center text-xs text-gray-500">
-                    Having trouble viewing? <a href={talk.featuredMedia.url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Open PDF directly</a>
-                  </p>
+
+                  {/* Desktop: Embedded PDF viewer */}
+                  <div className="hidden sm:block">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                        <FileText className="text-green-600" size={24} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {talk.featuredMedia.fileName || `${talk.title}.pdf`}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Weekly Safety Talk Document
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          as="a"
+                          href={talk.featuredMedia.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          color="success"
+                          variant="flat"
+                          size="sm"
+                          startContent={<ExternalLink size={14} />}
+                        >
+                          Open in New Tab
+                        </Button>
+                        <Button
+                          as="a"
+                          href={talk.featuredMedia.url}
+                          download={talk.featuredMedia.fileName || `${talk.title}.pdf`}
+                          color="success"
+                          size="sm"
+                          startContent={<Download size={14} />}
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Embedded PDF viewer using Google Docs Viewer */}
+                    <iframe
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(talk.featuredMedia.url)}&embedded=true`}
+                      className="h-[70vh] min-h-[500px] w-full rounded-lg border border-gray-200 bg-white"
+                      title={talk.title}
+                      allow="autoplay"
+                    />
+                    <p className="mt-2 text-center text-xs text-gray-500">
+                      Having trouble viewing? <a href={talk.featuredMedia.url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Open PDF directly</a>
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
