@@ -47,7 +47,12 @@ export function MainLayout({
         </div>
         <Footer />
         <BottomNavigation />
-        {showChatWidget && <ChatWidget />}
+        {/* Chat widget - hidden on mobile to avoid overlap with bottom nav */}
+        {showChatWidget && (
+          <div className="hidden lg:block">
+            <ChatWidget />
+          </div>
+        )}
       </div>
     </AlertProvider>
   );

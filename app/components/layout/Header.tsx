@@ -122,8 +122,8 @@ export function Header({ user }: HeaderProps) {
             <img
               src="/images/logo.png"
               alt="Adamus Resources"
-              className="h-10 sm:h-12 w-auto object-contain"
-              style={{ maxWidth: '180px' }}
+              className="h-12 sm:h-14 w-auto object-contain"
+              style={{ maxWidth: '200px' }}
             />
           </Link>
         </NavbarBrand>
@@ -174,8 +174,8 @@ export function Header({ user }: HeaderProps) {
           />
         </NavbarItem>
 
-        {/* Notifications/Alerts */}
-        <NavbarItem>
+        {/* Notifications/Alerts - hidden on mobile */}
+        <NavbarItem className="hidden sm:flex">
           <Popover placement="bottom-end" showArrow>
             <PopoverTrigger>
               <Button
@@ -312,16 +312,15 @@ export function Header({ user }: HeaderProps) {
               </DropdownMenu>
             </Dropdown>
           ) : (
-            <Button
-              as={Link}
-              to="/login"
-              variant="flat"
-              size="sm"
-              className="bg-white/20 text-white font-medium hover:bg-white/30"
-              startContent={<User size={16} />}
-            >
-              Login
-            </Button>
+            <Link to="/login">
+              <Avatar
+                icon={<User size={18} />}
+                size="sm"
+                classNames={{
+                  base: "bg-white/20 text-white cursor-pointer hover:bg-white/30 transition-colors",
+                }}
+              />
+            </Link>
           )}
         </NavbarItem>
       </NavbarContent>
