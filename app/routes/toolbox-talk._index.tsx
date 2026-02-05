@@ -144,10 +144,27 @@ export default function ToolboxTalkPage() {
     setSearchParams(new URLSearchParams());
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const formatWeek = (talk: SerializedToolboxTalk) => {
+    const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (talk.week && talk.month && talk.year) {
+      return `Wk ${talk.week}, ${monthNames[talk.month]}`;
+    }
+    // Fallback to date format for legacy data
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
+    });
+  };
+
+  const formatFullWeek = (talk: SerializedToolboxTalk) => {
+    const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    if (talk.week && talk.month && talk.year) {
+      return `Week ${talk.week} of ${monthNames[talk.month]} ${talk.year}`;
+    }
+    // Fallback
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
       year: "numeric",
     });
   };
@@ -173,9 +190,9 @@ export default function ToolboxTalkPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Daily Toolbox Talk</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Weekly Toolbox Talk</h1>
             <p className="text-sm text-gray-500">
-              Start your day with safety awareness and best practices
+              Weekly safety awareness and best practices
             </p>
           </div>
           <Input
@@ -194,8 +211,8 @@ export default function ToolboxTalkPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="text-amber-600" size={24} />
                 <div>
-                  <p className="text-lg font-bold text-amber-800">Today's Toolbox Talk</p>
-                  <p className="text-sm text-amber-600">{formatDate(todaysTalk.scheduledDate)}</p>
+                  <p className="text-lg font-bold text-amber-800">This Week's Toolbox Talk</p>
+                  <p className="text-sm text-amber-600">{formatFullWeek(todaysTalk)}</p>
                 </div>
               </div>
             </CardHeader>
@@ -329,7 +346,7 @@ export default function ToolboxTalkPage() {
                         )}
                         <div className="absolute left-2 top-2">
                           <Chip size="sm" color="warning" variant="solid">
-                            {formatDate(talk.scheduledDate)}
+                            {formatWeek(talk)}
                           </Chip>
                         </div>
                       </div>

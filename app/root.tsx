@@ -9,10 +9,13 @@ import {
 import { HeroUIProvider } from "@heroui/react";
 
 import type { Route } from "./+types/root";
+import { useServiceWorker } from "~/hooks";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/images/logo-icon.png", type: "image/png" },
+  { rel: "manifest", href: "/manifest.json" },
+  { rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -30,7 +33,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#d2ab67" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="ARL Intranet" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="ARL Intranet" />
+        <meta name="msapplication-TileColor" content="#1a1a1a" />
+        <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
         <title>ARL Intranet | Adamus Resources Limited</title>
         <Meta />
         <Links />
@@ -45,6 +56,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  // Register service worker for PWA functionality
+  useServiceWorker();
+
   return (
     <HeroUIProvider>
       <Outlet />

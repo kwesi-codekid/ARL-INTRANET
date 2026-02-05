@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader, Button, Input, Chip, Image } from "@heroui/react";
-import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play } from "lucide-react";
+import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play, FileText } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
@@ -242,26 +242,36 @@ export function RightSidebar() {
             </div>
           ) : weeklyTalk ? (
             <div className="space-y-3">
-              {/* Thumbnail */}
+              {/* Thumbnail or PDF indicator */}
               {weeklyTalk.featuredMedia?.url && (
                 <Link to={`/toolbox-talk/${weeklyTalk.slug}`} className="block">
                   <div className="relative h-28 w-full overflow-hidden rounded-lg">
-                    <Image
-                      src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
-                      alt={weeklyTalk.title}
-                      className="h-full w-full object-cover"
-                      classNames={{ wrapper: "h-full w-full" }}
-                    />
-                    {(weeklyTalk.featuredMedia.type === "video" || weeklyTalk.featuredMedia.type === "audio") && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90">
-                          {weeklyTalk.featuredMedia.type === "video" ? (
-                            <PlayCircle size={20} className="text-green-600" />
-                          ) : (
-                            <Volume2 size={20} className="text-green-600" />
-                          )}
-                        </div>
+                    {weeklyTalk.featuredMedia.type === "pdf" ? (
+                      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+                        <FileText size={32} className="text-green-600 mb-1" />
+                        <span className="text-xs font-medium text-green-700">PDF Document</span>
+                        <span className="text-[10px] text-green-600 mt-1">Tap to view</span>
                       </div>
+                    ) : (
+                      <>
+                        <Image
+                          src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
+                          alt={weeklyTalk.title}
+                          className="h-full w-full object-cover"
+                          classNames={{ wrapper: "h-full w-full" }}
+                        />
+                        {(weeklyTalk.featuredMedia.type === "video" || weeklyTalk.featuredMedia.type === "audio") && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90">
+                              {weeklyTalk.featuredMedia.type === "video" ? (
+                                <PlayCircle size={20} className="text-green-600" />
+                              ) : (
+                                <Volume2 size={20} className="text-green-600" />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </Link>

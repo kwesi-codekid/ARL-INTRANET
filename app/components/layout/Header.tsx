@@ -19,7 +19,22 @@ import {
   Badge,
   Chip,
 } from "@heroui/react";
-import { Search, Bell, LogOut, User, AlertTriangle, AlertCircle, Info, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Bell,
+  LogOut,
+  User,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  ChevronRight,
+  Shield,
+  Phone,
+  UtensilsCrossed,
+  Lightbulb,
+  Video,
+  Calendar,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { useAlertsSafe } from "~/components/alerts";
@@ -315,7 +330,7 @@ export function Header({ user }: HeaderProps) {
       </NavbarContent>
 
       {/* Mobile menu */}
-      <NavbarMenu className="bg-[#1a1a1a] pt-6">
+      <NavbarMenu className="bg-[#1a1a1a] pt-6 pb-24">
         {/* Mobile Search */}
         <div className="mb-4 px-2">
           <Input
@@ -329,6 +344,8 @@ export function Header({ user }: HeaderProps) {
             type="search"
           />
         </div>
+
+        {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>
             <Link
@@ -344,6 +361,64 @@ export function Header({ user }: HeaderProps) {
             </Link>
           </NavbarMenuItem>
         ))}
+
+        {/* Quick Access Section */}
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+            Quick Access
+          </p>
+          <NavbarMenuItem>
+            <Link
+              to="/toolbox-talk"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Shield size={18} className="text-green-400" />
+              <span>Weekly Toolbox Talk</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/safety-tips"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Lightbulb size={18} className="text-emerald-400" />
+              <span>Safety Tips</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/safety-videos"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Video size={18} className="text-blue-400" />
+              <span>Safety Videos</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/canteen"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <UtensilsCrossed size={18} className="text-orange-400" />
+              <span>Today's Menu</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/events"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Calendar size={18} className="text-purple-400" />
+              <span>Upcoming Events</span>
+            </Link>
+          </NavbarMenuItem>
+        </div>
+
         <NavbarMenuItem>
           <Link
             to="/admin"

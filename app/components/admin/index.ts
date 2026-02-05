@@ -5,3 +5,4 @@
 
 export { ToolboxTalkCalendar } from "./ToolboxTalkCalendar";
 export { RichTextEditor } from "./RichTextEditor";
+export { FileUpload } from "./FileUpload";

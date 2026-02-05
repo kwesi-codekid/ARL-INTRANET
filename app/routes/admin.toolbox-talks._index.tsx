@@ -190,9 +190,14 @@ export default function AdminToolboxTalksPage() {
     setSearchParams(params);
   };
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const formatWeek = (talk: SerializedToolboxTalk) => {
+    const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (talk.week && talk.month && talk.year) {
+      return `Week ${talk.week}, ${monthNames[talk.month]} ${talk.year}`;
+    }
+    // Fallback to date format for legacy data
+    if (!talk.scheduledDate) return "-";
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -232,7 +237,7 @@ export default function AdminToolboxTalksPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Toolbox Talks</h1>
-          <p className="text-sm text-gray-500">Manage daily safety toolbox talks</p>
+          <p className="text-sm text-gray-500">Manage weekly safety toolbox talks</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Task: 1.2.1.4.6 - View mode toggle */}
@@ -332,7 +337,7 @@ export default function AdminToolboxTalksPage() {
               <Table aria-label="Toolbox talks table" removeWrapper>
                 <TableHeader>
                   <TableColumn>TALK</TableColumn>
-                  <TableColumn>SCHEDULED DATE</TableColumn>
+                  <TableColumn>SCHEDULED WEEK</TableColumn>
                   <TableColumn>STATUS</TableColumn>
                   <TableColumn>VIEWS</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
@@ -384,7 +389,7 @@ export default function AdminToolboxTalksPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar size={14} className="text-gray-400" />
-                          <span className="text-sm">{formatDate(talk.scheduledDate)}</span>
+                          <span className="text-sm">{formatWeek(talk)}</span>
                         </div>
                       </TableCell>
                       <TableCell>

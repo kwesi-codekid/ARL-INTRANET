@@ -12,17 +12,17 @@ import {
   Button,
   Chip,
   Image,
-  Divider,
 } from "@heroui/react";
 import {
   Calendar,
   Eye,
-  PlayCircle,
-  Volume2,
   ChevronLeft,
   ChevronRight,
   Share2,
   User,
+  FileText,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
@@ -97,8 +97,15 @@ export default function ToolboxTalkDetailPage() {
   const { talk, navigation, relatedTalks } = useLoaderData<LoaderData>();
   const { portalUser } = useOutletContext<PublicOutletContext>();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const shortMonthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const formatWeek = (talk: typeof relatedTalks[0] | SerializedToolboxTalk) => {
+    if ('week' in talk && talk.week && talk.month && talk.year) {
+      return `Week ${talk.week} of ${monthNames[talk.month]} ${talk.year}`;
+    }
+    // Fallback
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -106,8 +113,12 @@ export default function ToolboxTalkDetailPage() {
     });
   };
 
-  const formatShortDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const formatShortWeek = (talk: typeof relatedTalks[0]) => {
+    if (talk.featuredMedia && 'week' in talk.featuredMedia) {
+      // Check if the talk object has week info
+    }
+    // Use scheduledDate for related talks which don't have full week info
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
     });
@@ -150,7 +161,7 @@ export default function ToolboxTalkDetailPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="text-amber-600" size={20} />
                 <span className="font-medium text-amber-700">
-                  {formatDate(talk.scheduledDate)}
+                  {formatWeek(talk)}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -178,50 +189,54 @@ export default function ToolboxTalkDetailPage() {
           </CardHeader>
 
           <CardBody className="p-6">
-            {/* Featured Media - Task: 1.2.1.3.3, 1.2.1.3.4 */}
-            {talk.featuredMedia && (
+            {/* PDF Document */}
+            {talk.featuredMedia && talk.featuredMedia.type === "pdf" && (
               <div className="mb-6">
-                {talk.featuredMedia.type === "video" ? (
-                  // Task: 1.2.1.2.5 - Video player component
-                  <div className="relative overflow-hidden rounded-lg bg-black">
-                    <video
-                      controls
-                      className="w-full"
-                      poster={talk.featuredMedia.thumbnail}
-                      preload="metadata"
-                    >
-                      <source src={talk.featuredMedia.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                    {talk.featuredMedia.caption && (
-                      <p className="mt-2 text-center text-sm text-gray-500">
-                        {talk.featuredMedia.caption}
-                      </p>
-                    )}
-                  </div>
-                ) : talk.featuredMedia.type === "audio" ? (
-                  // Task: 1.2.1.2.6 - Audio player component
-                  <div className="rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 p-6">
-                    <div className="mb-4 flex items-center justify-center">
-                      <Volume2 className="text-amber-600" size={48} />
+                <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                      <FileText className="text-green-600" size={24} />
                     </div>
-                    <audio controls className="w-full" preload="metadata">
-                      <source src={talk.featuredMedia.url} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                    {talk.featuredMedia.caption && (
-                      <p className="mt-2 text-center text-sm text-gray-600">
-                        {talk.featuredMedia.caption}
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="font-semibold text-gray-900">
+                        {talk.featuredMedia.fileName || `${talk.title}.pdf`}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Weekly Safety Talk Document
                       </p>
-                    )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        as="a"
+                        href={talk.featuredMedia.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        color="success"
+                        variant="flat"
+                        size="sm"
+                        startContent={<ExternalLink size={14} />}
+                      >
+                        Open
+                      </Button>
+                      <Button
+                        as="a"
+                        href={talk.featuredMedia.url}
+                        download={talk.featuredMedia.fileName || `${talk.title}.pdf`}
+                        color="success"
+                        size="sm"
+                        startContent={<Download size={14} />}
+                      >
+                        Download
+                      </Button>
+                    </div>
                   </div>
-                ) : (
-                  <Image
-                    src={talk.featuredMedia.url}
-                    alt={talk.title}
-                    className="w-full rounded-lg"
+                  {/* Embedded PDF viewer - all devices */}
+                  <iframe
+                    src={`${talk.featuredMedia.url}#toolbar=1&navpanes=0`}
+                    className="h-[70vh] min-h-[400px] w-full rounded-lg border border-gray-200 bg-white"
+                    title={talk.title}
                   />
-                )}
+                </div>
               </div>
             )}
 
@@ -236,61 +251,10 @@ export default function ToolboxTalkDetailPage() {
               </div>
             )}
 
-            {/* Content */}
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: talk.content }}
-            />
-
-            {/* Additional Media Gallery */}
-            {talk.media && talk.media.length > 0 && (
-              <div className="mt-8">
-                <Divider className="mb-6" />
-                <h3 className="mb-4 font-semibold text-gray-900">
-                  Additional Resources
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {talk.media.map((item, index) => (
-                    <div
-                      key={index}
-                      className="overflow-hidden rounded-lg border bg-gray-50"
-                    >
-                      {item.type === "video" ? (
-                        <video
-                          controls
-                          className="w-full"
-                          poster={item.thumbnail}
-                          preload="metadata"
-                        >
-                          <source src={item.url} type="video/mp4" />
-                        </video>
-                      ) : item.type === "audio" ? (
-                        <div className="p-4">
-                          <div className="mb-2 flex items-center gap-2">
-                            <Volume2 size={20} className="text-amber-600" />
-                            <span className="text-sm font-medium">
-                              {item.caption || `Audio ${index + 1}`}
-                            </span>
-                          </div>
-                          <audio controls className="w-full" preload="metadata">
-                            <source src={item.url} type="audio/mpeg" />
-                          </audio>
-                        </div>
-                      ) : (
-                        <a href={item.url} target="_blank" rel="noopener noreferrer">
-                          <Image
-                            src={item.url}
-                            alt={item.caption || `Image ${index + 1}`}
-                            className="aspect-video object-cover"
-                          />
-                        </a>
-                      )}
-                      {item.caption && item.type !== "audio" && (
-                        <p className="p-2 text-sm text-gray-600">{item.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            {/* Summary/Description */}
+            {talk.summary && (
+              <div className="prose max-w-none text-gray-700">
+                <p>{talk.summary}</p>
               </div>
             )}
           </CardBody>
@@ -363,7 +327,7 @@ export default function ToolboxTalkDetailPage() {
                       )}
                       <div className="absolute left-2 top-2">
                         <Chip size="sm" color="warning" variant="solid">
-                          {formatShortDate(related.scheduledDate)}
+                          {formatShortWeek(related)}
                         </Chip>
                       </div>
                     </div>

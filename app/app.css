@@ -42,6 +42,22 @@ html, body {
   @apply bg-gray-100 text-gray-900 antialiased;
 }
 
+/* PWA Safe Areas for iOS notch and home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Bottom navigation safe spacing */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
