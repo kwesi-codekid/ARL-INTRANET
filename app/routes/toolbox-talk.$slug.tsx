@@ -216,7 +216,7 @@ export default function ToolboxTalkDetailPage() {
                         size="sm"
                         startContent={<ExternalLink size={14} />}
                       >
-                        Open
+                        Open in New Tab
                       </Button>
                       <Button
                         as="a"
@@ -230,12 +230,16 @@ export default function ToolboxTalkDetailPage() {
                       </Button>
                     </div>
                   </div>
-                  {/* Embedded PDF viewer - all devices */}
+                  {/* Embedded PDF viewer using Google Docs Viewer for better mobile support */}
                   <iframe
-                    src={`${talk.featuredMedia.url}#toolbar=1&navpanes=0`}
-                    className="h-[70vh] min-h-[400px] w-full rounded-lg border border-gray-200 bg-white"
+                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(talk.featuredMedia.url)}&embedded=true`}
+                    className="h-[70vh] min-h-[500px] w-full rounded-lg border border-gray-200 bg-white"
                     title={talk.title}
+                    allow="autoplay"
                   />
+                  <p className="mt-2 text-center text-xs text-gray-500">
+                    Having trouble viewing? <a href={talk.featuredMedia.url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Open PDF directly</a>
+                  </p>
                 </div>
               </div>
             )}
