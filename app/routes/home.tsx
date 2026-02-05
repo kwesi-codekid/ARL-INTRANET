@@ -887,7 +887,7 @@ export default function Home() {
       </div>
 
       {/* News Posts Grid */}
-      <div className="mb-6">
+      <div className="mb-8 lg:mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Latest News</h2>
           <Button

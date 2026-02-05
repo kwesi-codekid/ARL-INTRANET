@@ -86,7 +86,7 @@ export function MobileSidebarContent() {
   };
 
   return (
-    <div className="mt-6 space-y-4 lg:hidden">
+    <div className="mt-8 space-y-4 lg:hidden">
       {/* Section Header */}
       <div className="flex items-center gap-2">
         <div className="h-px flex-1 bg-gray-200" />
