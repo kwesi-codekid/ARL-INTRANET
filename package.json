@@ -12,7 +12,8 @@
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\"",
     "db:seed": "tsx app/lib/db/seeds/index.ts",
-    "db:import-contacts": "tsx scripts/import-contacts.ts"
+    "db:import-contacts": "tsx scripts/import-contacts.ts",
+    "db:seed-departments": "tsx scripts/seed-departments.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

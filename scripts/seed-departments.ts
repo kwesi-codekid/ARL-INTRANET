@@ -1,27 +1,10 @@
 /**
  * Script to seed company departments
- * Run with: npx tsx scripts/seed-departments.ts
+ * Run with: npm run db:seed-departments
  */
 
-import mongoose from "mongoose";
-
-const MONGODB_URI = "mongodb://localhost:27017/arl_intranet";
-
-// Department Schema
-const DepartmentSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  code: { type: String, required: true, unique: true },
-  category: {
-    type: String,
-    enum: ["operations", "support", "hse", "dfsl", "contractors"],
-    default: "support"
-  },
-  description: { type: String },
-  order: { type: Number, default: 0 },
-  isActive: { type: Boolean, default: true },
-}, { timestamps: true });
-
-const Department = mongoose.models.Department || mongoose.model("Department", DepartmentSchema);
+import { connectToDatabase, disconnectFromDatabase } from "../app/lib/db/connection.server";
+import { Department } from "../app/lib/db/models/contact.server";
 
 const departmentsData = [
   // Operations
@@ -55,7 +38,7 @@ const departmentsData = [
 
 async function seedDepartments() {
   try {
-    await mongoose.connect(MONGODB_URI);
+    await connectToDatabase();
     console.log("Connected to MongoDB");
 
     // Check if departments already exist
@@ -79,7 +62,7 @@ async function seedDepartments() {
   } catch (error) {
     console.error("Error:", error);
   } finally {
-    await mongoose.disconnect();
+    await disconnectFromDatabase();
     process.exit(0);
   }
 }
