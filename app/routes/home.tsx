@@ -67,8 +67,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   await connectDB();
 
-  const [recentNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([
+  const [recentNews, featuredNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([
     News.find({ status: "published" })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(5)
+      .populate("category")
+      .populate("author", "name")
+      .lean(),
+    // Fetch featured news separately so they always appear in carousel
+    News.find({ status: "published", isFeatured: true })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(5)
       .populate("category")
@@ -91,23 +98,32 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getCompanyImages(),
   ]);
 
+  // Serialize news helper
+  const serializeNews = (news: (typeof recentNews)[0]) => ({
+    id: news._id.toString(),
+    title: news.title,
+    slug: news.slug,
+    excerpt: news.excerpt || "",
+    featuredImage: news.featuredImage || null,
+    category: news.category ? {
+      name: (news.category as { name?: string }).name || "General",
+      color: (news.category as { color?: string }).color || "#D4AF37",
+    } : { name: "General", color: "#D4AF37" },
+    author: news.author ? {
+      name: (news.author as { name?: string }).name || "Admin",
+    } : { name: "Admin" },
+    publishedAt: news.publishedAt?.toISOString() || news.createdAt.toISOString(),
+    isPinned: news.isPinned,
+    isFeatured: news.isFeatured || false,
+  });
+
+  // Merge featured news into recent news, avoiding duplicates
+  const recentNewsIds = new Set(recentNews.map((n) => n._id.toString()));
+  const extraFeatured = featuredNews.filter((n) => !recentNewsIds.has(n._id.toString()));
+  const allNews = [...recentNews, ...extraFeatured];
+
   return Response.json({
-    recentNews: recentNews.map((news) => ({
-      id: news._id.toString(),
-      title: news.title,
-      slug: news.slug,
-      excerpt: news.excerpt || "",
-      featuredImage: news.featuredImage || null,
-      category: news.category ? {
-        name: (news.category as { name?: string }).name || "General",
-        color: (news.category as { color?: string }).color || "#D4AF37",
-      } : { name: "General", color: "#D4AF37" },
-      author: news.author ? {
-        name: (news.author as { name?: string }).name || "Admin",
-      } : { name: "Admin" },
-      publishedAt: news.publishedAt?.toISOString() || news.createdAt.toISOString(),
-      isPinned: news.isPinned,
-    })),
+    recentNews: allNews.map(serializeNews),
     upcomingEvents: upcomingEvents.map(serializeEvent),
     activeAlerts: activeAlerts.map((alert) => ({
       id: alert._id.toString(),
@@ -148,6 +164,7 @@ interface LoaderData {
     author: { name: string };
     publishedAt: string;
     isPinned: boolean;
+    isFeatured: boolean;
   }>;
   upcomingEvents: SerializedEvent[];
   activeAlerts: Array<{
@@ -486,9 +503,14 @@ export default function Home() {
     ...safetyTips
       .filter((t) => t.featuredImage && !t.documentUrl)
       .map((tip): CarouselItem => ({ type: "tip", data: tip })),
-    // Add pinned news items with images
+    // Add featured news items with images (what admin marks as featured)
     ...recentNews
-      .filter((n) => n.isPinned && n.featuredImage)
+      .filter((n) => n.isFeatured && n.featuredImage)
+      .slice(0, 5)
+      .map((news): CarouselItem => ({ type: "news", data: news })),
+    // Also add pinned news items with images (if not already featured)
+    ...recentNews
+      .filter((n) => n.isPinned && n.featuredImage && !n.isFeatured)
       .slice(0, 3)
       .map((news): CarouselItem => ({ type: "news", data: news })),
   ];
@@ -621,8 +643,8 @@ export default function Home() {
 
       {/* Featured Banner Carousel - Safety Videos, PDFs, Tips, and News */}
       {carouselItems.length > 0 && currentItem && (
-        <Card className="mb-6 overflow-hidden shadow-lg">
-          <div className="relative h-[400px] sm:h-[500px] md:h-[600px] bg-gray-900">
+        <Card className="mb-4 sm:mb-6 overflow-hidden shadow-lg">
+          <div className="relative h-[250px] sm:h-[400px] md:h-[500px] lg:h-[600px] bg-gray-900">
             {/* Render based on item type */}
             {currentItem.type === "video" ? (
               <>
@@ -657,26 +679,28 @@ export default function Home() {
                 {!isPlaying && (
                   <button
                     onClick={togglePlayPause}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30 hover:bg-white/50 p-6 sm:p-8 text-white transition-all backdrop-blur-sm hover:scale-110"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30 hover:bg-white/50 p-4 sm:p-6 md:p-8 text-white transition-all backdrop-blur-sm hover:scale-110"
                     aria-label="Play video"
                   >
-                    <Play size={48} fill="white" />
+                    <Play size={32} fill="white" className="sm:hidden" />
+                    <Play size={48} fill="white" className="hidden sm:block" />
                   </button>
                 )}
 
                 {/* Video Controls Bar - Bottom */}
-                <div className="absolute bottom-24 left-4 right-4 flex items-center gap-4">
+                <div className="absolute bottom-16 sm:bottom-24 left-2 sm:left-4 right-2 sm:right-4 flex items-center gap-2 sm:gap-4">
                   <button
                     onClick={togglePlayPause}
-                    className="rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors"
+                    className="rounded-full bg-black/50 hover:bg-black/70 p-2 sm:p-3 text-white transition-colors"
                     aria-label={isPlaying ? "Pause video" : "Play video"}
                   >
-                    {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                    {isPlaying ? <Pause size={18} className="sm:hidden" /> : <Play size={18} className="sm:hidden" />}
+                    {isPlaying ? <Pause size={24} className="hidden sm:block" /> : <Play size={24} className="hidden sm:block" />}
                   </button>
 
                   <button
                     onClick={toggleMute}
-                    className="rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors"
+                    className="rounded-full bg-black/50 hover:bg-black/70 p-2 sm:p-3 text-white transition-colors"
                     aria-label={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
@@ -716,10 +740,11 @@ export default function Home() {
                   href={currentItem.data.documentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 hover:bg-blue-700 p-6 sm:p-8 text-white transition-all hover:scale-110 flex flex-col items-center gap-2"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 hover:bg-blue-700 p-4 sm:p-6 md:p-8 text-white transition-all hover:scale-110 flex flex-col items-center gap-1 sm:gap-2"
                 >
-                  <ExternalLink size={48} />
-                  <span className="text-sm font-medium">Open PDF</span>
+                  <ExternalLink size={32} className="sm:hidden" />
+                  <ExternalLink size={48} className="hidden sm:block" />
+                  <span className="text-xs sm:text-sm font-medium">Open PDF</span>
                 </a>
               </>
             ) : currentItem.type === "tip" ? (
@@ -774,21 +799,21 @@ export default function Home() {
                 </Link>
               </div>
             ) : (
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 md:p-8">
                 <Chip
                   size="sm"
                   style={{ backgroundColor: getSlideBadge(currentItem).color }}
-                  className="mb-3 text-white font-medium"
+                  className="mb-1 sm:mb-3 text-white font-medium"
                 >
                   <span className="flex items-center">
                     {getSlideBadge(currentItem).icon}
                     {getSlideBadge(currentItem).label}
                   </span>
                 </Chip>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg leading-tight">
+                <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
                   {currentItem.data.title}
                 </h1>
-                <p className="mt-2 text-sm sm:text-base text-white/90 line-clamp-2 max-w-2xl drop-shadow">
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-white/90 line-clamp-1 sm:line-clamp-2 max-w-2xl drop-shadow">
                   {currentItem.type === "news" ? (currentItem.data.excerpt || "Click to read more") :
                    currentItem.type === "video" ? currentItem.data.description :
                    currentItem.type === "pdf" ? (currentItem.data.summary || "Click to view document") :
@@ -799,16 +824,16 @@ export default function Home() {
                     href={currentItem.data.documentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full transition-colors"
+                    className="mt-2 sm:mt-4 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors"
                   >
-                    <FileText size={16} /> View Document <ExternalLink size={14} />
+                    <FileText size={14} className="sm:hidden" /><FileText size={16} className="hidden sm:block" /> View Document <ExternalLink size={14} />
                   </a>
                 ) : (
                   <Link
                     to={getSlideLink(currentItem)}
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors backdrop-blur-sm"
+                    className="mt-2 sm:mt-4 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors backdrop-blur-sm"
                   >
-                    {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={16} />
+                    {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={14} className="sm:hidden" /><ArrowRight size={16} className="hidden sm:block" />
                   </Link>
                 )}
               </div>
@@ -819,37 +844,39 @@ export default function Home() {
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors z-10"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-1.5 sm:p-3 text-white transition-colors z-10"
                   aria-label="Previous slide"
                 >
-                  <ChevronLeft size={28} />
+                  <ChevronLeft size={20} className="sm:hidden" />
+                  <ChevronLeft size={28} className="hidden sm:block" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors z-10"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-1.5 sm:p-3 text-white transition-colors z-10"
                   aria-label="Next slide"
                 >
-                  <ChevronRight size={28} />
+                  <ChevronRight size={20} className="sm:hidden" />
+                  <ChevronRight size={28} className="hidden sm:block" />
                 </button>
 
                 {/* Slide Indicators with type colors */}
-                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-1.5 sm:gap-2 z-10">
                   {carouselItems.map((item, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`h-2.5 rounded-full transition-all ${
+                      className={`h-2 sm:h-2.5 rounded-full transition-all ${
                         idx === currentSlide
-                          ? "w-8 bg-white"
+                          ? "w-6 sm:w-8 bg-white"
                           : item.type === "video"
-                            ? "w-2.5 bg-red-500/80"
+                            ? "w-2 sm:w-2.5 bg-red-500/80"
                             : item.type === "pdf"
-                              ? "w-2.5 bg-blue-500/80"
+                              ? "w-2 sm:w-2.5 bg-blue-500/80"
                               : item.type === "tip"
-                                ? "w-2.5 bg-green-500/80"
+                                ? "w-2 sm:w-2.5 bg-green-500/80"
                                 : item.type === "company"
-                                  ? "w-2.5 bg-primary-500/80"
-                                  : "w-2.5 bg-white/50"
+                                  ? "w-2 sm:w-2.5 bg-primary-500/80"
+                                  : "w-2 sm:w-2.5 bg-white/50"
                       }`}
                       aria-label={`Go to slide ${idx + 1} (${item.type})`}
                     />
@@ -857,7 +884,7 @@ export default function Home() {
                 </div>
 
                 {/* Slide Counter */}
-                <div className="absolute top-4 left-4 bg-black/50 rounded-full px-3 py-1 text-white text-sm z-10">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/50 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-white text-xs sm:text-sm z-10">
                   {currentSlide + 1} / {carouselItems.length}
                 </div>
               </>
