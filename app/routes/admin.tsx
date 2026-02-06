@@ -3,7 +3,7 @@
  * Task: 1.1.2.3.1
  */
 
-import { Outlet, useLoaderData, useLocation, Link, Form } from "react-router";
+import { Outlet, useLoaderData, useLocation, useNavigation, Link, Form } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import {
   Button,
@@ -41,7 +41,7 @@ import {
   HelpCircle,
   FileText,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -90,6 +90,57 @@ const superadminItems = [
   { label: "Activity Log", href: "/admin/activity", icon: Activity },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
+
+function AdminNavigationProgress() {
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
+  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setProgress(0);
+      setVisible(true);
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev;
+          if (prev >= 70) return prev + 0.5;
+          if (prev >= 50) return prev + 1;
+          return prev + 3;
+        });
+      }, 50);
+    } else {
+      if (visible) {
+        setProgress(100);
+        const timeout = setTimeout(() => {
+          setVisible(false);
+          setProgress(0);
+        }, 300);
+        return () => clearTimeout(timeout);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isLoading]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="h-[3px] w-full bg-transparent overflow-hidden">
+      <div
+        className="h-full bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080] shadow-[0_0_8px_rgba(210,171,103,0.6)]"
+        style={{
+          width: `${progress}%`,
+          transition: progress === 100 ? "width 200ms ease-out, opacity 200ms ease-out" : "width 100ms linear",
+          opacity: progress === 100 ? 0 : 1,
+        }}
+      />
+    </div>
+  );
+}
 
 export default function AdminLayout() {
   const { user } = useLoaderData<typeof loader>();
@@ -302,6 +353,7 @@ export default function AdminLayout() {
             </Dropdown>
           </div>
         </header>
+        <AdminNavigationProgress />
 
         {/* Page Content */}
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6">
