@@ -316,8 +316,8 @@ export default function AdminAppsCategories() {
 
       {/* Categories Table */}
       <Card>
-        <CardBody className="p-0">
-          <Table aria-label="Categories table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Categories table" removeWrapper className="min-w-[500px]">
             <TableHeader>
               <TableColumn>NAME</TableColumn>
               <TableColumn>SLUG</TableColumn>

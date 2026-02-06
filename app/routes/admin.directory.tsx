@@ -7,21 +7,14 @@ import type { CSVContactRow } from "~/lib/services/contact.server";
 
 import { useState, useRef } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Form, useNavigation, useActionData, useFetcher } from "react-router";
+import { useLoaderData, useSearchParams, Form, useNavigation, useActionData } from "react-router";
 import {
   Card,
   CardBody,
-  CardHeader,
   Input,
   Select,
   SelectItem,
   Button,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
   Chip,
   Pagination,
   Modal,
@@ -32,6 +25,12 @@ import {
   Avatar,
   Switch,
   Textarea,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
 } from "@heroui/react";
 import {
   Search,
@@ -51,9 +50,6 @@ import {
   MapPin,
 } from "lucide-react";
 
-
-
-
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 // Type definitions
@@ -72,7 +68,8 @@ interface LoaderData {
   totalPages: number;
   departments: IDepartment[];
   stats: ContactStats;
-  filters: { search: string; department: string; management: string; location: string };
+  availableLetters: string[];
+  filters: { search: string; department: string; management: string; location: string; letter: string };
 }
 
 interface ActionData {
@@ -85,9 +82,8 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { getContacts, getDepartments, createContact, updateContact, deleteContact, getContactStats, importContactsFromCSV } = await import("~/lib/services/contact.server");
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getContacts, getDepartments, getContactStats, getContactLetters } = await import("~/lib/services/contact.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await requireAuth(request);
@@ -98,20 +94,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const department = url.searchParams.get("department") || "";
   const management = url.searchParams.get("management") || "";
   const location = url.searchParams.get("location") || "";
+  const letter = url.searchParams.get("letter") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
 
-  const [contactsResult, departments, stats] = await Promise.all([
+  const [contactsResult, departments, stats, availableLetters] = await Promise.all([
     getContacts({
       search: search || undefined,
       department: department || undefined,
       isManagement: management === "true" ? true : undefined,
       location: location as ContactLocation || undefined,
+      letter: letter || undefined,
       includeInactive: true,
       page,
       limit: 20,
     }),
     getDepartments({ includeInactive: true }),
     getContactStats(),
+    getContactLetters(),
   ]);
 
   return Response.json({
@@ -121,14 +120,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalPages: contactsResult.totalPages,
     departments: JSON.parse(JSON.stringify(departments)),
     stats,
-    filters: { search, department, management, location },
+    availableLetters,
+    filters: { search, department, management, location, letter },
   });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { getContacts, getDepartments, createContact, updateContact, deleteContact, getContactStats, importContactsFromCSV } = await import("~/lib/services/contact.server");
+  const { createContact, updateContact, deleteContact, importContactsFromCSV } = await import("~/lib/services/contact.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await requireAuth(request);
@@ -276,8 +276,20 @@ export async function action({ request }: ActionFunctionArgs) {
   return Response.json({ error: "Invalid action" });
 }
 
+// Alphabet for navigation
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+// Get 2 initials from a name (first and last)
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function AdminDirectory() {
-  const { contacts, total, page, totalPages, departments, stats, filters } =
+  const { contacts, total, page, totalPages, departments, stats, availableLetters, filters } =
     useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
@@ -324,19 +336,16 @@ export default function AdminDirectory() {
     }
   };
 
-  // Reset create photo when modal closes
   const handleCreateClose = () => {
     setIsCreateOpen(false);
     setCreatePhoto("");
   };
 
-  // Set edit photo when modal opens
   const handleEditOpen = (contact: IContact) => {
     setEditContact(contact);
     setEditPhoto(contact.photo || "");
   };
 
-  // Reset edit photo when modal closes
   const handleEditClose = () => {
     setEditContact(null);
     setEditPhoto("");
@@ -386,11 +395,28 @@ export default function AdminDirectory() {
     setSearchParams(params);
   };
 
+  const handleLetterClick = (letter: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (filters.letter === letter) {
+      params.delete("letter");
+    } else {
+      params.set("letter", letter);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", newPage.toString());
     setSearchParams(params);
   };
+
+  const clearFilters = () => {
+    setSearchParams({});
+  };
+
+  const hasFilters = filters.search || filters.department || filters.management || filters.location || filters.letter;
 
   return (
     <div className="space-y-6">
@@ -459,11 +485,11 @@ export default function AdminDirectory() {
 
       {/* Filters & Actions */}
       <Card>
-        <CardBody className="flex flex-col gap-4">
+        <CardBody className="gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 flex-wrap gap-3">
               <Input
-                placeholder="Search contacts..."
+                placeholder="Search by name, position, phone..."
                 startContent={<Search size={18} className="text-gray-400" />}
                 defaultValue={filters.search}
                 onValueChange={handleSearch}
@@ -522,7 +548,7 @@ export default function AdminDirectory() {
               </Select>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Button
                 variant="bordered"
                 startContent={<Upload size={18} />}
@@ -539,6 +565,80 @@ export default function AdminDirectory() {
               </Button>
             </div>
           </div>
+
+          {/* Active Filters */}
+          {hasFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-500">Active filters:</span>
+              {filters.search && (
+                <Chip size="sm" onClose={() => handleSearch("")}>
+                  Search: {filters.search}
+                </Chip>
+              )}
+              {filters.department && (
+                <Chip size="sm" color="primary" onClose={() => handleDepartmentChange("")}>
+                  {departments.find((d: IDepartment) => d._id.toString() === filters.department)?.name}
+                </Chip>
+              )}
+              {filters.management && (
+                <Chip size="sm" color="warning" onClose={() => handleManagementChange("")}>
+                  Management Only
+                </Chip>
+              )}
+              {filters.location && (
+                <Chip size="sm" color="secondary" onClose={() => handleLocationChange("")}>
+                  {filters.location === "head-office" ? "Head Office" : "Site"}
+                </Chip>
+              )}
+              {filters.letter && (
+                <Chip size="sm" color="success" onClose={() => handleLetterClick(filters.letter)}>
+                  Letter: {filters.letter}
+                </Chip>
+              )}
+              <Button size="sm" variant="light" color="danger" onPress={clearFilters}>
+                Clear All
+              </Button>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Alphabetical Navigation */}
+      <Card>
+        <CardBody className="py-3">
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            <span className="mr-2 text-sm font-medium text-gray-600">Jump to:</span>
+            {ALPHABET.map((letter) => {
+              const hasContacts = availableLetters.includes(letter);
+              const isActive = filters.letter === letter;
+              return (
+                <Button
+                  key={letter}
+                  size="sm"
+                  variant={isActive ? "solid" : "light"}
+                  color={isActive ? "primary" : "default"}
+                  isDisabled={!hasContacts}
+                  onPress={() => handleLetterClick(letter)}
+                  className={`min-w-8 h-8 px-0 font-semibold ${
+                    !hasContacts ? "opacity-30" : ""
+                  }`}
+                >
+                  {letter}
+                </Button>
+              );
+            })}
+            {filters.letter && (
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                onPress={() => handleLetterClick(filters.letter)}
+                className="ml-2"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </CardBody>
       </Card>
 
@@ -554,131 +654,172 @@ export default function AdminDirectory() {
         </div>
       )}
 
+      {/* Results Count */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-600">
+          Showing {contacts.length} of {total} contacts
+          {filters.letter && ` starting with "${filters.letter}"`}
+        </p>
+      </div>
+
       {/* Contacts Table */}
-      <Card>
-        <CardBody className="p-0">
-          <Table aria-label="Contacts table" removeWrapper>
-            <TableHeader>
-              <TableColumn>NAME</TableColumn>
-              <TableColumn>DEPARTMENT</TableColumn>
-              <TableColumn>POSITION</TableColumn>
-              <TableColumn>PHONE</TableColumn>
-              <TableColumn>EXT</TableColumn>
-              <TableColumn>STATUS</TableColumn>
-              <TableColumn align="end">ACTIONS</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent="No contacts found">
-              {contacts.map((contact: IContact) => (
-                <TableRow key={contact._id.toString()}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        name={contact.name}
-                        src={contact.photo}
-                        size="sm"
-                        classNames={{
-                          base: "bg-primary-100 text-primary-700",
-                        }}
-                      />
-                      <div>
+      {contacts.length > 0 ? (
+        <Card className="shadow-sm">
+          <CardBody className="p-0">
+            <Table
+              aria-label="Contact Directory"
+              classNames={{
+                wrapper: "shadow-none",
+                tr: "border-b last:border-0 border-warning/40 hover:bg-gray-50",
+              }}
+            >
+              <TableHeader>
+                <TableColumn>NAME</TableColumn>
+                <TableColumn>POSITION</TableColumn>
+                <TableColumn>DEPARTMENT</TableColumn>
+                <TableColumn>PHONE</TableColumn>
+                <TableColumn>EXT</TableColumn>
+                <TableColumn className="hidden lg:table-cell">EMAIL</TableColumn>
+                <TableColumn>STATUS</TableColumn>
+                <TableColumn className="text-right">ACTIONS</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {contacts.map((contact: IContact) => (
+                  <TableRow key={contact._id.toString()} className={!contact.isActive ? "opacity-50" : ""}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          name={getInitials(contact.name)}
+                          src={contact.photo}
+                          size="sm"
+                          classNames={{
+                            base: contact.isManagement
+                              ? "bg-gradient-to-br from-amber-100 to-amber-200 text-amber-700 ring-2 ring-amber-300"
+                              : "bg-primary-100 text-primary-700 font-semibold",
+                          }}
+                        />
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">
+                          <span className="font-medium text-gray-900">
                             {contact.name}
                           </span>
                           {contact.isManagement && (
-                            <Crown
-                              size={14}
-                              className="text-amber-500"
-                            />
+                            <Crown size={14} className="shrink-0 text-amber-500" />
                           )}
                           {contact.isEmergencyContact && (
-                            <AlertTriangle
-                              size={14}
-                              className="text-warning-500"
-                            />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {contact.email && (
-                            <span className="text-xs text-gray-500">
-                              {contact.email}
-                            </span>
-                          )}
-                          {contact.location === "head-office" && (
-                            <Chip size="sm" variant="flat" className="h-4 text-[10px] bg-blue-100 text-blue-700">
-                              Accra
-                            </Chip>
+                            <AlertTriangle size={14} className="shrink-0 text-warning-500" />
                           )}
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">
-                      {(contact.department as IDepartment)?.name || "-"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{contact.position}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{contact.phone}</span>
-                  </TableCell>
-                  <TableCell>
-                    {contact.phoneExtension ? (
-                      <span className="text-sm font-medium">{contact.phoneExtension}</span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="sm"
-                      color={contact.isActive ? "success" : "default"}
-                      variant="flat"
-                    >
-                      {contact.isActive ? "Active" : "Inactive"}
-                    </Chip>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => handleEditOpen(contact)}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-600">{contact.position}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Chip size="sm" variant="flat" color="primary">
+                          {(contact.department as IDepartment)?.name}
+                        </Chip>
+                        {contact.location === "head-office" && (
+                          <Chip size="sm" variant="flat" color="secondary" className="text-xs">
+                            Accra
+                          </Chip>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="flex items-center gap-1 text-gray-700 hover:text-primary-600"
                       >
-                        <Edit size={16} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        color="danger"
-                        onPress={() => setDeleteConfirm(contact)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardBody>
+                        <Phone size={14} className="text-gray-400" />
+                        {contact.phone}
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      {contact.phoneExtension ? (
+                        <span className="text-gray-700 font-medium">
+                          {contact.phoneExtension}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {contact.email ? (
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="flex items-center gap-1 text-gray-700 hover:text-primary-600"
+                        >
+                          <Mail size={14} className="text-gray-400" />
+                          <span className="truncate max-w-[180px]">{contact.email}</span>
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.isActive ? (
+                        <Chip size="sm" variant="flat" color="success">Active</Chip>
+                      ) : (
+                        <Chip size="sm" variant="flat" color="default">Inactive</Chip>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onPress={() => handleEditOpen(contact)}
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="danger"
+                          onPress={() => setDeleteConfirm(contact)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardBody>
+        </Card>
+      ) : (
+        <Card>
+          <CardBody className="py-12 text-center text-gray-500">
+            <Users className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-900">No contacts found</h3>
+            <p className="mt-1 text-gray-500">
+              {hasFilters ? "Try adjusting your filters" : "Add your first contact to get started"}
+            </p>
+            {hasFilters && (
+              <Button variant="light" color="primary" className="mt-4" onPress={clearFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </CardBody>
+        </Card>
+      )}
 
-        {totalPages > 1 && (
-          <div className="flex justify-center border-t p-4">
-            <Pagination
-              total={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              showControls
-              color="primary"
-            />
-          </div>
-        )}
-      </Card>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination
+            total={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            showControls
+            color="primary"
+          />
+        </div>
+      )}
 
       {/* Create Modal */}
       <Modal isOpen={isCreateOpen} onClose={handleCreateClose} size="2xl">
@@ -840,7 +981,7 @@ export default function AdminDirectory() {
                   <div className="flex flex-col items-center gap-2 sm:col-span-2">
                     <div className="relative">
                       <Avatar
-                        name={editContact.name}
+                        name={getInitials(editContact.name)}
                         src={editPhoto}
                         size="lg"
                         className="h-24 w-24"
@@ -997,11 +1138,7 @@ export default function AdminDirectory() {
               <ModalBody>
                 <input type="hidden" name="intent" value="delete" />
                 <input type="hidden" name="id" value={deleteConfirm._id.toString()} />
-                <input
-                  type="hidden"
-                  name="name"
-                  value={deleteConfirm.name}
-                />
+                <input type="hidden" name="name" value={deleteConfirm.name} />
                 <p>
                   Are you sure you want to delete{" "}
                   <strong>{deleteConfirm.name}</strong>? This action cannot be undone.

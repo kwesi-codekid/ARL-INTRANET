@@ -249,8 +249,8 @@ export default function AdminActivityPage() {
             </Select>
           </div>
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Activity log table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Activity log table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>ACTION</TableColumn>
               <TableColumn>USER</TableColumn>

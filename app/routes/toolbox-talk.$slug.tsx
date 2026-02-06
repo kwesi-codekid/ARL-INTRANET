@@ -23,13 +23,89 @@ import {
   FileText,
   Download,
   ExternalLink,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
 } from "lucide-react";
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 
+// PDF Viewer Component - uses Google Docs Viewer for reliable cross-browser PDF display
+interface PDFViewerProps {
+  pdfUrl: string;
+  title: string;
+  fileName?: string;
+}
 
+function PDFViewer({ pdfUrl, title, fileName }: PDFViewerProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Google Docs Viewer - works reliably for displaying PDFs from any public URL
+  const googleDocsViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+
+  return (
+    <div className="mb-6">
+      {/* PDF Toolbar */}
+      <div className="flex flex-col gap-2 rounded-t-lg bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <FileText className="text-red-400" size={20} />
+          <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
+            {fileName || title}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Open in new tab button - uses Google Docs viewer to display PDF */}
+          <Button
+            as="a"
+            href={googleDocsViewerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+            variant="flat"
+            className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
+            startContent={<ExternalLink size={14} />}
+          >
+            Open
+          </Button>
+          {/* Download button */}
+          <Button
+            as="a"
+            href={pdfUrl}
+            download={fileName || "document.pdf"}
+            size="sm"
+            color="primary"
+            className="flex-1 sm:flex-none"
+            startContent={<Download size={14} />}
+          >
+            Download
+          </Button>
+        </div>
+      </div>
+
+      {/* PDF Embed Area - Google Docs Viewer */}
+      <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600 mx-auto mb-3"></div>
+              <p className="text-sm text-gray-600">Loading PDF document...</p>
+            </div>
+          </div>
+        )}
+        <iframe
+          src={googleDocsViewerUrl}
+          title={`PDF: ${title}`}
+          className="w-full border-0"
+          style={{ height: '75vh', minHeight: '500px' }}
+          onLoad={() => setIsLoading(false)}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface LoaderData {
   talk: SerializedToolboxTalk;
@@ -189,103 +265,13 @@ export default function ToolboxTalkDetailPage() {
           </CardHeader>
 
           <CardBody className="p-6">
-            {/* PDF Document */}
+            {/* PDF Document - Using Cloudinary image transformation */}
             {talk.featuredMedia && talk.featuredMedia.type === "pdf" && (
-              <div className="mb-6">
-                <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
-                  {/* Mobile: Large tap-to-open button */}
-                  <div className="sm:hidden">
-                    <div className="flex flex-col items-center gap-4 py-6">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-green-100">
-                        <FileText className="text-green-600" size={40} />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="font-semibold text-gray-900 text-lg">
-                          {talk.featuredMedia.fileName || `${talk.title}.pdf`}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Tap to read the safety talk document
-                        </p>
-                      </div>
-                      <Button
-                        as="a"
-                        href={talk.featuredMedia.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        color="success"
-                        size="lg"
-                        className="w-full max-w-xs font-semibold"
-                        startContent={<ExternalLink size={20} />}
-                      >
-                        Open PDF to Read
-                      </Button>
-                      <Button
-                        as="a"
-                        href={talk.featuredMedia.url}
-                        download={talk.featuredMedia.fileName || `${talk.title}.pdf`}
-                        color="success"
-                        variant="flat"
-                        size="md"
-                        className="w-full max-w-xs"
-                        startContent={<Download size={18} />}
-                      >
-                        Download for Offline
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Desktop: Embedded PDF viewer */}
-                  <div className="hidden sm:block">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-                        <FileText className="text-green-600" size={24} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {talk.featuredMedia.fileName || `${talk.title}.pdf`}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Weekly Safety Talk Document
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          as="a"
-                          href={talk.featuredMedia.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          color="success"
-                          variant="flat"
-                          size="sm"
-                          startContent={<ExternalLink size={14} />}
-                        >
-                          Open in New Tab
-                        </Button>
-                        <Button
-                          as="a"
-                          href={talk.featuredMedia.url}
-                          download={talk.featuredMedia.fileName || `${talk.title}.pdf`}
-                          color="success"
-                          size="sm"
-                          startContent={<Download size={14} />}
-                        >
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                    {/* Embedded PDF viewer using Google Docs Viewer */}
-                    <iframe
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(talk.featuredMedia.url)}&embedded=true`}
-                      className="h-[70vh] min-h-[500px] w-full rounded-lg border border-gray-200 bg-white"
-                      title={talk.title}
-                      allow="autoplay"
-                    />
-                    <p className="mt-2 text-center text-xs text-gray-500">
-                      Having trouble viewing? <a href={talk.featuredMedia.url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Open PDF directly</a>
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <PDFViewer
+                pdfUrl={talk.featuredMedia.url}
+                title={talk.title}
+                fileName={talk.featuredMedia.fileName}
+              />
             )}
 
             {/* Tags */}

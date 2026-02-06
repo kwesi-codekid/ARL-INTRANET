@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button } from "@heroui/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getResponsiveUrl, generateSrcSet, generateSizes, isCloudinaryUrl } from "~/components/ui";
 
 // Default images (fallback if no database images)
 const defaultSlides = [
@@ -102,7 +103,9 @@ export function CompanyValuesSlideshow({
         <div className="relative aspect-[16/9] sm:aspect-[21/9] bg-gray-900">
           <img
             key={currentSlideData.id}
-            src={currentSlideData.image}
+            src={isCloudinaryUrl(currentSlideData.image) ? getResponsiveUrl(currentSlideData.image, "companyValues", "desktop") : currentSlideData.image}
+            srcSet={isCloudinaryUrl(currentSlideData.image) ? generateSrcSet(currentSlideData.image, "companyValues") : undefined}
+            sizes={isCloudinaryUrl(currentSlideData.image) ? generateSizes("companyValues") : undefined}
             alt={currentSlideData.alt}
             className="w-full h-full object-contain sm:object-cover"
           />

@@ -275,8 +275,8 @@ export default function AdminUsersPage() {
             className="max-w-xs"
           />
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Admin users table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Admin users table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>NAME</TableColumn>
               <TableColumn>PHONE</TableColumn>

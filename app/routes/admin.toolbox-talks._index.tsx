@@ -333,8 +333,8 @@ export default function AdminToolboxTalksPage() {
                 className="max-w-xs"
               />
             </CardHeader>
-            <CardBody className="p-0">
-              <Table aria-label="Toolbox talks table" removeWrapper>
+            <CardBody className="overflow-x-auto p-0">
+              <Table aria-label="Toolbox talks table" removeWrapper className="min-w-[700px]">
                 <TableHeader>
                   <TableColumn>TALK</TableColumn>
                   <TableColumn>SCHEDULED WEEK</TableColumn>

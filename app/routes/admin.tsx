@@ -118,12 +118,12 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transform bg-white shadow-lg transition-transform duration-200 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between border-b px-4">
+        <div className="flex h-16 flex-shrink-0 items-center justify-between border-b px-4">
           <Link to="/admin" className="flex items-center gap-2">
             <img
               src="/images/logo-icon.png"
@@ -223,7 +223,7 @@ export default function AdminLayout() {
         </nav>
 
         {/* User Info */}
-        <div className="border-t p-4">
+        <div className="flex-shrink-0 border-t p-4">
           <div className="flex items-center gap-3">
             <Avatar
               name={user?.name?.charAt(0) || "A"}
@@ -304,7 +304,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 overflow-x-hidden p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

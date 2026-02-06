@@ -320,8 +320,8 @@ export default function AdminPortalUsersPage() {
             Users ({pagination.total})
           </h2>
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Portal users table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Portal users table" removeWrapper className="min-w-[700px]">
             <TableHeader>
               <TableColumn>NAME</TableColumn>
               <TableColumn>CONTACT</TableColumn>

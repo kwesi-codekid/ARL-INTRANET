@@ -102,6 +102,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // All letters A-Z for the navigation
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+// Get 2 initials from a name (first and last)
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function DirectoryPage() {
   const { contacts, total, page, totalPages, departments, availableLetters, filters } =
     useLoaderData<typeof loader>();
@@ -379,7 +388,7 @@ export default function DirectoryPage() {
                   }}
                   classNames={{
                     wrapper: "shadow-none",
-                    tr: "cursor-pointer hover:bg-gray-50",
+                    tr: "cursor-pointer hover:bg-gray-50 border-b last:border-0 border-warning/40",
                   }}
                 >
                   <TableHeader>
@@ -392,11 +401,11 @@ export default function DirectoryPage() {
                   </TableHeader>
                   <TableBody>
                     {contacts.map((contact: IContact) => (
-                      <TableRow key={contact._id.toString()}>
+                      <TableRow key={contact._id.toString()} className="border-b">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar
-                              name={contact.name}
+                              name={getInitials(contact.name)}
                               src={contact.photo}
                               size="sm"
                               classNames={{
@@ -521,7 +530,7 @@ export default function DirectoryPage() {
               <>
                 <ModalHeader className="flex items-center gap-4">
                   <Avatar
-                    name={selectedContact.name}
+                    name={getInitials(selectedContact.name)}
                     src={selectedContact.photo}
                     size="lg"
                     classNames={{

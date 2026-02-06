@@ -221,16 +221,16 @@ export default function AdminDashboard() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-3 grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {statCards.map((stat) => (
           <Card key={stat.label} className="shadow-sm">
-            <CardBody className="flex flex-row items-center gap-4">
-              <div className={`rounded-lg p-3 ${stat.color}`}>
-                <stat.icon size={24} className="text-white" />
+            <CardBody className="flex flex-col items-center gap-2 p-3 text-center sm:flex-row sm:items-center sm:gap-4 sm:p-4 sm:text-left">
+              <div className={`rounded-lg p-2 sm:p-3 ${stat.color}`}>
+                <stat.icon size={20} className="text-white sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-500">{stat.label}</p>
+              <div className="min-w-0">
+                <p className="text-xl font-bold text-gray-900 sm:text-2xl">{stat.value}</p>
+                <p className="truncate text-xs text-gray-500 sm:text-sm">{stat.label}</p>
               </div>
             </CardBody>
           </Card>

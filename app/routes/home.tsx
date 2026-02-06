@@ -34,6 +34,7 @@ import {
   Cpu,
   HelpCircle,
   Pin,
+  Car,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
@@ -41,6 +42,7 @@ import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import { AlertToast } from "~/components/alerts";
 import { EventCalendar } from "~/components/dashboard";
+import { getResponsiveUrl, generateSrcSet, generateSizes, getOptimizedVideoUrl, isCloudinaryUrl } from "~/components/ui";
 
 
 
@@ -628,8 +630,8 @@ export default function Home() {
                 <video
                   key={currentItem.data.id}
                   ref={videoRef}
-                  src={currentItem.data.videoUrl}
-                  poster={currentItem.data.thumbnail || undefined}
+                  src={isCloudinaryUrl(currentItem.data.videoUrl) ? getOptimizedVideoUrl(currentItem.data.videoUrl, { quality: "auto" }) : currentItem.data.videoUrl}
+                  poster={currentItem.data.thumbnail ? (isCloudinaryUrl(currentItem.data.thumbnail) ? getResponsiveUrl(currentItem.data.thumbnail, "hero", "desktop") : currentItem.data.thumbnail) : undefined}
                   className="absolute inset-0 w-full h-full object-cover"
                   preload="metadata"
                   muted={isMuted}
@@ -690,7 +692,9 @@ export default function Home() {
                 {/* PDF Document Display - fills entire card */}
                 {currentItem.data.featuredImage ? (
                   <img
-                    src={currentItem.data.featuredImage}
+                    src={isCloudinaryUrl(currentItem.data.featuredImage) ? getResponsiveUrl(currentItem.data.featuredImage, "hero", "desktop") : currentItem.data.featuredImage}
+                    srcSet={isCloudinaryUrl(currentItem.data.featuredImage) ? generateSrcSet(currentItem.data.featuredImage, "hero") : undefined}
+                    sizes={isCloudinaryUrl(currentItem.data.featuredImage) ? generateSizes("hero") : undefined}
                     alt={currentItem.data.title}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -722,7 +726,9 @@ export default function Home() {
               <>
                 {/* Safety Tip with featured image - fills entire card */}
                 <img
-                  src={currentItem.data.featuredImage || ""}
+                  src={isCloudinaryUrl(currentItem.data.featuredImage || "") ? getResponsiveUrl(currentItem.data.featuredImage || "", "hero", "desktop") : currentItem.data.featuredImage || ""}
+                  srcSet={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSrcSet(currentItem.data.featuredImage || "", "hero") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSizes("hero") : undefined}
                   alt={currentItem.data.title}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -733,7 +739,9 @@ export default function Home() {
               <>
                 {/* Company Values - Mission, Vision, Values - full image display */}
                 <img
-                  src={currentItem.data.image}
+                  src={isCloudinaryUrl(currentItem.data.image) ? getResponsiveUrl(currentItem.data.image, "companyValues", "desktop") : currentItem.data.image}
+                  srcSet={isCloudinaryUrl(currentItem.data.image) ? generateSrcSet(currentItem.data.image, "companyValues") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.image) ? generateSizes("companyValues") : undefined}
                   alt={currentItem.data.alt}
                   className="absolute inset-0 w-full h-full object-contain sm:object-cover bg-gray-900"
                 />
@@ -744,7 +752,9 @@ export default function Home() {
               <>
                 {/* News item with featured image - fills entire card */}
                 <img
-                  src={currentItem.data.featuredImage || ""}
+                  src={isCloudinaryUrl(currentItem.data.featuredImage || "") ? getResponsiveUrl(currentItem.data.featuredImage || "", "hero", "desktop") : currentItem.data.featuredImage || ""}
+                  srcSet={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSrcSet(currentItem.data.featuredImage || "", "hero") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSizes("hero") : undefined}
                   alt={currentItem.data.title}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -903,42 +913,43 @@ export default function Home() {
         </div>
 
         {recentNews.length > 0 ? (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {/* All news cards - consistent full-width layout */}
             {recentNews.map((post, index) => (
               <Link key={post.id} to={`/news/${post.slug}`}>
-                <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
-                  <div className="flex flex-col sm:flex-row">
+                <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group md:h-52 p-0">
+                  <CardBody className="p-0 h-full">
+                  <div className="flex flex-col md:flex-row gap-3 md:gap-6">
                     {/* Image Section */}
-                    <div className="relative h-48 sm:h-auto sm:w-2/5 overflow-hidden">
+                    {/* <div className="relative"> */}
+                    <div className="md:h-52 md:w-64 w-full h-52 overflow-hidden flex-shrink-0">
+
                       <Image
                         src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
                         alt={post.title}
                         classNames={{
-                          wrapper: "w-full h-full",
-                          img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
+                          img: "md:h-52 md:w-64 w-full h-52 object-cover object-center group-hover:scale-105 transition-transform",
                         }}
                         radius="none"
                       />
+                    </div>
                       {/* Category badge on image */}
-                      <div className="absolute top-2 left-2 flex gap-2">
+                      <div className="flex-1 py-4 px-5 flex flex-col justify-between">
                         <Chip
                           size="sm"
+                          variant="flat"
+                          // color={post.category.color}
                           style={{ backgroundColor: post.category.color }}
                           className="text-white font-medium"
                         >
                           {post.category.name}
                         </Chip>
-                        {post.isPinned && (
-                          <Chip size="sm" color="warning">
-                            Pinned
-                          </Chip>
-                        )}
-                      </div>
-                    </div>
-                    {/* Content Section */}
-                    <CardBody className="p-4 sm:w-3/5 bg-white flex flex-col justify-center">
-                      <div className="flex items-center gap-2 mb-2">
+                        <div>
+
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2 mt-3">{post.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{post.excerpt || "Click to read more..."}</p>
+                        </div>
+                      <div className="flex items-center gap-2 mt-3">
                         <Avatar
                           name={getInitials(post.author.name)}
                           size="sm"
@@ -953,9 +964,11 @@ export default function Home() {
                           </p>
                         </div>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{post.excerpt || "Click to read more..."}</p>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      </div>
+                    {/* </div> */}
+                    {/* Content Section */}
+                    {/* <CardBody className="p-4 sm:w-3/5 bg-white flex flex-col justify-center"> */}
+                      {/* <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-3">
                           <span className="flex items-center gap-1 text-sm text-gray-500">
                             <ThumbsUp size={14} />
@@ -969,9 +982,10 @@ export default function Home() {
                         <span className="flex items-center gap-1 text-sm text-primary-600 font-medium">
                           Read <ArrowRight size={14} />
                         </span>
-                      </div>
-                    </CardBody>
+                      </div> */}
+                    {/* </CardBody> */}
                   </div>
+                </CardBody>
                 </Card>
               </Link>
             ))}

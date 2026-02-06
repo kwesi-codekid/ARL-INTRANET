@@ -296,8 +296,8 @@ export default function AdminSafetyVideosPage() {
 
       {/* Table */}
       <Card className="shadow-sm">
-        <CardBody className="p-0">
-          <Table aria-label="Safety videos table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Safety videos table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>VIDEO</TableColumn>
               <TableColumn>CATEGORY</TableColumn>

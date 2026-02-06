@@ -241,8 +241,8 @@ export default function AdminAlertsPage() {
 
       {/* Table */}
       <Card className="shadow-sm">
-        <CardBody className="p-0">
-          <Table aria-label="Alerts table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Alerts table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>ALERT</TableColumn>
               <TableColumn>SEVERITY</TableColumn>

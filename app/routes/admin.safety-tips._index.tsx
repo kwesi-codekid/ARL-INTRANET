@@ -289,8 +289,8 @@ export default function AdminSafetyTipsPage() {
 
       {/* Table */}
       <Card className="shadow-sm">
-        <CardBody className="p-0">
-          <Table aria-label="Safety tips table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Safety tips table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>TITLE</TableColumn>
               <TableColumn>CATEGORY</TableColumn>

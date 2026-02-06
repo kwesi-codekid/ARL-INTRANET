@@ -144,8 +144,8 @@ export default function AdminSafetyCategoriesPage() {
 
       {/* Categories Table */}
       <Card className="shadow-sm">
-        <CardBody className="p-0">
-          <Table aria-label="Safety categories table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Safety categories table" removeWrapper className="min-w-[500px]">
             <TableHeader>
               <TableColumn>CATEGORY</TableColumn>
               <TableColumn>DESCRIPTION</TableColumn>

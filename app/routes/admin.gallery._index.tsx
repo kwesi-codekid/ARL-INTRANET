@@ -260,8 +260,8 @@ export default function AdminGalleryListingPage() {
             className="max-w-xs"
           />
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Albums table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Albums table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>ALBUM</TableColumn>
               <TableColumn>PHOTOS</TableColumn>
