@@ -13,7 +13,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Get top 5 most clicked active app links
   const quickLinks = await AppLink.find({ isActive: true })
-    .populate("category")
     .sort({ clicks: -1, name: 1 })
     .limit(5)
     .lean();

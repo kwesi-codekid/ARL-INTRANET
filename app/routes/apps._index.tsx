@@ -1,5 +1,3 @@
-import type { AppLinksGroupedByCategory } from "~/lib/services/app-link.server";
-
 /**
  * Company Apps Listing
  * Task: 1.1.5.2.1
@@ -12,7 +10,6 @@ import {
   Card,
   CardBody,
   Input,
-  Chip,
 } from "@heroui/react";
 import {
   Search,
@@ -103,8 +100,12 @@ import {
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
 
+import type { IAppLink } from "~/lib/db/models/app-link.server";
 
-import type { IAppLink, IAppLinkCategory } from "~/lib/db/models/app-link.server";
+interface LoaderData {
+  appLinks: IAppLink[];
+  search: string;
+}
 
 // Icon mapping for lucide icons
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -201,7 +202,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getAppLinksGroupedByCategory, searchAppLinks, incrementClicks } = await import("~/lib/services/app-link.server");
+  const { getAllActiveAppLinks, searchAppLinks } = await import("~/lib/services/app-link.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await connectDB();
@@ -209,20 +210,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
 
-  let data;
+  let appLinks: IAppLink[];
   if (search) {
-    const results = await searchAppLinks(search, 50);
-    data = { searchResults: JSON.parse(JSON.stringify(results)), grouped: null, search };
+    appLinks = await searchAppLinks(search, 50);
   } else {
-    const grouped = await getAppLinksGroupedByCategory();
-    data = { grouped: JSON.parse(JSON.stringify(grouped)), searchResults: null, search };
+    appLinks = await getAllActiveAppLinks();
   }
 
-  return Response.json(data);
+  return Response.json({
+    appLinks: JSON.parse(JSON.stringify(appLinks)),
+    search,
+  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { getAppLinksGroupedByCategory, searchAppLinks, incrementClicks } = await import("~/lib/services/app-link.server");
+  const { incrementClicks } = await import("~/lib/services/app-link.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await connectDB();
@@ -258,17 +260,8 @@ function AppIcon({ icon, iconType, className }: { icon?: string; iconType: strin
   return <IconComponent size={24} className={className} />;
 }
 
-function CategoryIcon({ icon }: { icon?: string }) {
-  if (!icon) {
-    return <Folder size={20} className="text-primary-500" />;
-  }
-
-  const IconComponent = iconMap[icon] || Folder;
-  return <IconComponent size={20} className="text-primary-500" />;
-}
-
 export default function AppsPage() {
-  const { grouped, searchResults, search } = useLoaderData<typeof loader>();
+  const { appLinks, search } = useLoaderData<LoaderData>();
   const { portalUser } = useOutletContext<PublicOutletContext>();
   const fetcher = useFetcher();
   const [searchValue, setSearchValue] = useState(search);
@@ -280,8 +273,6 @@ export default function AppsPage() {
     // Open link
     window.open(link.url, link.isInternal ? "_self" : "_blank", "noopener,noreferrer");
   };
-
-  const hasResults = searchResults ? searchResults.length > 0 : grouped && grouped.length > 0;
 
   return (
     <MainLayout user={portalUser}>
@@ -317,7 +308,7 @@ export default function AppsPage() {
         </Card>
 
         {/* Results */}
-        {!hasResults ? (
+        {appLinks.length === 0 ? (
           <Card>
             <CardBody className="py-12 text-center">
               <AppWindow size={48} className="mx-auto mb-4 text-gray-300" />
@@ -331,14 +322,15 @@ export default function AppsPage() {
               </p>
             </CardBody>
           </Card>
-        ) : searchResults ? (
-          // Search Results
+        ) : (
           <div>
-            <p className="mb-4 text-sm text-gray-600">
-              Found {searchResults.length} application{searchResults.length !== 1 ? "s" : ""} for "{search}"
-            </p>
+            {search && (
+              <p className="mb-4 text-sm text-gray-600">
+                Found {appLinks.length} application{appLinks.length !== 1 ? "s" : ""} for &quot;{search}&quot;
+              </p>
+            )}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {searchResults.map((link: IAppLink) => (
+              {appLinks.map((link: IAppLink) => (
                 <AppLinkCard
                   key={link._id.toString()}
                   link={link}
@@ -346,37 +338,6 @@ export default function AppsPage() {
                 />
               ))}
             </div>
-          </div>
-        ) : (
-          // Grouped by Category
-          <div className="space-y-8">
-            {grouped?.map((group: AppLinksGroupedByCategory) => (
-              <section key={group.category._id.toString()}>
-                <div className="mb-4 flex items-center gap-2">
-                  <CategoryIcon icon={group.category.icon} />
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {group.category.name}
-                  </h2>
-                  <Chip size="sm" variant="flat" className="ml-2">
-                    {group.links.length}
-                  </Chip>
-                </div>
-                {group.category.description && (
-                  <p className="mb-4 text-sm text-gray-600">
-                    {group.category.description}
-                  </p>
-                )}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {group.links.map((link: IAppLink) => (
-                    <AppLinkCard
-                      key={link._id.toString()}
-                      link={link}
-                      onClick={() => handleLinkClick(link)}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
           </div>
         )}
       </div>
@@ -418,16 +379,11 @@ function AppLinkCard({ link, onClick }: { link: IAppLink; onClick: () => void })
             )}
           </div>
         </div>
-        {link.category && typeof link.category === "object" && (
-          <div className="flex items-center justify-between">
-            <Chip size="sm" variant="flat" className="text-xs">
-              {(link.category as IAppLinkCategory).name}
-            </Chip>
-            {link.clicks > 0 && (
-              <span className="text-xs text-gray-400">
-                {link.clicks} click{link.clicks !== 1 ? "s" : ""}
-              </span>
-            )}
+        {link.clicks > 0 && (
+          <div className="flex justify-end">
+            <span className="text-xs text-gray-400">
+              {link.clicks} click{link.clicks !== 1 ? "s" : ""}
+            </span>
           </div>
         )}
       </CardBody>

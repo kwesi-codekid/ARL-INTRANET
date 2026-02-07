@@ -109,7 +109,6 @@ export default [
 
     // Admin apps routes
     route("admin/apps", "routes/admin.apps.tsx"),
-    route("admin/apps/categories", "routes/admin.apps.categories.tsx"),
 
     // Admin toolbox talk routes (Phase 2)
     route("admin/toolbox-talks", "routes/admin.toolbox-talks._index.tsx"),

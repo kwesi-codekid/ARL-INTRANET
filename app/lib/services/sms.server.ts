@@ -18,7 +18,7 @@ interface SMSConfig {
 const config: SMSConfig = {
   apiKey: process.env.SMS_API_KEY || "",
   senderId: process.env.SMS_SENDER_ID || "ARL",
-  baseUrl: process.env.SMS_BASE_URL || "https://api.smsonlinegh.com/v4/message/sms/send",
+  baseUrl: process.env.SMS_BASE_URL || "https://api.smsonlinegh.com/v5/message/sms/send",
 };
 
 /**
@@ -28,16 +28,12 @@ export async function sendSMS(
   phoneNumber: string,
   message: string
 ): Promise<SMSResponse> {
-  // In development mode, log to console instead of sending real SMS
-  if (process.env.NODE_ENV === "development" || !config.apiKey) {
-    console.log("=".repeat(50));
-    console.log("📱 SMS (DEV MODE)");
-    console.log(`To: ${phoneNumber}`);
-    console.log(`Message: ${message}`);
-    console.log("=".repeat(50));
+  if (!config.apiKey) {
+    console.warn("SMS_API_KEY not set, logging to console instead");
+    console.log(`SMS to ${phoneNumber}: ${message}`);
     return {
       success: true,
-      message: "SMS logged to console (dev mode)",
+      message: "SMS logged to console (no API key)",
       messageId: `dev-${Date.now()}`,
     };
   }
@@ -47,23 +43,32 @@ export async function sendSMS(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
         Authorization: `key ${config.apiKey}`,
+        Host: "api.smsonlinegh.com",
       },
       body: JSON.stringify({
-        messages: [
-          {
-            text: message,
-            type: 0, // Plain text
-            sender: config.senderId,
-            destinations: [phoneNumber],
-          },
-        ],
+        sender: config.senderId,
+        type: 0, // Plain text
+        destinations: [phoneNumber],
+        text: message,
       }),
     });
 
     const data = await response.json();
 
-    if (response.ok && data.status === 200) {
+    // Check for rejected sender
+    const destination = data?.data?.destinations?.[0];
+    if (destination?.status?.label === "DS_REJECTED_SENDER_UNREGISTERED") {
+      console.error("SMS rejected: Unregistered sender", config.senderId);
+      return {
+        success: false,
+        message: "Failed to send SMS: Unregistered sender",
+      };
+    }
+
+    if (response.ok) {
+      console.log("SMS delivery:", destination);
       return {
         success: true,
         message: "SMS sent successfully",

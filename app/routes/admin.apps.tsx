@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Form, useNavigation, useActionData, Link, useFetcher } from "react-router";
+import { useLoaderData, useSearchParams, Form, useNavigation, useActionData, useFetcher } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import {
   Card,
@@ -32,7 +32,6 @@ import {
   AppWindow,
   ExternalLink,
   Lock,
-  Folder,
   BarChart,
   MousePointerClick,
   GripVertical,
@@ -114,6 +113,7 @@ import {
   Layers,
   PieChart,
   TrendingUp,
+  Folder,
 } from "lucide-react";
 
 // Icon mapping for lucide icons
@@ -136,7 +136,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 
 
 
-import type { IAppLink, IAppLinkCategory } from "~/lib/db/models/app-link.server";
+import type { IAppLink } from "~/lib/db/models/app-link.server";
 
 // Type definitions for loader and action data
 interface AppLinkStats {
@@ -150,9 +150,8 @@ interface LoaderData {
   total: number;
   page: number;
   totalPages: number;
-  categories: IAppLinkCategory[];
   stats: AppLinkStats;
-  filters: { search?: string; category?: string };
+  filters: { search?: string };
 }
 
 interface ActionData {
@@ -191,9 +190,8 @@ const availableIcons = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { getAppLinks, getCategories, createAppLink, updateAppLink, deleteAppLink, getAppLinkStats, reorderAppLinks } = await import("~/lib/services/app-link.server");
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAppLinks, getAppLinkStats } = await import("~/lib/services/app-link.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await requireAuth(request);
@@ -201,18 +199,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
-  const category = url.searchParams.get("category") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
 
-  const [appLinksResult, categories, stats] = await Promise.all([
+  const [appLinksResult, stats] = await Promise.all([
     getAppLinks({
       search: search || undefined,
-      category: category || undefined,
       includeInactive: true,
       page,
       limit: 20,
     }),
-    getCategories({ includeInactive: true }),
     getAppLinkStats(),
   ]);
 
@@ -221,16 +216,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     total: appLinksResult.total,
     page: appLinksResult.page,
     totalPages: appLinksResult.totalPages,
-    categories: JSON.parse(JSON.stringify(categories)),
     stats,
-    filters: { search, category },
+    filters: { search },
   });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { getAppLinks, getCategories, createAppLink, updateAppLink, deleteAppLink, getAppLinkStats, reorderAppLinks } = await import("~/lib/services/app-link.server");
+  const { createAppLink, updateAppLink, deleteAppLink, reorderAppLinks } = await import("~/lib/services/app-link.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await requireAuth(request);
@@ -248,14 +242,13 @@ export async function action({ request }: ActionFunctionArgs) {
       url: formData.get("url") as string,
       icon: formData.get("icon") as string || undefined,
       iconType: (formData.get("iconType") as "url" | "lucide" | "emoji") || "lucide",
-      category: formData.get("category") as string,
       isInternal: formData.get("isInternal") === "true",
       isActive: true,
       order: parseInt(formData.get("order") as string) || 0,
     };
 
-    if (!data.name || !data.url || !data.category) {
-      return Response.json({ error: "Name, URL, and Category are required" });
+    if (!data.name || !data.url) {
+      return Response.json({ error: "Name and URL are required" });
     }
 
     const appLink = await createAppLink(data);
@@ -281,7 +274,6 @@ export async function action({ request }: ActionFunctionArgs) {
       url: formData.get("url") as string,
       icon: formData.get("icon") as string || undefined,
       iconType: (formData.get("iconType") as "url" | "lucide" | "emoji") || "lucide",
-      category: formData.get("category") as string,
       isInternal: formData.get("isInternal") === "true",
       isActive: formData.get("isActive") === "true",
       order: parseInt(formData.get("order") as string) || 0,
@@ -362,7 +354,7 @@ function AppIcon({ icon, iconType, className }: { icon?: string; iconType: strin
 }
 
 export default function AdminApps() {
-  const { appLinks: initialAppLinks, total, page, totalPages, categories, stats, filters } =
+  const { appLinks: initialAppLinks, total, page, totalPages, stats, filters } =
     useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
@@ -399,7 +391,7 @@ export default function AdminApps() {
   };
 
   // Check if reordering is allowed (no filters applied)
-  const canReorder = !filters.search && !filters.category;
+  const canReorder = !filters.search;
 
   const handleSearch = (value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -407,17 +399,6 @@ export default function AdminApps() {
       params.set("search", value);
     } else {
       params.delete("search");
-    }
-    params.delete("page");
-    setSearchParams(params);
-  };
-
-  const handleCategoryChange = (value: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (value && value !== "all") {
-      params.set("category", value);
-    } else {
-      params.delete("category");
     }
     params.delete("page");
     setSearchParams(params);
@@ -432,7 +413,7 @@ export default function AdminApps() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardBody className="flex flex-row items-center gap-4">
             <div className="rounded-lg bg-primary-100 p-3">
@@ -453,18 +434,6 @@ export default function AdminApps() {
             <div>
               <p className="text-sm text-gray-500">Active Apps</p>
               <p className="text-2xl font-bold">{stats.active}</p>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody className="flex flex-row items-center gap-4">
-            <div className="rounded-lg bg-secondary-100 p-3">
-              <Folder className="h-6 w-6 text-secondary-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Categories</p>
-              <p className="text-2xl font-bold">{categories.length}</p>
             </div>
           </CardBody>
         </Card>
@@ -494,31 +463,9 @@ export default function AdminApps() {
               className="sm:max-w-xs"
               classNames={{ inputWrapper: "bg-gray-50" }}
             />
-
-            <Select
-              placeholder="All Categories"
-              selectedKeys={filters.category ? [filters.category] : []}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="sm:max-w-xs"
-              classNames={{ trigger: "bg-gray-50" }}
-            >
-              {categories.map((cat: IAppLinkCategory) => (
-                <SelectItem key={cat._id.toString()} textValue={cat.name}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </Select>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              as={Link}
-              to="/admin/apps/categories"
-              variant="bordered"
-              startContent={<Folder size={18} />}
-            >
-              Categories
-            </Button>
             <Button
               color="primary"
               startContent={<Plus size={18} />}
@@ -554,12 +501,11 @@ export default function AdminApps() {
       <Card>
         <CardBody className="p-0 overflow-x-auto">
           <DragDropContext onDragEnd={handleDragEnd}>
-            <table className="w-full min-w-[800px]">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   {canReorder && <th className="w-10 px-3 py-3"></th>}
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Category</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">URL</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Clicks</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
@@ -575,7 +521,7 @@ export default function AdminApps() {
                   >
                     {appLinks.length === 0 ? (
                       <tr>
-                        <td colSpan={canReorder ? 7 : 6} className="px-3 py-8 text-center text-gray-500">
+                        <td colSpan={canReorder ? 6 : 5} className="px-3 py-8 text-center text-gray-500">
                           No app links found
                         </td>
                       </tr>
@@ -628,11 +574,6 @@ export default function AdminApps() {
                                     )}
                                   </div>
                                 </div>
-                              </td>
-                              <td className="px-3 py-3">
-                                <Chip size="sm" variant="flat">
-                                  {(appLink.category as IAppLinkCategory)?.name || "-"}
-                                </Chip>
                               </td>
                               <td className="px-3 py-3">
                                 <a
@@ -719,21 +660,8 @@ export default function AdminApps() {
                   label="Name"
                   placeholder="Enter app name"
                   isRequired
+                  className="sm:col-span-2"
                 />
-                <Select
-                  name="category"
-                  label="Category"
-                  placeholder="Select category"
-                  isRequired
-                >
-                  {categories
-                    .filter((c: IAppLinkCategory) => c.isActive)
-                    .map((cat: IAppLinkCategory) => (
-                      <SelectItem key={cat._id.toString()} textValue={cat.name}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                </Select>
                 <Input
                   name="url"
                   type="url"
@@ -815,21 +743,8 @@ export default function AdminApps() {
                     label="Name"
                     defaultValue={editAppLink.name}
                     isRequired
+                    className="sm:col-span-2"
                   />
-                  <Select
-                    name="category"
-                    label="Category"
-                    defaultSelectedKeys={[(editAppLink.category as IAppLinkCategory)?._id?.toString() || ""]}
-                    isRequired
-                  >
-                    {categories
-                      .filter((c: IAppLinkCategory) => c.isActive)
-                      .map((cat: IAppLinkCategory) => (
-                        <SelectItem key={cat._id.toString()} textValue={cat.name}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                  </Select>
                   <Input
                     name="url"
                     type="url"

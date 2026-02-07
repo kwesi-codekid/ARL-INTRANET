@@ -9,6 +9,7 @@ interface GoldPriceTickerProps {
   className?: string;
 }
 
+
 export function GoldPriceTicker({ className = "" }: GoldPriceTickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
