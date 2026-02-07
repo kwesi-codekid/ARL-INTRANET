@@ -200,14 +200,17 @@ export default function SafetyHubPage() {
             <AlertOctagon size={22} className="text-amber-600" />
             <div className="flex-1 flex items-center gap-2 overflow-x-auto">
               {activeAlerts.map((alert) => (
-                <Link
+                <Chip
                   key={alert.id}
+                  as={Link}
                   to="/alerts"
-                  className="flex items-center gap-2 bg-amber-100 px-3 py-1.5 rounded text-base text-amber-800 hover:bg-amber-200 transition-colors whitespace-nowrap font-medium"
+                  variant="flat"
+                  color="warning"
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                  startContent={<span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
                 >
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   {alert.title}
-                </Link>
+                </Chip>
               ))}
             </div>
           </div>
@@ -351,9 +354,13 @@ export default function SafetyHubPage() {
                               </div>
                             </div>
                           )}
-                          <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
+                          <Chip
+                            size="sm"
+                            variant="flat"
+                            className="absolute bottom-1 right-1 bg-black/80 text-white"
+                          >
                             {formatDuration(video.duration)}
-                          </div>
+                          </Chip>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-base font-medium line-clamp-2 ${

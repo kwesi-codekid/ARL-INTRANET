@@ -3,8 +3,8 @@
  * Task: 1.1.2.1.9
  */
 
-import { useState, useEffect, useRef } from "react";
-import { Input, Button, Divider } from "@heroui/react";
+import { useState, useEffect } from "react";
+import { Input, Button, Divider, InputOtp } from "@heroui/react";
 import { Phone, KeyRound, ArrowRight, RefreshCw, Shield } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useActionData, useNavigation, redirect } from "react-router";
@@ -19,15 +19,14 @@ import { Form, useActionData, useNavigation, redirect } from "react-router";
 export async function loader({ request }: LoaderFunctionArgs) {
   const { requestOTP, verifyOTP } = await import("~/lib/services/otp.server");
   const { authenticateByPhone, userExistsByPhone } = await import("~/lib/services/auth.server");
-  const { getUserSession, createUserSession, getFlashMessages } = await import("~/lib/services/session.server");
+  const { getUserSession, createUserSession, getFlashMessages, getUser } = await import("~/lib/services/session.server");
   const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
   const { logActivity } = await import("~/lib/services/activity-log.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
-  const session = await getUserSession(request);
-  const userId = session.get("userId");
+  const existingUser = await getUser(request);
 
-  if (userId) {
+  if (existingUser) {
     return redirect("/admin");
   }
 
@@ -133,10 +132,8 @@ export default function AdminLogin() {
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState("");
   const [cooldown, setCooldown] = useState(0);
-
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Handle action response
   useEffect(() => {
@@ -159,42 +156,9 @@ export default function AdminLogin() {
     }
   }, [cooldown]);
 
-  // Handle OTP input
-  const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    const newOtp = [...otp];
-    for (let i = 0; i < pasted.length; i++) {
-      newOtp[i] = pasted[i];
-    }
-    setOtp(newOtp);
-    if (pasted.length === 6) {
-      otpRefs.current[5]?.focus();
-    }
-  };
-
   const resetToPhone = () => {
     setStep("phone");
-    setOtp(["", "", "", "", "", ""]);
+    setOtp("");
   };
 
   return (
@@ -303,7 +267,7 @@ export default function AdminLogin() {
             <Form method="post" className="space-y-6">
               <input type="hidden" name="intent" value="verify-otp" />
               <input type="hidden" name="phone" value={phone} />
-              <input type="hidden" name="otp" value={otp.join("")} />
+              <input type="hidden" name="otp" value={otp} />
 
               {/* Phone info */}
               <div className="flex items-center justify-between bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -327,21 +291,16 @@ export default function AdminLogin() {
               </div>
 
               {/* OTP Input */}
-              <div className="flex justify-center gap-3">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => { otpRefs.current[index] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    onPaste={handleOtpPaste}
-                    className="h-14 w-12 rounded-xl border-2 border-gray-200 bg-white text-center text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 focus:outline-none"
-                  />
-                ))}
+              <div className="flex justify-center">
+                <InputOtp
+                  length={6}
+                  value={otp}
+                  onValueChange={setOtp}
+                  size="lg"
+                  variant="bordered"
+                  color="primary"
+                  autoFocus
+                />
               </div>
 
               {/* Verify Button */}
@@ -351,7 +310,7 @@ export default function AdminLogin() {
                 className="w-full font-semibold shadow-lg shadow-primary-500/30"
                 size="lg"
                 isLoading={isSubmitting}
-                isDisabled={otp.join("").length !== 6}
+                isDisabled={otp.length !== 6}
                 endContent={!isSubmitting && <KeyRound size={18} />}
               >
                 {isSubmitting ? "Verifying..." : "Verify & Sign In"}

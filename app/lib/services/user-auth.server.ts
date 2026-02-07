@@ -194,7 +194,7 @@ export async function createUserTokens(
   const { accessTokenMaxAge, refreshTokenMaxAge } = getTokenExpiries();
 
   const isProduction = process.env.NODE_ENV === "production";
-  const cookieOptions = `HttpOnly; Path=/; SameSite=Strict${isProduction ? "; Secure" : ""}`;
+  const cookieOptions = `HttpOnly; Path=/; SameSite=Lax${isProduction ? "; Secure" : ""}`;
 
   const headers = new Headers();
   headers.append(
@@ -253,14 +253,25 @@ export async function requireUserAuth(
   redirectTo: string = "/login"
 ): Promise<IUser> {
   const user = await getCurrentUser(request);
+  if (user) return user;
 
-  if (!user) {
-    const url = new URL(request.url);
-    const searchParams = new URLSearchParams([["redirectTo", url.pathname]]);
-    throw redirect(`${redirectTo}?${searchParams}`);
+  // Fallback: allow admin users to access public pages
+  const { getUser: getAdminUser } = await import("./session.server");
+  const adminUser = await getAdminUser(request);
+  if (adminUser) {
+    return {
+      _id: adminUser._id,
+      name: adminUser.name,
+      phone: adminUser.phone,
+      email: "",
+      position: "Administrator",
+      isActive: true,
+    } as IUser;
   }
 
-  return user;
+  const url = new URL(request.url);
+  const searchParams = new URLSearchParams([["redirectTo", url.pathname]]);
+  throw redirect(`${redirectTo}?${searchParams}`);
 }
 
 /**
@@ -281,7 +292,7 @@ export async function refreshUserToken(
 
   const { accessTokenMaxAge } = getTokenExpiries();
   const isProduction = process.env.NODE_ENV === "production";
-  const cookieOptions = `HttpOnly; Path=/; SameSite=Strict${isProduction ? "; Secure" : ""}`;
+  const cookieOptions = `HttpOnly; Path=/; SameSite=Lax${isProduction ? "; Secure" : ""}`;
 
   const headers = new Headers();
   headers.append(

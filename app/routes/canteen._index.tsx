@@ -89,12 +89,9 @@ const mealColors: Record<MealType, string> = {
 function DietaryBadge({ dietary }: { dietary: DietaryType }) {
   const info = dietaryInfo[dietary];
   return (
-    <span
-      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-gray-100"
-      title={info.label}
-    >
+    <Chip size="sm" variant="flat" title={info.label}>
       {info.icon}
-    </span>
+    </Chip>
   );
 }
 

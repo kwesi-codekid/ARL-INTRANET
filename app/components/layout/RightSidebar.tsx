@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader, Button, Input, Chip, Image } from "@heroui/react";
-import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play, FileText } from "lucide-react";
+import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play, FileText, Eye } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
@@ -7,27 +7,20 @@ import type { SerializedSafetyTip, SerializedSafetyVideo } from "~/lib/services/
 import type { SerializedMenu, MealType } from "~/lib/utils/menu-constants";
 import { dietaryInfo, mealTimeInfo } from "~/lib/utils/menu-constants";
 
+interface FeaturedPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  views: number;
+  isFeatured: boolean;
+  category: { name: string; color: string } | null;
+  author: string;
+}
 
-const featuredPosts = [
-  {
-    id: 1,
-    title: "Safety Milestone: 250 Days LTI-Free!",
-    author: "HSE Team",
-    likes: 89,
-  },
-  {
-    id: 2,
-    title: "Welcome New Graduates Program Participants",
-    author: "HR Department",
-    likes: 67,
-  },
-  {
-    id: 3,
-    title: "Q4 Production Update",
-    author: "Operations",
-    likes: 54,
-  },
-];
+interface FeaturedNewsData {
+  posts: FeaturedPost[];
+}
 
 interface QuickLink {
   _id: string;
@@ -63,6 +56,7 @@ export function RightSidebar() {
   const safetyTipFetcher = useFetcher<SafetyTipData>();
   const safetyVideoFetcher = useFetcher<SafetyVideoData>();
   const menuFetcher = useFetcher<MenuData>();
+  const featuredNewsFetcher = useFetcher<FeaturedNewsData>();
 
   // Fetch data on mount
   useEffect(() => {
@@ -71,6 +65,7 @@ export function RightSidebar() {
     safetyTipFetcher.load("/api/safety-tips?today=true");
     safetyVideoFetcher.load("/api/safety-videos?featured=true");
     menuFetcher.load("/api/menu?mode=today");
+    featuredNewsFetcher.load("/api/featured-news?limit=5");
   }, []);
 
   const quickLinks = quickLinksFetcher.data?.quickLinks || [];
@@ -79,6 +74,7 @@ export function RightSidebar() {
   const safetyTip = safetyTipFetcher.data?.tip || null;
   const safetyVideo = safetyVideoFetcher.data?.video || null;
   const todayMenu = menuFetcher.data?.menu || null;
+  const featuredPosts = featuredNewsFetcher.data?.posts || [];
 
   // Get current meal based on time
   const getCurrentMealType = (): MealType => {
@@ -469,10 +465,14 @@ export function RightSidebar() {
                     </div>
                   </div>
                   {safetyVideo.duration > 0 && (
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded flex items-center gap-1">
-                      <Clock size={10} />
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      className="absolute bottom-2 right-2 bg-black/70 text-white"
+                      startContent={<Clock size={10} />}
+                    >
                       {formatDuration(safetyVideo.duration)}
-                    </div>
+                    </Chip>
                   )}
                 </div>
               </Link>
@@ -622,30 +622,72 @@ export function RightSidebar() {
           </div>
         </CardHeader>
         <CardBody className="pt-0">
-          <div className="space-y-3">
-            {featuredPosts.map((post, index) => (
-              <div
-                key={post.id}
-                className="cursor-pointer rounded-lg p-2 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary-100 text-xs font-bold text-primary-700">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-primary-600">
-                      {post.title}
-                    </p>
-                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                      <span>{post.author}</span>
-                      <span>•</span>
-                      <span>{post.likes} likes</span>
-                    </div>
+          {featuredNewsFetcher.state === "loading" ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-start gap-2 p-2">
+                  <div className="h-5 w-5 shrink-0 animate-pulse rounded bg-gray-100" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-4 animate-pulse rounded bg-gray-100" />
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : featuredPosts.length > 0 ? (
+            <div className="space-y-3">
+              {featuredPosts.map((post, index) => (
+                <Link
+                  key={post.id}
+                  to={`/news/${post.slug}`}
+                  className="block cursor-pointer rounded-lg p-2 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary-100 text-xs font-bold text-primary-700">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-primary-600">
+                        {post.title}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                        <span>{post.author}</span>
+                        <span>•</span>
+                        <Eye size={10} />
+                        <span>{post.views}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              <Button
+                as={Link}
+                to="/news"
+                variant="flat"
+                color="warning"
+                size="sm"
+                className="w-full"
+                endContent={<ArrowRight size={14} />}
+              >
+                View All News
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-3">
+              <Star size={28} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-xs text-gray-500">No featured posts yet</p>
+              <Button
+                as={Link}
+                to="/news"
+                size="sm"
+                variant="flat"
+                color="warning"
+                className="mt-2"
+              >
+                Browse News
+              </Button>
+            </div>
+          )}
         </CardBody>
       </Card>
     </aside>

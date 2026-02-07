@@ -12,6 +12,7 @@ import {
   Button,
   Chip,
   Image,
+  Spinner,
 } from "@heroui/react";
 import {
   Calendar,
@@ -90,7 +91,7 @@ function PDFViewer({ pdfUrl, title, fileName }: PDFViewerProps) {
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600 mx-auto mb-3"></div>
+              <Spinner size="lg" color="warning" className="mb-3" />
               <p className="text-sm text-gray-600">Loading PDF document...</p>
             </div>
           </div>

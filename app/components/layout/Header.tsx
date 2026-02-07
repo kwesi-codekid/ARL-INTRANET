@@ -6,7 +6,6 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
-  Input,
   Avatar,
   Button,
   Dropdown,
@@ -18,9 +17,9 @@ import {
   PopoverContent,
   Badge,
   Chip,
+  Progress,
 } from "@heroui/react";
 import {
-  Search,
   Bell,
   LogOut,
   User,
@@ -108,13 +107,22 @@ function NavigationProgress() {
   if (!visible) return null;
 
   return (
-    <div className="h-[3px] w-full bg-transparent overflow-hidden">
-      <div
-        className="h-full bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080] shadow-[0_0_8px_rgba(210,171,103,0.6)]"
-        style={{
-          width: `${progress}%`,
-          transition: progress === 100 ? "width 200ms ease-out, opacity 200ms ease-out" : "width 100ms linear",
-          opacity: progress === 100 ? 0 : 1,
+    <div
+      className="w-full"
+      style={{
+        opacity: progress === 100 ? 0 : 1,
+        transition: "opacity 200ms ease-out",
+      }}
+    >
+      <Progress
+        size="sm"
+        value={progress}
+        color="warning"
+        aria-label="Loading page"
+        classNames={{
+          base: "h-[3px]",
+          track: "bg-transparent",
+          indicator: "bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080]",
         }}
       />
     </div>
@@ -203,28 +211,13 @@ export function Header({ user }: HeaderProps) {
         </div>
       </NavbarContent>
 
-      {/* Search & Actions */}
+      {/* Actions */}
       <NavbarContent justify="end" className="gap-2 sm:gap-3">
         {/* Gold Price Ticker - beside search */}
         <NavbarItem className="hidden lg:block">
           <div className="flex items-center h-[46px]">
             <GoldPriceTicker />
           </div>
-        </NavbarItem>
-
-        {/* Search */}
-        <NavbarItem className="hidden md:flex">
-          <Input
-            classNames={{
-              base: "max-w-[200px]",
-              inputWrapper: "bg-white/20 hover:bg-white/30 group-data-[focus=true]:bg-white/30 border-0",
-              input: "text-white placeholder:text-white/60 text-sm",
-            }}
-            placeholder="Search..."
-            size="sm"
-            startContent={<Search size={16} className="text-white/60" />}
-            type="search"
-          />
         </NavbarItem>
 
         {/* Notifications/Alerts - hidden on mobile */}
@@ -380,20 +373,6 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile menu */}
       <NavbarMenu className="bg-[#1a1a1a] pt-6 pb-24">
-        {/* Mobile Search */}
-        <div className="mb-4 px-2">
-          <Input
-            classNames={{
-              inputWrapper: "bg-white/20 border-0",
-              input: "text-white placeholder:text-white/60",
-            }}
-            placeholder="Search..."
-            size="sm"
-            startContent={<Search size={16} className="text-white/60" />}
-            type="search"
-          />
-        </div>
-
         {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>

@@ -36,8 +36,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Check if current user is admin (admins can bypass maintenance)
   let isAdmin = false;
+  let adminUser = null;
   try {
-    const adminUser = await getUser(request);
+    adminUser = await getUser(request);
     isAdmin = !!adminUser;
   } catch {
     isAdmin = false;
@@ -53,6 +54,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         name: user.name,
         email: user.email,
         position: user.position,
+      };
+    } else if (adminUser) {
+      // Admins browsing public pages — show their admin identity
+      portalUser = {
+        id: adminUser._id.toString(),
+        name: adminUser.name,
+        email: adminUser.email || "",
+        position: "Administrator",
       };
     }
   } catch {

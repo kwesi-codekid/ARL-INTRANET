@@ -3,7 +3,7 @@ import { Footer } from "./Footer";
 import { RightSidebar } from "./RightSidebar";
 import { BottomNavigation } from "./BottomNavigation";
 import { MobileSidebarContent } from "./MobileSidebarContent";
-import { ChatWidget } from "../chat/ChatWidget";
+// import { ChatWidget } from "../chat/ChatWidget"; // Commented out - AI chatbot disabled for now
 import { AlertProvider, AlertContainer } from "../alerts";
 import type { SerializedAlert } from "~/lib/services/alert.server";
 
@@ -17,7 +17,7 @@ export interface PortalUser {
 interface MainLayoutProps {
   children: React.ReactNode;
   showRightSidebar?: boolean;
-  showChatWidget?: boolean;
+  // showChatWidget?: boolean; // Commented out - AI chatbot disabled for now
   showAlerts?: boolean;
   initialAlerts?: SerializedAlert[];
   user?: PortalUser | null;
@@ -26,7 +26,7 @@ interface MainLayoutProps {
 export function MainLayout({
   children,
   showRightSidebar = false,
-  showChatWidget = true,
+  // showChatWidget = true, // Commented out - AI chatbot disabled for now
   showAlerts = true,
   initialAlerts = [],
   user = null,
@@ -47,12 +47,12 @@ export function MainLayout({
         </div>
         <Footer />
         <BottomNavigation />
-        {/* Chat widget - hidden on mobile to avoid overlap with bottom nav */}
-        {showChatWidget && (
+        {/* Chat widget - disabled for now */}
+        {/* {showChatWidget && (
           <div className="hidden lg:block">
             <ChatWidget />
           </div>
-        )}
+        )} */}
       </div>
     </AlertProvider>
   );

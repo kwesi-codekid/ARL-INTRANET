@@ -217,9 +217,13 @@ export default function SafetyVideosPage() {
                 )}
                 {/* Duration Badge */}
                 {video.duration > 0 && (
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    className="absolute top-2 right-2 bg-black/70 text-white"
+                  >
                     {formatDuration(video.duration)}
-                  </div>
+                  </Chip>
                 )}
               </div>
               {/* Content Section - Solid Background */}

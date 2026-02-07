@@ -1,5 +1,5 @@
 import { Card, CardBody, Button, Input, Chip, Image } from "@heroui/react";
-import { Shield, Phone, Search, ArrowRight, FileText } from "lucide-react";
+import { Shield, Phone, Search, ArrowRight, FileText, Star, Eye } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
@@ -9,15 +9,33 @@ interface WeeklyTalkData {
   weekRange: { start: string; end: string };
 }
 
+interface FeaturedPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  views: number;
+  isFeatured: boolean;
+  category: { name: string; color: string } | null;
+  author: string;
+}
+
+interface FeaturedNewsData {
+  posts: FeaturedPost[];
+}
+
 export function MobileSidebarContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const toolboxTalkFetcher = useFetcher<WeeklyTalkData>();
+  const featuredNewsFetcher = useFetcher<FeaturedNewsData>();
 
   useEffect(() => {
     toolboxTalkFetcher.load("/api/toolbox-talk-weekly");
+    featuredNewsFetcher.load("/api/featured-news?limit=3");
   }, []);
 
   const weeklyTalk = toolboxTalkFetcher.data?.talk || null;
+  const featuredPosts = featuredNewsFetcher.data?.posts || [];
 
   return (
     <div className="mt-8 space-y-4 lg:hidden">
@@ -140,6 +158,55 @@ export function MobileSidebarContent() {
               className="mt-2"
             >
               View Archive
+            </Button>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Featured Posts */}
+      {featuredPosts.length > 0 && (
+        <Card className="shadow-sm">
+          <CardBody className="p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
+                <Star size={16} className="text-yellow-600" />
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Featured Posts</span>
+            </div>
+            <div className="space-y-2">
+              {featuredPosts.map((post, index) => (
+                <Link
+                  key={post.id}
+                  to={`/news/${post.slug}`}
+                  className="flex items-start gap-2 rounded-lg p-2 transition-colors hover:bg-gray-50"
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary-100 text-xs font-bold text-primary-700">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                      {post.title}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                      <span>{post.author}</span>
+                      <span>•</span>
+                      <Eye size={10} />
+                      <span>{post.views}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <Button
+              as={Link}
+              to="/news"
+              variant="flat"
+              color="warning"
+              size="sm"
+              className="mt-3 w-full"
+              endContent={<ArrowRight size={14} />}
+            >
+              View All News
             </Button>
           </CardBody>
         </Card>

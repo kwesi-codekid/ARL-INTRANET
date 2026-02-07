@@ -884,9 +884,13 @@ export default function Home() {
                 </div>
 
                 {/* Slide Counter */}
-                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/50 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-white text-xs sm:text-sm z-10">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/50 text-white z-10"
+                >
                   {currentSlide + 1} / {carouselItems.length}
-                </div>
+                </Chip>
               </>
             )}
           </div>

@@ -12,6 +12,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Progress,
 } from "@heroui/react";
 import {
   LayoutDashboard,
@@ -37,7 +38,7 @@ import {
   Video,
   UtensilsCrossed,
   MessageSquare,
-  Bot,
+  // Bot, // Commented out - AI chatbot disabled for now
   HelpCircle,
   FileText,
 } from "lucide-react";
@@ -47,9 +48,9 @@ import { useState, useEffect, useRef } from "react";
 export async function loader({ request }: LoaderFunctionArgs) {
   const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
 
-  // Check if this is the login page
+  // Skip auth for login and logout pages
   const url = new URL(request.url);
-  if (url.pathname === "/admin/login") {
+  if (url.pathname === "/admin/login" || url.pathname === "/admin/logout") {
     return Response.json({ user: null });
   }
 
@@ -72,7 +73,7 @@ const sidebarItems = [
   { label: "App Links", href: "/admin/apps", icon: AppWindow },
   { label: "Menus", href: "/admin/menus", icon: UtensilsCrossed },
   { label: "Suggestions", href: "/admin/suggestions", icon: MessageSquare },
-  { label: "Chatbot FAQs", href: "/admin/faqs", icon: Bot },
+  // { label: "Chatbot FAQs", href: "/admin/faqs", icon: Bot }, // Commented out - AI chatbot disabled for now
   { label: "IT Tips", href: "/admin/it-tips", icon: Lightbulb },
   { label: "Executive Messages", href: "/admin/executive-messages", icon: Users },
 ];
@@ -129,13 +130,22 @@ function AdminNavigationProgress() {
   if (!visible) return null;
 
   return (
-    <div className="h-[3px] w-full bg-transparent overflow-hidden">
-      <div
-        className="h-full bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080] shadow-[0_0_8px_rgba(210,171,103,0.6)]"
-        style={{
-          width: `${progress}%`,
-          transition: progress === 100 ? "width 200ms ease-out, opacity 200ms ease-out" : "width 100ms linear",
-          opacity: progress === 100 ? 0 : 1,
+    <div
+      className="w-full"
+      style={{
+        opacity: progress === 100 ? 0 : 1,
+        transition: "opacity 200ms ease-out",
+      }}
+    >
+      <Progress
+        size="sm"
+        value={progress}
+        color="warning"
+        aria-label="Loading page"
+        classNames={{
+          base: "h-[3px]",
+          track: "bg-transparent",
+          indicator: "bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080]",
         }}
       />
     </div>
@@ -169,24 +179,27 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transform bg-white shadow-lg transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transform bg-gradient-to-b from-[#c7a262] to-[#a8864d] shadow-lg transition-transform duration-200 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 flex-shrink-0 items-center justify-between border-b px-4">
+        <div className="flex h-16 flex-shrink-0 items-center justify-between border-b border-white/20 px-4">
           <Link to="/admin" className="flex items-center gap-2">
             <img
               src="/images/logo-icon.png"
               alt="ARL"
               className="h-10 w-10 object-contain"
             />
-            <span className="font-bold text-gray-900">Admin</span>
+            <div>
+              <span className="font-bold text-white">ARL</span>
+              <span className="ml-1.5 text-xs font-medium text-white/70">Admin Portal</span>
+            </div>
           </Link>
           <Button
             isIconOnly
             variant="light"
-            className="lg:hidden"
+            className="lg:hidden text-white"
             onPress={() => setSidebarOpen(false)}
           >
             <X size={20} />
@@ -203,13 +216,13 @@ export default function AdminLayout() {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-white/20 text-white"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <item.icon
                   size={20}
-                  className={isActive(item.href) ? "text-primary-500" : "text-gray-400"}
+                  className={isActive(item.href) ? "text-white" : "text-white/60"}
                 />
                 {item.label}
               </Link>
@@ -217,8 +230,8 @@ export default function AdminLayout() {
           </div>
 
           {/* Safety Section */}
-          <div className="my-4 border-t" />
-          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <div className="my-4 border-t border-white/20" />
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
             Safety
           </p>
           <div className="space-y-1">
@@ -229,13 +242,13 @@ export default function AdminLayout() {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-white/20 text-white"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <item.icon
                   size={20}
-                  className={isActive(item.href) ? "text-primary-500" : "text-gray-400"}
+                  className={isActive(item.href) ? "text-white" : "text-white/60"}
                 />
                 {item.label}
               </Link>
@@ -245,8 +258,8 @@ export default function AdminLayout() {
           {/* Superadmin Section */}
           {user?.role === "superadmin" && (
             <>
-              <div className="my-4 border-t" />
-              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <div className="my-4 border-t border-white/20" />
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
                 Superadmin
               </p>
               <div className="space-y-1">
@@ -257,13 +270,13 @@ export default function AdminLayout() {
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive(item.href)
-                        ? "bg-primary-50 text-primary-700"
-                        : "text-gray-600 hover:bg-gray-50"
+                        ? "bg-white/20 text-white"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     <item.icon
                       size={20}
-                      className={isActive(item.href) ? "text-primary-500" : "text-gray-400"}
+                      className={isActive(item.href) ? "text-white" : "text-white/60"}
                     />
                     {item.label}
                   </Link>
@@ -274,20 +287,20 @@ export default function AdminLayout() {
         </nav>
 
         {/* User Info */}
-        <div className="flex-shrink-0 border-t p-4">
+        <div className="flex-shrink-0 border-t border-white/20 p-4">
           <div className="flex items-center gap-3">
             <Avatar
               name={user?.name?.charAt(0) || "A"}
               size="sm"
               classNames={{
-                base: "bg-primary-100 text-primary-700 font-semibold",
+                base: "bg-white/20 text-white font-semibold",
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900">
+              <p className="truncate text-sm font-medium text-white">
                 {user?.name}
               </p>
-              <p className="truncate text-xs text-gray-500 capitalize">
+              <p className="truncate text-xs text-white/60 capitalize">
                 {user?.role}
               </p>
             </div>

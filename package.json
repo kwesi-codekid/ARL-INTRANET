@@ -13,7 +13,9 @@
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\"",
     "db:seed": "tsx app/lib/db/seeds/index.ts",
     "db:import-contacts": "tsx scripts/import-contacts.ts",
-    "db:seed-departments": "tsx scripts/seed-departments.ts"
+    "db:seed-departments": "tsx scripts/seed-departments.ts",
+    "db:seed-safety-categories": "tsx scripts/seed-safety-categories.ts",
+    "db:seed-holidays": "tsx scripts/seed-public-holidays.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -44,7 +46,8 @@
     "mongoose": "^9.1.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router": "7.12.0"
+    "react-router": "7.12.0",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
