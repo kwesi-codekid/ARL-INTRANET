@@ -10,6 +10,7 @@ import {
   Chip,
   Button,
   Divider,
+  Spinner,
   Tab,
   Tabs,
 } from "@heroui/react";
@@ -22,8 +23,7 @@ import {
   Clock,
   User,
   BookOpen,
-  Maximize2,
-  Minimize2,
+  ExternalLink,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
@@ -59,9 +59,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function PolicyDetailPage() {
   const { policy } = useLoaderData<typeof loader>();
   const { portalUser } = useOutletContext<PublicOutletContext>();
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(true);
 
   const hasPdf = !!policy.pdfUrl;
+  const googleDocsViewerUrl = hasPdf
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(policy.pdfUrl)}&embedded=true`
+    : "";
   const hasContent = !!policy.content;
 
   const formatDate = (dateString?: string) => {
@@ -175,86 +178,58 @@ export default function PolicyDetailPage() {
                       </div>
                     }
                   >
-                    <div className="p-4 sm:p-6">
-                      {/* Toolbar */}
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm text-gray-500">
-                          {policy.pdfFileName || "Policy Document.pdf"}
-                        </p>
+                    <div className="p-0">
+                      {/* PDF Toolbar */}
+                      <div className="flex flex-col gap-2 bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="text-red-400" size={20} />
+                          <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
+                            {policy.pdfFileName || "Policy Document.pdf"}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Button
+                            as="a"
+                            href={googleDocsViewerUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             size="sm"
                             variant="flat"
-                            isIconOnly
-                            onPress={() => setIsFullscreen(!isFullscreen)}
-                            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                            className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
+                            startContent={<ExternalLink size={14} />}
                           >
-                            {isFullscreen ? (
-                              <Minimize2 size={16} />
-                            ) : (
-                              <Maximize2 size={16} />
-                            )}
+                            Open
                           </Button>
                           <Button
                             as="a"
                             href={policy.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
+                            download={policy.pdfFileName || "document.pdf"}
                             size="sm"
                             color="primary"
-                            startContent={<Download size={16} />}
+                            className="flex-1 sm:flex-none"
+                            startContent={<Download size={14} />}
                           >
                             Download
                           </Button>
                         </div>
                       </div>
 
-                      {/* PDF Embed */}
-                      <div
-                        className={`rounded-lg overflow-hidden border border-gray-200 bg-gray-100 transition-all ${
-                          isFullscreen
-                            ? "fixed inset-0 z-50 rounded-none border-0"
-                            : ""
-                        }`}
-                      >
-                        {isFullscreen && (
-                          <div className="flex items-center justify-between bg-white border-b px-4 py-2">
-                            <p className="text-sm font-medium text-gray-700 truncate">
-                              {policy.title}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                as="a"
-                                href={policy.pdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download
-                                size="sm"
-                                variant="flat"
-                                startContent={<Download size={14} />}
-                              >
-                                Download
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="flat"
-                                isIconOnly
-                                onPress={() => setIsFullscreen(false)}
-                              >
-                                <Minimize2 size={16} />
-                              </Button>
+                      {/* PDF Embed - Google Docs Viewer */}
+                      <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
+                        {isPdfLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                            <div className="text-center">
+                              <Spinner size="lg" color="primary" className="mb-3" />
+                              <p className="text-sm text-gray-600">Loading PDF document...</p>
                             </div>
                           </div>
                         )}
                         <iframe
-                          src={`${policy.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-                          title={policy.title}
-                          className={`w-full ${
-                            isFullscreen
-                              ? "h-[calc(100vh-49px)]"
-                              : "h-[500px] sm:h-[700px]"
-                          }`}
+                          src={googleDocsViewerUrl}
+                          title={`PDF: ${policy.title}`}
+                          className="w-full border-0"
+                          style={{ height: "75vh", minHeight: "500px" }}
+                          onLoad={() => setIsPdfLoading(false)}
                         />
                       </div>
                     </div>
@@ -283,45 +258,6 @@ export default function PolicyDetailPage() {
                   </Tab>
                 )}
 
-                {/* Download Tab */}
-                {hasPdf && (
-                  <Tab
-                    key="download"
-                    title={
-                      <div className="flex items-center gap-2">
-                        <Download size={16} />
-                        <span>Download</span>
-                      </div>
-                    }
-                  >
-                    <div className="p-6 sm:p-8">
-                      <div className="flex flex-col items-center text-center py-8">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-50 mb-4">
-                          <FileText size={40} className="text-red-500" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {policy.pdfFileName || "Policy Document.pdf"}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6 max-w-md">
-                          Download the official PDF document to save it locally
-                          or print a copy for your records.
-                        </p>
-                        <Button
-                          as="a"
-                          href={policy.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          color="primary"
-                          size="lg"
-                          startContent={<Download size={20} />}
-                        >
-                          Download PDF
-                        </Button>
-                      </div>
-                    </div>
-                  </Tab>
-                )}
               </Tabs>
             </CardBody>
           </Card>
