@@ -19,10 +19,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/");
   }
 
-  // Redirect admins who are already logged in
+  // Redirect admins who are already logged in to public home
   const adminUser = await getAdminUser(request);
   if (adminUser) {
-    return redirect("/admin");
+    return redirect("/");
   }
 
   return Response.json({});
@@ -220,7 +220,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       const { createUserSession } = await import("~/lib/services/session.server");
-      return createUserSession(adminUser, "/admin");
+      return createUserSession(adminUser, "/");
     }
 
     return Response.json({ error: "User not found or inactive", step: "otp", authMethod: "phone", identifier: phone });
@@ -295,7 +295,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       const { createUserSession } = await import("~/lib/services/session.server");
-      return createUserSession(adminUser, "/admin");
+      return createUserSession(adminUser, "/");
     }
 
     return Response.json({ error: "User not found or inactive", step: "otp", authMethod: "email", identifier: email });
@@ -406,7 +406,7 @@ export default function UserLogin() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
-            <img src="/images/logo.png" alt="Adamus Resources" className="h-16 object-contain" />
+            <img src="/images/logo-dark.png" alt="Adamus Resources" className="h-16 object-contain" />
           </div>
 
           {/* Header */}

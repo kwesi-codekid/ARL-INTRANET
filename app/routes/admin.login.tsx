@@ -208,7 +208,7 @@ export default function AdminLogin() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
-            <img src="/images/logo.png" alt="Adamus Resources" className="h-16 object-contain" />
+            <img src="/images/logo-dark.png" alt="Adamus Resources" className="h-16 object-contain" />
           </div>
 
           {/* Header */}

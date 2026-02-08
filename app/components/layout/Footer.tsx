@@ -32,7 +32,7 @@ export function Footer() {
               />
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-primary-500">ARL Intranet</span>
-                <span className="text-xs text-gray-400">Nguvu Mining Limited</span>
+                <span className="text-xs text-gray-400">Adamus Resources Limited</span>
               </div>
             </div>
             <p className="mt-4 text-sm text-gray-400">
@@ -93,7 +93,7 @@ export function Footer() {
         <div className="mt-8 border-t border-gray-700 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-gray-500">
-              © {currentYear} Nguvu Mining Limited. All rights reserved.
+              © {currentYear} Adamus Resources Limited. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               <Link

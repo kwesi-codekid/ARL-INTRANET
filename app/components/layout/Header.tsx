@@ -351,7 +351,7 @@ export function Header({ user }: HeaderProps) {
                   key="logout"
                   color="danger"
                   startContent={<LogOut size={16} />}
-                  href="/logout"
+                  onPress={() => { window.location.href = "/logout"; }}
                 >
                   Log Out
                 </DropdownItem>
