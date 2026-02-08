@@ -12,10 +12,17 @@ import { Form, useActionData, useNavigation, redirect } from "react-router";
 // Loader - redirect if already logged in
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getCurrentUser } = await import("~/lib/services/user-auth.server");
+  const { getUser: getAdminUser } = await import("~/lib/services/session.server");
 
   const user = await getCurrentUser(request);
   if (user) {
     return redirect("/");
+  }
+
+  // Redirect admins who are already logged in
+  const adminUser = await getAdminUser(request);
+  if (adminUser) {
+    return redirect("/admin");
   }
 
   return Response.json({});
@@ -26,8 +33,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const {
     requestUserPhoneOTP,
     requestUserEmailOTP,
-    authenticateByPhoneOTP,
-    authenticateByEmailOTP,
     createUserTokens,
     getClientIP,
     getUserAgent,
@@ -61,6 +66,30 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await requestUserPhoneOTP(phone);
 
     if (!result.success) {
+      // Check if this phone belongs to an admin user
+      const { userExistsByPhone: adminExistsByPhone } = await import(
+        "~/lib/services/auth.server"
+      );
+      const isAdmin = await adminExistsByPhone(phone);
+
+      if (isAdmin) {
+        // Send OTP directly for admin user
+        const { requestOTP } = await import("~/lib/services/otp.server");
+        const otpResult = await requestOTP(phone);
+
+        if (!otpResult.success) {
+          return Response.json({ error: otpResult.message, step: "phone", authMethod: "phone" });
+        }
+
+        return Response.json({
+          success: true,
+          message: otpResult.message,
+          step: "otp",
+          authMethod: "phone",
+          identifier: phone,
+        });
+      }
+
       return Response.json({ error: result.message, step: "phone", authMethod: "phone" });
     }
 
@@ -88,6 +117,32 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await requestUserEmailOTP(email);
 
     if (!result.success) {
+      // Check if this email belongs to an admin user
+      const { AdminUser } = await import("~/lib/db/models/admin-user.server");
+      const { normalizeEmail } = await import("~/lib/services/email.server");
+      const adminUser = await AdminUser.findOne({
+        email: normalizeEmail(email),
+        isActive: true,
+      });
+
+      if (adminUser) {
+        // Send email OTP directly for admin user
+        const { requestEmailOTP } = await import("~/lib/services/email-otp.server");
+        const otpResult = await requestEmailOTP(email);
+
+        if (!otpResult.success) {
+          return Response.json({ error: otpResult.message, step: "email", authMethod: "email" });
+        }
+
+        return Response.json({
+          success: true,
+          message: otpResult.message,
+          step: "otp",
+          authMethod: "email",
+          identifier: email,
+        });
+      }
+
       return Response.json({ error: result.message, step: "email", authMethod: "email" });
     }
 
@@ -113,29 +168,62 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "OTP must be 6 digits", step: "otp", authMethod: "phone", identifier: phone });
     }
 
-    const result = await authenticateByPhoneOTP(phone, otp, clientIP);
-
-    if (!result.success || !result.user) {
-      return Response.json({ error: result.message, step: "otp", authMethod: "phone", identifier: phone });
+    // Verify OTP first (before checking which collection the user belongs to)
+    const { verifyOTP } = await import("~/lib/services/otp.server");
+    const otpResult = await verifyOTP(phone, otp);
+    if (!otpResult.success) {
+      return Response.json({ error: otpResult.message, step: "otp", authMethod: "phone", identifier: phone });
     }
 
-    // Log successful login
-    await logActivity({
-      userId: result.user._id.toString(),
-      action: "login",
-      resource: "user_session",
-      details: { method: "phone_otp" },
-      request,
-    });
+    // Try regular user collection first
+    const { formatGhanaPhone } = await import("~/lib/services/sms.server");
+    const { User } = await import("~/lib/db/models/user.server");
+    const formattedPhone = formatGhanaPhone(phone);
 
-    // Create JWT tokens
-    const { headers } = await createUserTokens(result.user, userAgent, clientIP);
+    const user = await User.findOneAndUpdate(
+      { phone: formattedPhone, isActive: true },
+      {
+        lastLogin: new Date(),
+        lastLoginIP: clientIP,
+        isVerified: true,
+        $inc: { loginCount: 1 },
+      },
+      { new: true }
+    );
 
-    // Redirect to home or requested page
-    const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirectTo") || "/";
+    if (user) {
+      await logActivity({
+        userId: user._id.toString(),
+        action: "login",
+        resource: "user_session",
+        details: { method: "phone_otp" },
+        request,
+      });
 
-    return redirect(redirectTo, { headers });
+      const { headers } = await createUserTokens(user, userAgent, clientIP);
+      const url = new URL(request.url);
+      const redirectTo = url.searchParams.get("redirectTo") || "/";
+      return redirect(redirectTo, { headers });
+    }
+
+    // Try admin user collection
+    const { authenticateByPhone } = await import("~/lib/services/auth.server");
+    const adminUser = await authenticateByPhone(phone);
+
+    if (adminUser) {
+      await logActivity({
+        userId: adminUser._id.toString(),
+        action: "login",
+        resource: "admin_session",
+        details: { method: "phone_otp", loginFrom: "public" },
+        request,
+      });
+
+      const { createUserSession } = await import("~/lib/services/session.server");
+      return createUserSession(adminUser, "/admin");
+    }
+
+    return Response.json({ error: "User not found or inactive", step: "otp", authMethod: "phone", identifier: phone });
   }
 
   // Verify Email OTP
@@ -151,29 +239,66 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "OTP must be 6 digits", step: "otp", authMethod: "email", identifier: email });
     }
 
-    const result = await authenticateByEmailOTP(email, otp, clientIP);
-
-    if (!result.success || !result.user) {
-      return Response.json({ error: result.message, step: "otp", authMethod: "email", identifier: email });
+    // Verify email OTP first (before checking which collection the user belongs to)
+    const { verifyEmailOTP } = await import("~/lib/services/email-otp.server");
+    const otpResult = await verifyEmailOTP(email, otp);
+    if (!otpResult.success) {
+      return Response.json({ error: otpResult.message, step: "otp", authMethod: "email", identifier: email });
     }
 
-    // Log successful login
-    await logActivity({
-      userId: result.user._id.toString(),
-      action: "login",
-      resource: "user_session",
-      details: { method: "email_otp" },
-      request,
-    });
+    // Try regular user collection first
+    const { normalizeEmail } = await import("~/lib/services/email.server");
+    const { User } = await import("~/lib/db/models/user.server");
+    const normalizedEmail = normalizeEmail(email);
 
-    // Create JWT tokens
-    const { headers } = await createUserTokens(result.user, userAgent, clientIP);
+    const user = await User.findOneAndUpdate(
+      { email: normalizedEmail, isActive: true },
+      {
+        lastLogin: new Date(),
+        lastLoginIP: clientIP,
+        emailVerified: true,
+        $inc: { loginCount: 1 },
+      },
+      { new: true }
+    );
 
-    // Redirect to home or requested page
-    const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirectTo") || "/";
+    if (user) {
+      await logActivity({
+        userId: user._id.toString(),
+        action: "login",
+        resource: "user_session",
+        details: { method: "email_otp" },
+        request,
+      });
 
-    return redirect(redirectTo, { headers });
+      const { headers } = await createUserTokens(user, userAgent, clientIP);
+      const url = new URL(request.url);
+      const redirectTo = url.searchParams.get("redirectTo") || "/";
+      return redirect(redirectTo, { headers });
+    }
+
+    // Try admin user collection
+    const { AdminUser } = await import("~/lib/db/models/admin-user.server");
+    const adminUser = await AdminUser.findOneAndUpdate(
+      { email: normalizedEmail, isActive: true },
+      { lastLogin: new Date() },
+      { new: true }
+    );
+
+    if (adminUser) {
+      await logActivity({
+        userId: adminUser._id.toString(),
+        action: "login",
+        resource: "admin_session",
+        details: { method: "email_otp", loginFrom: "public" },
+        request,
+      });
+
+      const { createUserSession } = await import("~/lib/services/session.server");
+      return createUserSession(adminUser, "/admin");
+    }
+
+    return Response.json({ error: "User not found or inactive", step: "otp", authMethod: "email", identifier: email });
   }
 
   return Response.json({ error: "Invalid action", step: "phone", authMethod: "phone" });

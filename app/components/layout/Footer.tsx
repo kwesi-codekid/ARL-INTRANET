@@ -11,16 +11,15 @@ const quickLinks = [
 ];
 
 const emergencyContacts = [
-  { label: "Emergency", value: "Call Control Room", icon: Phone },
-  { label: "HSE", value: "Safety Hotline", icon: Phone },
-  { label: "IT Support", value: "Help Desk", icon: Mail },
+  { label: "Emergency", value: "1111 / 0501316835", icon: Phone, tel: "1111" },
+  { label: "IT Support", value: "1000 / 0544337551", icon: Phone, tel: "1000" },
 ];
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#1a1a1a] text-white">
+    <footer className="bg-[#1a1a1a] text-white pb-16 lg:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand & Description */}
@@ -74,7 +73,9 @@ export function Footer() {
                     <span className="text-sm font-medium text-gray-300">
                       {contact.label}:
                     </span>{" "}
-                    <span className="text-sm text-gray-400">{contact.value}</span>
+                    <a href={`tel:${contact.tel}`} className="text-sm text-gray-400 hover:text-primary-500 transition-colors">
+                      {contact.value}
+                    </a>
                   </div>
                 </li>
               ))}

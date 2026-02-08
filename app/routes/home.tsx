@@ -381,16 +381,10 @@ function ExecutiveMessagesCard({
   currentSlide: number;
   setCurrentSlide: (value: number | ((prev: number) => number)) => void;
 }) {
-  // Use database messages if available, otherwise show default CEO message
-  const messagesToShow = messages.length > 0
-    ? messages
-    : [{
-        id: "default-ceo",
-        name: "Angela List",
-        title: "CEO, Nguvu Mining Limited",
-        photo: "/images/ceo.jpg",
-        message: "Together, we are building a safer, stronger, and more connected workplace. This platform is your hub for staying informed, engaged, and part of our mining family. Safety first, always.",
-      }];
+  // Only show messages from the database
+  const messagesToShow = messages;
+
+  if (messagesToShow.length === 0) return null;
 
   // Auto-rotate executive messages
   useEffect(() => {

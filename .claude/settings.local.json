@@ -61,7 +61,8 @@
       "Bash(node:*)",
       "Bash(npm ls:*)",
       "Bash(npx react-router dev --host)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

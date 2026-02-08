@@ -130,14 +130,14 @@ export default function AdminSafetyCategoriesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Safety Categories</h1>
           <p className="text-gray-500">Manage categories for safety tips and videos</p>
         </div>
-        <Button color="success" startContent={<Plus size={18} />} onPress={handleAdd}>
+        <Button color="success" startContent={<Plus size={18} />} onPress={handleAdd} className="w-full sm:w-auto">
           Add Category
         </Button>
       </div>
