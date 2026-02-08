@@ -1,19 +1,10 @@
 /**
  * Public Policy Detail Page
- * View a single policy with content preview and PDF download
+ * View a single policy with content and PDF viewer
  */
 
 import { useState } from "react";
-import {
-  Card,
-  CardBody,
-  Chip,
-  Button,
-  Divider,
-  Spinner,
-  Tab,
-  Tabs,
-} from "@heroui/react";
+import { Card, CardBody, Chip, Button, Spinner } from "@heroui/react";
 import {
   ArrowLeft,
   FileText,
@@ -22,7 +13,6 @@ import {
   Eye,
   Clock,
   User,
-  BookOpen,
   ExternalLink,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
@@ -61,12 +51,6 @@ export default function PolicyDetailPage() {
   const { portalUser } = useOutletContext<PublicOutletContext>();
   const [isPdfLoading, setIsPdfLoading] = useState(true);
 
-  const hasPdf = !!policy.pdfUrl;
-  const googleDocsViewerUrl = hasPdf
-    ? `https://docs.google.com/gview?url=${encodeURIComponent(policy.pdfUrl)}&embedded=true`
-    : "";
-  const hasContent = !!policy.content;
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -75,6 +59,10 @@ export default function PolicyDetailPage() {
       year: "numeric",
     });
   };
+
+  const googleDocsViewerUrl = policy.pdfUrl
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(policy.pdfUrl)}&embedded=true`
+    : "";
 
   return (
     <MainLayout user={portalUser}>
@@ -152,119 +140,79 @@ export default function PolicyDetailPage() {
           </CardBody>
         </Card>
 
-        {/* Tabs: Preview / Download */}
-        {(hasPdf || hasContent) && (
+        {/* PDF Viewer - same as toolbox talk */}
+        {policy.pdfUrl && (
+          <div className="mb-6">
+            {/* PDF Toolbar */}
+            <div className="flex flex-col gap-2 rounded-t-lg bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="text-red-400" size={20} />
+                <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
+                  {policy.pdfFileName || "Policy Document.pdf"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  as="a"
+                  href={googleDocsViewerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                  variant="flat"
+                  className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
+                  startContent={<ExternalLink size={14} />}
+                >
+                  Open
+                </Button>
+                <Button
+                  as="a"
+                  href={policy.pdfUrl}
+                  download={policy.pdfFileName || "document.pdf"}
+                  size="sm"
+                  color="primary"
+                  className="flex-1 sm:flex-none"
+                  startContent={<Download size={14} />}
+                >
+                  Download
+                </Button>
+              </div>
+            </div>
+
+            {/* PDF Embed - Google Docs Viewer */}
+            <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
+              {isPdfLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                  <div className="text-center">
+                    <Spinner size="lg" color="warning" className="mb-3" />
+                    <p className="text-sm text-gray-600">Loading PDF document...</p>
+                  </div>
+                </div>
+              )}
+              <iframe
+                src={googleDocsViewerUrl}
+                title={`PDF: ${policy.title}`}
+                className="w-full border-0"
+                style={{ height: "75vh", minHeight: "500px" }}
+                onLoad={() => setIsPdfLoading(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Policy Content */}
+        {policy.content && (
           <Card className="shadow-lg">
-            <CardBody className="p-0">
-              <Tabs
-                aria-label="Policy view options"
-                color="primary"
-                variant="underlined"
-                classNames={{
-                  tabList: "px-6 pt-4 gap-6",
-                  tab: "h-10",
-                  panel: "p-0",
-                }}
-                defaultSelectedKey={hasPdf ? "preview" : "content"}
-              >
-                {/* PDF Preview Tab */}
-                {hasPdf && (
-                  <Tab
-                    key="preview"
-                    title={
-                      <div className="flex items-center gap-2">
-                        <BookOpen size={16} />
-                        <span>Preview</span>
-                      </div>
-                    }
-                  >
-                    <div className="p-0">
-                      {/* PDF Toolbar */}
-                      <div className="flex flex-col gap-2 bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="text-red-400" size={20} />
-                          <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
-                            {policy.pdfFileName || "Policy Document.pdf"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            as="a"
-                            href={googleDocsViewerUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="sm"
-                            variant="flat"
-                            className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
-                            startContent={<ExternalLink size={14} />}
-                          >
-                            Open
-                          </Button>
-                          <Button
-                            as="a"
-                            href={policy.pdfUrl}
-                            download={policy.pdfFileName || "document.pdf"}
-                            size="sm"
-                            color="primary"
-                            className="flex-1 sm:flex-none"
-                            startContent={<Download size={14} />}
-                          >
-                            Download
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* PDF Embed - Google Docs Viewer */}
-                      <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
-                        {isPdfLoading && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
-                            <div className="text-center">
-                              <Spinner size="lg" color="primary" className="mb-3" />
-                              <p className="text-sm text-gray-600">Loading PDF document...</p>
-                            </div>
-                          </div>
-                        )}
-                        <iframe
-                          src={googleDocsViewerUrl}
-                          title={`PDF: ${policy.title}`}
-                          className="w-full border-0"
-                          style={{ height: "75vh", minHeight: "500px" }}
-                          onLoad={() => setIsPdfLoading(false)}
-                        />
-                      </div>
-                    </div>
-                  </Tab>
-                )}
-
-                {/* HTML Content Tab */}
-                {hasContent && (
-                  <Tab
-                    key="content"
-                    title={
-                      <div className="flex items-center gap-2">
-                        <FileText size={16} />
-                        <span>Read Content</span>
-                      </div>
-                    }
-                  >
-                    <div className="p-6 sm:p-8">
-                      <div
-                        className="prose prose-lg max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{
-                          __html: policy.content,
-                        }}
-                      />
-                    </div>
-                  </Tab>
-                )}
-
-              </Tabs>
+            <CardBody className="p-6 sm:p-8">
+              <div
+                className="prose prose-lg max-w-none text-gray-700"
+                dangerouslySetInnerHTML={{ __html: policy.content }}
+              />
             </CardBody>
           </Card>
         )}
 
         {/* No Content Message */}
-        {!hasContent && !hasPdf && (
+        {!policy.content && !policy.pdfUrl && (
           <Card className="py-12">
             <CardBody className="text-center">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
