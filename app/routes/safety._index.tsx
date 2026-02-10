@@ -88,8 +88,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const emergencyContacts = [
-  { name: "Emergency", number: "1111", alt: "0501316835" },
-  { name: "Emergency", number: "0544341880" },
+  { name: "Emergency - Clinic", number: "1111", alt: "0501316835" },
+  { name: "Emergency - Response", number: "0544341880" },
   { name: "IT Support", number: "1000", alt: "0544337551" },
 ];
 

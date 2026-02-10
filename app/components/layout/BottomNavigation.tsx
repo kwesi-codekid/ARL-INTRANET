@@ -1,11 +1,11 @@
-import { Home, Shield, Users, UtensilsCrossed, AppWindow } from "lucide-react";
+import { Home, Shield, Users, Images, AppWindow } from "lucide-react";
 import { NavLink } from "react-router";
 
 const navItems = [
   { label: "Home", to: "/", icon: Home },
   { label: "Safety", to: "/safety", icon: Shield },
   { label: "Directory", to: "/directory", icon: Users },
-  { label: "Menu", to: "/canteen", icon: UtensilsCrossed },
+  { label: "Gallery", to: "/gallery", icon: Images },
   { label: "Apps", to: "/apps", icon: AppWindow },
 ];
 

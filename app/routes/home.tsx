@@ -1,4 +1,3 @@
-import type { SerializedEvent } from "~/lib/services/event.server";
 import type { SerializedSafetyVideo, SerializedSafetyTip } from "~/lib/services/safety.server";
 
 import { useState, useEffect, useRef } from "react";
@@ -35,13 +34,15 @@ import {
   HelpCircle,
   Pin,
   Car,
+  Calendar,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import { AlertToast } from "~/components/alerts";
-import { EventCalendar } from "~/components/dashboard";
 import { getResponsiveUrl, generateSrcSet, generateSizes, getOptimizedVideoUrl, isCloudinaryUrl } from "~/components/ui";
 
 
@@ -56,18 +57,18 @@ import type { CompanyImages } from "~/components/dashboard";
 
 // Loader for homepage data
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getUpcomingEvents, serializeEvent } = await import("~/lib/services/event.server");
   const { getSafetyVideos, getSafetyTips, serializeSafetyVideo, serializeSafetyTip } = await import("~/lib/services/safety.server");
   const { getActiveITTips } = await import("~/lib/services/it-tip.server");
   const { getActiveExecutiveMessages } = await import("~/lib/services/executive-message.server");
   const { getCompanyImages } = await import("~/lib/services/company-info.server");
+  const { getUpcomingEvents, serializeEvent } = await import("~/lib/services/event.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { News } = await import("~/lib/db/models/news.server");
   const { Alert } = await import("~/lib/db/models/alert.server");
 
   await connectDB();
 
-  const [recentNews, featuredNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([
+  const [recentNews, featuredNews, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages, upcomingEvents] = await Promise.all([
     News.find({ status: "published" })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(5)
@@ -81,7 +82,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .populate("category")
       .populate("author", "name")
       .lean(),
-    getUpcomingEvents(20), // Get more events for calendar view
     Alert.find({ isActive: true })
       .sort({ severity: -1, createdAt: -1 })
       .limit(3)
@@ -96,6 +96,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getActiveExecutiveMessages(),
     // Fetch company images for slideshow
     getCompanyImages(),
+    // Fetch upcoming events for highlights
+    getUpcomingEvents(2),
   ]);
 
   // Serialize news helper
@@ -124,7 +126,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return Response.json({
     recentNews: allNews.map(serializeNews),
-    upcomingEvents: upcomingEvents.map(serializeEvent),
     activeAlerts: activeAlerts.map((alert) => ({
       id: alert._id.toString(),
       title: alert.title,
@@ -150,6 +151,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       message: msg.message,
     })),
     companyImages,
+    upcomingEvents: upcomingEvents.map(serializeEvent),
   });
 }
 
@@ -166,7 +168,6 @@ interface LoaderData {
     isPinned: boolean;
     isFeatured: boolean;
   }>;
-  upcomingEvents: SerializedEvent[];
   activeAlerts: Array<{
     id: string;
     title: string;
@@ -192,6 +193,19 @@ interface LoaderData {
     message: string;
   }>;
   companyImages: CompanyImages;
+  upcomingEvents: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    date: string;
+    endDate?: string;
+    time?: string;
+    location: string;
+    category?: string;
+    isFeatured: boolean;
+    featuredImage?: string;
+  }>;
 }
 
 // Type for carousel items (news, safety videos, safety tips, PDFs, company values)
@@ -266,9 +280,9 @@ function ITTipsSlideshow({
 
   if (tips.length === 0) {
     return (
-      <Card className="shadow-sm h-full bg-gradient-to-br from-blue-50 to-indigo-50">
-        <CardBody className="flex flex-col items-center justify-center py-12">
-          <Lightbulb size={48} className="text-gray-300 mb-3" />
+      <Card className="shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardBody className="flex flex-col items-center justify-center py-8">
+          <Lightbulb size={36} className="text-gray-300 mb-2" />
           <p className="text-gray-500 font-medium">No IT Tips Available</p>
           <p className="text-sm text-gray-400">Check back later for helpful tips</p>
         </CardBody>
@@ -283,10 +297,10 @@ function ITTipsSlideshow({
   const colors = categoryColors[tip.category] || categoryColors.general;
 
   return (
-    <Card className="shadow-sm h-full overflow-hidden">
-      <div className="h-full flex flex-col">
+    <Card className="shadow-sm overflow-hidden">
+      <div className="flex flex-col">
         {/* Header with gradient based on category */}
-        <div className={`bg-gradient-to-r ${colors.gradient} p-4 text-white`}>
+        <div className={`bg-gradient-to-r ${colors.gradient} p-5 text-white`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
@@ -298,22 +312,20 @@ function ITTipsSlideshow({
               </div>
             </div>
             {tip.isPinned && (
-              <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-xs">
-                <Pin size={12} />
+              <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                <Pin size={10} />
                 <span>Pinned</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Main Content - Big, Bold and Eye-Catching */}
-        <CardBody className={`flex-1 flex flex-col justify-center p-6 bg-gradient-to-br ${colors.bg} to-white`}>
-          {/* Title with colored accent */}
-          <div className="mb-4">
-            <h4 className={`text-2xl font-extrabold ${colors.text} mb-1`}>{tip.title}</h4>
+        {/* Main Content */}
+        <CardBody className={`p-5 bg-gradient-to-br ${colors.bg} to-white`}>
+          <div className="mb-3">
+            <h4 className={`text-xl font-extrabold ${colors.text} mb-1`}>{tip.title}</h4>
             <div className={`h-1 w-16 rounded-full bg-gradient-to-r ${colors.gradient}`} />
           </div>
-          {/* Tip content - Bold and prominent */}
           <div className={`p-4 rounded-xl bg-white shadow-sm border-l-4 ${colors.text.replace('text-', 'border-')}`}>
             <p className="text-lg font-semibold text-gray-800 leading-relaxed">
               {tip.content}
@@ -323,7 +335,7 @@ function ITTipsSlideshow({
 
         {/* Navigation Footer */}
         {tips.length > 1 && (
-          <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
+          <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between">
             {/* Dot Indicators */}
             <div className="flex gap-1.5">
               {tips.map((_, idx) => (
@@ -472,7 +484,7 @@ function ExecutiveMessagesCard({
 }
 
 export default function Home() {
-  const { recentNews, upcomingEvents, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages } = useLoaderData<LoaderData>();
+  const { recentNews, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages, upcomingEvents } = useLoaderData<LoaderData>();
   const { portalUser } = useOutletContext<PublicOutletContext>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -898,27 +910,95 @@ export default function Home() {
         setCurrentSlide={setExecSlide}
       />
 
-      {/* Calendar and IT Tips Row */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        {/* Events Calendar */}
-        <div className="lg:col-span-2">
-          <EventCalendar
-            landscape
-            initialEvents={upcomingEvents.map((event) => ({
-              id: event.id,
-              title: event.title,
-              slug: event.slug,
-              date: event.date,
-              time: event.time,
-              location: event.location,
-              category: event.category,
-              description: event.description,
-              isFeatured: event.isFeatured,
-            }))}
-          />
+      {/* Upcoming Events & IT Tips - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100">
+                  <Calendar size={18} className="text-primary-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Upcoming Events</h2>
+              </div>
+              <Button
+                as={Link}
+                to="/events"
+                size="sm"
+                variant="light"
+                color="primary"
+                endContent={<ArrowRight size={14} />}
+              >
+                All Events
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {upcomingEvents.map((event) => {
+                const eventDate = new Date(event.date);
+                const monthShort = eventDate.toLocaleDateString("en-US", { month: "short" });
+                const dayNum = eventDate.getDate();
+
+                return (
+                  <Link key={event.id} to={`/events/${event.slug}`}>
+                    <Card className="shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                      <CardBody className="p-0">
+                        <div className="flex">
+                          {/* Featured Image or Date Fallback */}
+                          {event.featuredImage ? (
+                            <div className="relative h-auto w-40 flex-shrink-0 overflow-hidden">
+                              <img
+                                src={event.featuredImage}
+                                alt={event.title}
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {/* Date Badge Overlay */}
+                              <div className="absolute top-2 left-2 flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 bg-primary-600/90">
+                                <span className="text-xs font-medium text-white">{monthShort}</span>
+                                <span className="text-xl leading-tight font-bold text-white">{dayNum}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-shrink-0 w-40 bg-gradient-to-b from-primary-500 to-primary-700 flex flex-col items-center justify-center py-6 text-white">
+                              <span className="text-sm font-medium uppercase tracking-wider opacity-90">{monthShort}</span>
+                              <span className="text-4xl font-bold leading-none">{dayNum}</span>
+                            </div>
+                          )}
+
+                          {/* Event Details */}
+                          <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
+                            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                              {event.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">{event.description}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                              {event.time && (
+                                <span className="flex items-center gap-1.5">
+                                  <Clock size={14} />
+                                  {event.time}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1.5 truncate">
+                                <MapPin size={14} className="flex-shrink-0" />
+                                <span className="truncate">{event.location}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* IT Tips */}
+        <div>
+          <ITTipsSlideshow tips={itTips} />
         </div>
-        {/* IT Tips Card - Slideshow Style (ONE tip at a time) */}
-        <ITTipsSlideshow tips={itTips} />
       </div>
 
       {/* News Posts Grid */}

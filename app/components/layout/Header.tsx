@@ -51,6 +51,7 @@ const navItems = [
   { label: "Safety", href: "/safety" },
   { label: "Directory", href: "/directory" },
   { label: "Events", href: "/events" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Apps", href: "/apps" },
   { label: "Suggestions", href: "/suggestions" },
 ];
