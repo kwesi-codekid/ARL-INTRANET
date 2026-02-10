@@ -140,7 +140,7 @@ export default function PolicyDetailPage() {
           </CardBody>
         </Card>
 
-        {/* PDF Viewer - same as toolbox talk */}
+        {/* PDF Viewer - same as PSI talk */}
         {policy.pdfUrl && (
           <div className="mb-6">
             {/* PDF Toolbar */}

@@ -133,7 +133,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     { name: "News", value: newsCount, color: "#3b82f6" },
     { name: "Events", value: eventsCount, color: "#10b981" },
     { name: "Albums", value: albumsCount, color: "#8b5cf6" },
-    { name: "Toolbox Talks", value: toolboxTalksCount, color: "#f59e0b" },
+    { name: "PSI Talks", value: toolboxTalksCount, color: "#f59e0b" },
     { name: "Safety Videos", value: safetyVideosCount, color: "#ef4444" },
     { name: "Safety Tips", value: safetyTipsCount, color: "#06b6d4" },
     { name: "App Links", value: appsCount, color: "#ec4899" },
@@ -143,7 +143,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const contentStatus = [
     { name: "News", published: newsCount, draft: draftNewsCount },
     { name: "Events", published: eventsCount, draft: draftEventsCount },
-    { name: "Toolbox Talks", published: toolboxTalksCount, draft: draftToolboxTalksCount },
+    { name: "PSI Talks", published: toolboxTalksCount, draft: draftToolboxTalksCount },
   ];
 
   return {
@@ -337,7 +337,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <HardHat size={16} className="text-blue-500" />
-                  <span className="text-sm text-gray-700">Toolbox Talks</span>
+                  <span className="text-sm text-gray-700">PSI Talks</span>
                 </div>
                 <Chip size="sm" variant="flat" color="primary">
                   {stats.toolboxTalks}

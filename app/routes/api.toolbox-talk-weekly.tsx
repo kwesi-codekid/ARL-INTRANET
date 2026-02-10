@@ -1,6 +1,6 @@
 /**
- * Weekly Toolbox Talk API
- * Returns the current week's toolbox talk for sidebar widget
+ * Weekly PSI Talk API
+ * Returns the current week's PSI talk for sidebar widget
  */
 
 import type { LoaderFunctionArgs } from "react-router";

@@ -1,8 +1,8 @@
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
 
 /**
- * Public Toolbox Talk Listing Page
- * Task: 1.2.1.3.1-7 (Public Toolbox Talk UI)
+ * Public PSI Talk Listing Page
+ * Task: 1.2.1.3.1-7 (Public PSI Talk UI)
  */
 
 import {
@@ -190,7 +190,7 @@ export default function ToolboxTalkPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Weekly Toolbox Talk</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Weekly PSI Talk</h1>
             <p className="text-sm text-gray-500">
               Weekly safety awareness and best practices
             </p>
@@ -211,7 +211,7 @@ export default function ToolboxTalkPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="text-amber-600" size={24} />
                 <div>
-                  <p className="text-lg font-bold text-amber-800">This Week's Toolbox Talk</p>
+                  <p className="text-lg font-bold text-amber-800">This Week's PSI Talk</p>
                   <p className="text-sm text-amber-600">{formatFullWeek(todaysTalk)}</p>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export default function ToolboxTalkPage() {
               <Card className="shadow-sm">
                 <CardBody className="py-12 text-center">
                   <Calendar className="mx-auto mb-4 text-gray-300" size={48} />
-                  <p className="text-gray-500">No toolbox talks found</p>
+                  <p className="text-gray-500">No PSI talks found</p>
                   {(searchQuery || currentYear) && (
                     <Button
                       className="mt-4"

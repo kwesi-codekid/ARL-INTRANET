@@ -1,6 +1,6 @@
 /**
- * Weekly Toolbox Talk Widget
- * Task: 1.2.1.3.6 - Add homepage "This Week's Toolbox Talk" widget
+ * Weekly PSI Talk Widget
+ * Task: 1.2.1.3.6 - Add homepage "This Week's PSI Talk" widget
  */
 
 import { Card, CardBody, CardHeader, Button, Chip, Image } from "@heroui/react";
@@ -31,14 +31,14 @@ export function TodayToolboxTalkWidget({ talk, weekRange }: TodayToolboxTalkWidg
             <Shield size={20} className="text-green-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">This Week's Toolbox Talk</h3>
+            <h3 className="font-semibold text-gray-900">This Week's PSI Talk</h3>
             <p className="text-xs text-gray-500">{formatWeekRange()}</p>
           </div>
         </CardHeader>
         <CardBody className="pt-0">
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <Calendar size={32} className="mx-auto mb-2 text-gray-300" />
-            <p className="text-sm text-gray-500">No toolbox talk scheduled for this week</p>
+            <p className="text-sm text-gray-500">No PSI talk scheduled for this week</p>
             <Button
               as={Link}
               to="/toolbox-talk"
@@ -67,7 +67,7 @@ export function TodayToolboxTalkWidget({ talk, weekRange }: TodayToolboxTalkWidg
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">This Week's Toolbox Talk</h3>
+            <h3 className="font-semibold text-gray-900">This Week's PSI Talk</h3>
             <Chip size="sm" color="success" variant="flat">
               Active
             </Chip>
@@ -140,7 +140,7 @@ export function TodayToolboxTalkWidget({ talk, weekRange }: TodayToolboxTalkWidg
           fullWidth
           endContent={<ArrowRight size={16} />}
         >
-          Read This Week's Talk
+          Read This Week's PSI Talk
         </Button>
       </CardBody>
     </Card>

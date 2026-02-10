@@ -311,7 +311,7 @@ export function Header({ user }: HeaderProps) {
               onClick={() => setIsMenuOpen(false)}
             >
               <Shield size={18} className="text-green-400" />
-              <span>Weekly Toolbox Talk</span>
+              <span>Weekly PSI Talk</span>
             </Link>
           </NavbarMenuItem>
           <NavbarMenuItem>

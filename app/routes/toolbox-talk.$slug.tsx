@@ -1,7 +1,7 @@
 import type { SerializedToolboxTalk, AdjacentTalks } from "~/lib/services/toolbox-talk.server";
 
 /**
- * Single Toolbox Talk Detail Page
+ * Single PSI Talk Detail Page
  * Task: 1.2.1.3.3-4 (Video/Audio Player Integration)
  */
 
@@ -227,7 +227,7 @@ export default function ToolboxTalkDetailPage() {
           className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft size={16} />
-          Back to Toolbox Talks
+          Back to PSI Talks
         </Link>
 
         {/* Main Content Card */}
@@ -335,7 +335,7 @@ export default function ToolboxTalkDetailPage() {
         {relatedTalks.length > 0 && (
           <div className="mt-8">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Recent Toolbox Talks
+              Recent PSI Talks
             </h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {relatedTalks.map((related) => (

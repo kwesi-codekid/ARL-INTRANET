@@ -28,7 +28,7 @@ export const newsSeeds: Partial<INews>[] = [
       <h3>What you can do here:</h3>
       <ul>
         <li>Stay updated with the latest company news and announcements</li>
-        <li>Access safety information and toolbox talks</li>
+        <li>Access safety information and PSI talks</li>
         <li>Find contact information for colleagues across all departments</li>
         <li>View and share photos from company events</li>
         <li>Access frequently used business applications</li>

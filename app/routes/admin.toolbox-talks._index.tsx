@@ -1,7 +1,7 @@
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
 
 /**
- * Admin Toolbox Talks Listing Page
+ * Admin PSI Talks Listing Page
  * Task: 1.2.1.4.1, 1.2.1.4.6 (Calendar view)
  */
 
@@ -134,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "delete") {
     const deleted = await deleteToolboxTalk(talkId);
     if (deleted) {
-      return Response.json({ success: true, message: "Toolbox talk deleted" });
+      return Response.json({ success: true, message: "PSI talk deleted" });
     }
     return Response.json({ error: "Failed to delete" }, { status: 400 });
   }
@@ -236,8 +236,8 @@ export default function AdminToolboxTalksPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Toolbox Talks</h1>
-          <p className="text-sm text-gray-500">Manage weekly safety toolbox talks</p>
+          <h1 className="text-2xl font-bold text-gray-900">PSI Talks</h1>
+          <p className="text-sm text-gray-500">Manage weekly safety PSI talks</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Task: 1.2.1.4.6 - View mode toggle */}
@@ -334,7 +334,7 @@ export default function AdminToolboxTalksPage() {
               />
             </CardHeader>
             <CardBody className="overflow-x-auto p-0">
-              <Table aria-label="Toolbox talks table" removeWrapper className="min-w-[700px]">
+              <Table aria-label="PSI talks table" removeWrapper className="min-w-[700px]">
                 <TableHeader>
                   <TableColumn>TALK</TableColumn>
                   <TableColumn>SCHEDULED WEEK</TableColumn>
@@ -342,7 +342,7 @@ export default function AdminToolboxTalksPage() {
                   <TableColumn>VIEWS</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
-                <TableBody emptyContent="No toolbox talks found">
+                <TableBody emptyContent="No PSI talks found">
                   {talks.map((talk) => (
                     <TableRow key={talk.id}>
                       <TableCell>

@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 // Desktop viewport
-test.describe('Toolbox Talk - Desktop', () => {
+test.describe('PSI Talk - Desktop', () => {
   test.use({ viewport: { width: 1280, height: 720 } });
 
   test('public listing page loads correctly', async ({ page }) => {
     await page.goto('/toolbox-talk');
     
-    // Check header - Weekly Toolbox Talk
-    await expect(page.locator('h1')).toContainText('Weekly Toolbox Talk');
+    // Check header - Weekly PSI Talk
+    await expect(page.locator('h1')).toContainText('Weekly PSI Talk');
     
     // Check archive sidebar is visible on desktop
     await expect(page.locator('text=Archive')).toBeVisible();
@@ -29,20 +29,20 @@ test.describe('Toolbox Talk - Desktop', () => {
     }
     
     // Check page elements
-    await expect(page.locator('h1')).toContainText('Create Toolbox Talk');
+    await expect(page.locator('h1')).toContainText('Create PSI Talk');
     await page.screenshot({ path: 'playwright-report/toolbox-talk-admin-desktop.png', fullPage: true });
   });
 });
 
 // Mobile viewport
-test.describe('Toolbox Talk - Mobile', () => {
+test.describe('PSI Talk - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } }); // iPhone SE size
 
   test('public listing page is responsive', async ({ page }) => {
     await page.goto('/toolbox-talk');
     
-    // Check header - Weekly Toolbox Talk
-    await expect(page.locator('h1')).toContainText('Weekly Toolbox Talk');
+    // Check header - Weekly PSI Talk
+    await expect(page.locator('h1')).toContainText('Weekly PSI Talk');
     
     // Take screenshot
     await page.screenshot({ path: 'playwright-report/toolbox-talk-mobile.png', fullPage: true });
@@ -58,19 +58,19 @@ test.describe('Toolbox Talk - Mobile', () => {
       return;
     }
     
-    await expect(page.locator('h1')).toContainText('Create Toolbox Talk');
+    await expect(page.locator('h1')).toContainText('Create PSI Talk');
     await page.screenshot({ path: 'playwright-report/toolbox-talk-admin-mobile.png', fullPage: true });
   });
 });
 
 // Tablet viewport  
-test.describe('Toolbox Talk - Tablet', () => {
+test.describe('PSI Talk - Tablet', () => {
   test.use({ viewport: { width: 768, height: 1024 } }); // iPad size
 
   test('public listing page works on tablet', async ({ page }) => {
     await page.goto('/toolbox-talk');
     
-    await expect(page.locator('h1')).toContainText('Weekly Toolbox Talk');
+    await expect(page.locator('h1')).toContainText('Weekly PSI Talk');
     
     await page.screenshot({ path: 'playwright-report/toolbox-talk-tablet.png', fullPage: true });
     console.log('Tablet screenshot saved');

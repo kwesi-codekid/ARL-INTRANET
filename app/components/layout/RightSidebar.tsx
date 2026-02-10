@@ -210,7 +210,7 @@ export function RightSidebar() {
         </CardBody>
       </Card>
 
-      {/* Weekly Toolbox Talk */}
+      {/* Weekly PSI Talk */}
       <Card className="mb-4 shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export function RightSidebar() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">This Week's Talk</h3>
+                <h3 className="text-sm font-semibold text-gray-900">This Week's PSI Talk</h3>
                 {weeklyTalk && (
                   <Chip size="sm" color="success" variant="flat" className="text-xs">
                     Active

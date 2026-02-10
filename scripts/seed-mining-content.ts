@@ -357,7 +357,7 @@ const newsArticlesData = [
 
 <h3>How We Got Here</h3>
 <ul>
-<li>Daily safety briefings and toolbox talks</li>
+<li>Daily safety briefings and PSI talks</li>
 <li>Comprehensive hazard identification programs</li>
 <li>Investment in state-of-the-art safety equipment</li>
 <li>Regular safety training and certification programs</li>
@@ -601,7 +601,7 @@ const albumsData = [
   },
 ];
 
-// Toolbox Talks
+// PSI Talks
 const toolboxTalksData = [
   {
     title: "Working Safely in Hot Weather",
@@ -840,8 +840,8 @@ async function seedDatabase() {
       }
     }
 
-    // 9. Seed Toolbox Talks
-    console.log("\n🗣️ Seeding Toolbox Talks...");
+    // 9. Seed PSI Talks
+    console.log("\n🗣️ Seeding PSI Talks...");
     for (const talk of toolboxTalksData) {
       const existing = await ToolboxTalk.findOne({ slug: talk.slug });
       if (!existing) {
@@ -849,14 +849,14 @@ async function seedDatabase() {
           ...talk,
           author: authorId,
         });
-        console.log(`  ✓ Created toolbox talk: ${talk.title}`);
+        console.log(`  ✓ Created PSI talk: ${talk.title}`);
       } else {
         // Update the scheduled date to ensure it's current
         await ToolboxTalk.updateOne(
           { slug: talk.slug },
           { scheduledDate: talk.scheduledDate }
         );
-        console.log(`  - Toolbox talk exists (updated date): ${talk.title}`);
+        console.log(`  - PSI talk exists (updated date): ${talk.title}`);
       }
     }
 
@@ -870,7 +870,7 @@ async function seedDatabase() {
     console.log(`   - Events: ${eventsData.length}`);
     console.log(`   - Alerts: ${alertsData.length}`);
     console.log(`   - Photo Albums: ${albumsData.length}`);
-    console.log(`   - Toolbox Talks: ${toolboxTalksData.length}`);
+    console.log(`   - PSI Talks: ${toolboxTalksData.length}`);
 
   } catch (error) {
     console.error("Error seeding database:", error);

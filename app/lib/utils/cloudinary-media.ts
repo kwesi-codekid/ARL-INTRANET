@@ -27,7 +27,7 @@ export const MEDIA_PRESETS = {
     tablet: { width: 1024, height: 438 }, // ~21:9
     desktop: { width: 1536, height: 658 }, // ~21:9
   },
-  // Thumbnail cards (news, toolbox talks, etc.)
+  // Thumbnail cards (news, PSI talks, etc.)
   thumbnail: {
     mobile: { width: 320, height: 180 },
     tablet: { width: 400, height: 225 },

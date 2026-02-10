@@ -1,5 +1,5 @@
 /**
- * Admin Toolbox Talk Creation Page
+ * Admin PSI Talk Creation Page
  * Task: 1.2.1.4.2-4, 1.2.1.2.4 (Video thumbnail auto-generation)
  */
 
@@ -77,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     : undefined;
 
-  // Create toolbox talk using service
+  // Create PSI talk using service
   const talk = await createToolboxTalk({
     title,
     slug,
@@ -167,7 +167,7 @@ export default function AdminToolboxTalkNewPage() {
           <ArrowLeft size={20} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Toolbox Talk</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Create PSI Talk</h1>
           <p className="text-sm text-gray-500">Upload the weekly safety talk PDF</p>
         </div>
       </div>

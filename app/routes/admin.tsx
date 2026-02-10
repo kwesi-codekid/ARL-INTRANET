@@ -80,7 +80,7 @@ const sidebarItems = [
 
 const safetyItems = [
   { label: "Alerts", href: "/admin/alerts", icon: AlertTriangle },
-  { label: "Toolbox Talks", href: "/admin/toolbox-talks", icon: HardHat },
+  { label: "PSI Talks", href: "/admin/toolbox-talks", icon: HardHat },
   { label: "Safety Tips", href: "/admin/safety-tips", icon: Lightbulb },
   { label: "Safety Videos", href: "/admin/safety-videos", icon: Video },
   { label: "Safety Categories", href: "/admin/safety-categories", icon: Shield },

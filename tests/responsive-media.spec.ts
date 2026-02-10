@@ -19,7 +19,7 @@ test.describe("Responsive Media Tests", () => {
     console.log("Mobile home screenshot saved");
   });
 
-  test("capture toolbox talk detail on desktop and mobile", async ({ page }) => {
+  test("capture PSI talk detail on desktop and mobile", async ({ page }) => {
     // Desktop
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/toolbox-talk");
@@ -31,7 +31,7 @@ test.describe("Responsive Media Tests", () => {
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(3000);
       await page.screenshot({ path: "test-results/toolbox-desktop.png", fullPage: true });
-      console.log("Desktop toolbox talk screenshot saved");
+      console.log("Desktop PSI talk screenshot saved");
     }
 
     // Mobile
@@ -45,7 +45,7 @@ test.describe("Responsive Media Tests", () => {
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(3000);
       await page.screenshot({ path: "test-results/toolbox-mobile.png", fullPage: true });
-      console.log("Mobile toolbox talk screenshot saved");
+      console.log("Mobile PSI talk screenshot saved");
     }
   });
 });

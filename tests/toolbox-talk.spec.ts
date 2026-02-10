@@ -1,15 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Toolbox Talk Features", () => {
+test.describe("PSI Talk Features", () => {
   test.describe("Homepage Widget (Task 1.2.1.3.6)", () => {
-    test("should display This Week's Toolbox Talk widget on homepage", async ({ page }) => {
+    test("should display This Week's PSI Talk widget on homepage", async ({ page }) => {
       await page.goto("/");
 
       // Set viewport to ensure sidebar is visible (lg breakpoint)
       await page.setViewportSize({ width: 1280, height: 720 });
 
-      // Check that the widget section exists (title changed to "This Week's Talk")
-      const widget = page.locator("text=This Week's Talk");
+      const widget = page.locator("text=This Week's PSI Talk");
       await expect(widget).toBeVisible();
 
       // Check for either a scheduled talk or "No talk scheduled this week" message
@@ -33,7 +32,7 @@ test.describe("Toolbox Talk Features", () => {
       await page.goto("/");
 
       // If no talk is scheduled for this week, should show archive button
-      const noTalk = await page.locator("text=No toolbox talk scheduled for this week").isVisible();
+      const noTalk = await page.locator("text=No PSI talk scheduled for this week").isVisible();
       if (noTalk) {
         const archiveButton = page.locator("text=View Archive");
         await expect(archiveButton).toBeVisible();
@@ -64,8 +63,8 @@ test.describe("Toolbox Talk Features", () => {
     });
   });
 
-  test.describe("Public Toolbox Talk Pages", () => {
-    test("should load toolbox talks listing page", async ({ page }) => {
+  test.describe("Public PSI Talk Pages", () => {
+    test("should load PSI talks listing page", async ({ page }) => {
       await page.goto("/toolbox-talk");
 
       // Check page loads without error

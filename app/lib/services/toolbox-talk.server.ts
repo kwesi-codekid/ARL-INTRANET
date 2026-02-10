@@ -1,5 +1,5 @@
 /**
- * Toolbox Talk Service
+ * PSI Talk Service
  * Task: 1.2.1.1.2-7 (Backend Development)
  */
 
@@ -78,7 +78,7 @@ export async function getTodaysToolboxTalk(): Promise<IToolboxTalk | null> {
 }
 
 // ============================================
-// Weekly Toolbox Talk - Get talk for current week
+// Weekly PSI Talk - Get talk for current week
 // ============================================
 
 export async function getThisWeeksToolboxTalk(): Promise<IToolboxTalk | null> {
@@ -245,7 +245,7 @@ export async function getToolboxTalks(options: GetToolboxTalksOptions = {}): Pro
 }
 
 // ============================================
-// Task: 1.2.1.1.7 - Create toolbox talk archive functionality
+// Task: 1.2.1.1.7 - Create PSI talk archive functionality
 // ============================================
 
 export async function getToolboxTalkArchive(options: {
@@ -349,7 +349,7 @@ export async function getArchiveWeeks(year: number, month: number): Promise<Arra
 }
 
 // ============================================
-// Task: 1.2.1.1.6 - Implement toolbox talk scheduling
+// Task: 1.2.1.1.6 - Implement PSI talk scheduling
 // ============================================
 
 export async function scheduleToolboxTalk(

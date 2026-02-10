@@ -1,5 +1,5 @@
 /**
- * Toolbox Talks Seed Script
+ * PSI Talks Seed Script
  * Task: 1.2.1 Testing
  *
  * Run with: npx tsx app/lib/db/seeds/toolbox-talks.seed.ts
@@ -15,7 +15,7 @@ const toolboxTalks = [
   {
     title: "Proper Use of Personal Protective Equipment (PPE)",
     slug: "proper-use-of-ppe",
-    content: `<p>Today's toolbox talk focuses on the importance of wearing and maintaining your Personal Protective Equipment (PPE) correctly.</p>
+    content: `<p>Today's PSI talk focuses on the importance of wearing and maintaining your Personal Protective Equipment (PPE) correctly.</p>
 <h3>Key Points:</h3>
 <ul>
 <li><strong>Hard Hats:</strong> Always wear your hard hat in designated areas. Check for cracks or damage before each use.</li>
@@ -150,13 +150,13 @@ async function seedToolboxTalks() {
     }
 
     console.log(`Using author: ${author.name}`);
-    console.log("Seeding toolbox talks...");
+    console.log("Seeding PSI talks...");
 
     for (const talkData of toolboxTalks) {
       const existing = await ToolboxTalk.findOne({ slug: talkData.slug });
 
       if (existing) {
-        console.log(`Toolbox talk "${talkData.title}" already exists, updating...`);
+        console.log(`PSI talk "${talkData.title}" already exists, updating...`);
         await ToolboxTalk.updateOne({ slug: talkData.slug }, { ...talkData, author: author._id });
         continue;
       }
@@ -165,12 +165,12 @@ async function seedToolboxTalks() {
         ...talkData,
         author: author._id,
       });
-      console.log(`Created toolbox talk: ${talkData.title}`);
+      console.log(`Created PSI talk: ${talkData.title}`);
     }
 
-    console.log("Toolbox talks seeding completed!");
+    console.log("PSI talks seeding completed!");
   } catch (error) {
-    console.error("Error seeding toolbox talks:", error);
+    console.error("Error seeding PSI talks:", error);
     process.exit(1);
   } finally {
     await mongoose.disconnect();

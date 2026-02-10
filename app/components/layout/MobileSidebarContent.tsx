@@ -88,7 +88,7 @@ export function MobileSidebarContent() {
         </CardBody>
       </Card>
 
-      {/* Weekly Toolbox Talk - Full width */}
+      {/* Weekly PSI Talk - Full width */}
       {weeklyTalk && (
         <Card className="shadow-sm">
           <CardBody className="p-4">
@@ -115,7 +115,7 @@ export function MobileSidebarContent() {
               <div className="flex-1 min-w-0">
                 <div className="mb-2 flex items-center gap-2">
                   <Shield size={16} className="text-green-600" />
-                  <span className="text-sm font-semibold text-gray-900">This Week's Talk</span>
+                  <span className="text-sm font-semibold text-gray-900">This Week's PSI Talk</span>
                   <Chip size="sm" color="success" variant="flat" className="text-xs">
                     Active
                   </Chip>
@@ -143,12 +143,12 @@ export function MobileSidebarContent() {
         </Card>
       )}
 
-      {/* No toolbox talk fallback */}
+      {/* No PSI talk fallback */}
       {!weeklyTalk && (
         <Card className="shadow-sm">
           <CardBody className="p-4 text-center">
             <Shield size={32} className="mx-auto mb-2 text-gray-300" />
-            <p className="text-sm text-gray-500">No toolbox talk this week</p>
+            <p className="text-sm text-gray-500">No PSI talk this week</p>
             <Button
               as={Link}
               to="/toolbox-talk"

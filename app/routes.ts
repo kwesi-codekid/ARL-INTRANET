@@ -15,7 +15,7 @@ export default [
     // Public apps routes
     route("apps", "routes/apps._index.tsx"),
 
-    // Public toolbox talk routes (Phase 2)
+    // Public PSI talk routes (Phase 2)
     route("toolbox-talk", "routes/toolbox-talk._index.tsx"),
     route("toolbox-talk/:slug", "routes/toolbox-talk.$slug.tsx"),
 
@@ -110,7 +110,7 @@ export default [
     // Admin apps routes
     route("admin/apps", "routes/admin.apps.tsx"),
 
-    // Admin toolbox talk routes (Phase 2)
+    // Admin PSI talk routes (Phase 2)
     route("admin/toolbox-talks", "routes/admin.toolbox-talks._index.tsx"),
     route("admin/toolbox-talks/new", "routes/admin.toolbox-talks.new.tsx"),
     route("admin/toolbox-talks/:id/edit", "routes/admin.toolbox-talks.$id.edit.tsx"),

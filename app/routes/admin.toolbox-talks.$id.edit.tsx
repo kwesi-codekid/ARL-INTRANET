@@ -1,5 +1,5 @@
 /**
- * Admin Toolbox Talk Edit Page
+ * Admin PSI Talk Edit Page
  * Task: 1.2.1.4.5
  */
 
@@ -131,7 +131,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }
     : undefined;
 
-  // Update toolbox talk using service
+  // Update PSI talk using service
   const updated = await updateToolboxTalk(params.id!, {
     title,
     content: title,
@@ -215,7 +215,7 @@ export default function AdminToolboxTalkEditPage() {
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this toolbox talk? This action cannot be undone.")) {
+    if (confirm("Are you sure you want to delete this PSI talk? This action cannot be undone.")) {
       const form = document.createElement("form");
       form.method = "post";
       form.innerHTML = `<input type="hidden" name="intent" value="delete" />`;
@@ -236,7 +236,7 @@ export default function AdminToolboxTalkEditPage() {
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Toolbox Talk</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Edit PSI Talk</h1>
             <p className="text-sm text-gray-500">{talk.title}</p>
           </div>
         </div>

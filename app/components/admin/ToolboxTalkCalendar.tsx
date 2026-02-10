@@ -1,5 +1,5 @@
 /**
- * Toolbox Talk Calendar View
+ * PSI Talk Calendar View
  * Task: 1.2.1.4.6 - Add calendar view for scheduled talks
  */
 
