@@ -32,7 +32,7 @@ export function Footer() {
               />
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-primary-500">ARL Intranet</span>
-                <span className="text-xs text-gray-400">Adamus Resources Limited</span>
+                <span className="text-xs text-gray-400">Nguvu Mining Limited</span>
               </div>
             </div>
             <p className="mt-4 text-sm text-gray-400">

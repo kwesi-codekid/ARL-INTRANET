@@ -164,8 +164,8 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Phone and OTP are required", step: "otp", authMethod: "phone", identifier: phone });
     }
 
-    if (!/^\d{6}$/.test(otp)) {
-      return Response.json({ error: "OTP must be 6 digits", step: "otp", authMethod: "phone", identifier: phone });
+    if (!/^\d{4}$/.test(otp)) {
+      return Response.json({ error: "OTP must be 4 digits", step: "otp", authMethod: "phone", identifier: phone });
     }
 
     // Verify OTP first (before checking which collection the user belongs to)
@@ -235,8 +235,8 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Email and OTP are required", step: "otp", authMethod: "email", identifier: email });
     }
 
-    if (!/^\d{6}$/.test(otp)) {
-      return Response.json({ error: "OTP must be 6 digits", step: "otp", authMethod: "email", identifier: email });
+    if (!/^\d{4}$/.test(otp)) {
+      return Response.json({ error: "OTP must be 4 digits", step: "otp", authMethod: "email", identifier: email });
     }
 
     // Verify email OTP first (before checking which collection the user belongs to)
@@ -417,7 +417,7 @@ export default function UserLogin() {
             <p className="text-gray-500">
               {step === "identifier"
                 ? "Sign in to access the employee portal"
-                : `Enter the 6-digit code sent to your ${authMethod}`}
+                : `Enter the 4-digit code sent to your ${authMethod}`}
             </p>
           </div>
 
@@ -577,7 +577,7 @@ export default function UserLogin() {
               {/* OTP Input */}
               <div className="flex justify-center">
                 <InputOtp
-                  length={6}
+                  length={4}
                   value={otp}
                   onValueChange={setOtp}
                   size="lg"
@@ -594,7 +594,7 @@ export default function UserLogin() {
                 className="w-full font-semibold shadow-lg shadow-primary-500/30"
                 size="lg"
                 isLoading={isSubmitting}
-                isDisabled={otp.length !== 6}
+                isDisabled={otp.length !== 4}
                 endContent={!isSubmitting && <KeyRound size={18} />}
               >
                 {isSubmitting ? "Verifying..." : "Verify & Sign In"}

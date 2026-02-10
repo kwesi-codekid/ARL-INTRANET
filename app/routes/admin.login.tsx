@@ -89,8 +89,8 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Phone and OTP are required", step: "otp", phone });
     }
 
-    if (!/^\d{6}$/.test(otp)) {
-      return Response.json({ error: "OTP must be 6 digits", step: "otp", phone });
+    if (!/^\d{4}$/.test(otp)) {
+      return Response.json({ error: "OTP must be 4 digits", step: "otp", phone });
     }
 
     // Verify OTP
@@ -219,7 +219,7 @@ export default function AdminLogin() {
             <p className="text-gray-500">
               {step === "phone"
                 ? "Sign in to access the admin portal"
-                : "Enter the 6-digit code sent to your phone"}
+                : "Enter the 4-digit code sent to your phone"}
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export default function AdminLogin() {
               {/* OTP Input */}
               <div className="flex justify-center">
                 <InputOtp
-                  length={6}
+                  length={4}
                   value={otp}
                   onValueChange={setOtp}
                   size="lg"
@@ -310,7 +310,7 @@ export default function AdminLogin() {
                 className="w-full font-semibold shadow-lg shadow-primary-500/30"
                 size="lg"
                 isLoading={isSubmitting}
-                isDisabled={otp.length !== 6}
+                isDisabled={otp.length !== 4}
                 endContent={!isSubmitting && <KeyRound size={18} />}
               >
                 {isSubmitting ? "Verifying..." : "Verify & Sign In"}

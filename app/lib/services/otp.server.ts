@@ -6,7 +6,7 @@
 import { OTP } from "~/lib/db/models/otp.server";
 import { sendOTP, formatGhanaPhone, isValidGhanaPhone } from "./sms.server";
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 4;
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
 const COOLDOWN_SECONDS = 60; // Minimum time between OTP requests
@@ -18,10 +18,10 @@ interface OTPResult {
 }
 
 /**
- * Generate a random 6-digit OTP
+ * Generate a random 4-digit OTP
  */
 function generateOTPCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
 /**
