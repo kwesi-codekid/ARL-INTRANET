@@ -192,31 +192,44 @@ export default function EventDetailPage() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {albums.map((album) => (
-                      <Link
-                        key={album.id}
-                        to={`/gallery/${album.slug}`}
-                        className="group"
-                      >
-                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                          {album.coverImage ? (
-                            <img
-                              src={album.coverImage}
-                              alt={album.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon size={32} className="text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="mt-2 text-sm font-medium text-gray-900 group-hover:text-primary-600">
-                          {album.title}
-                        </p>
-                        <p className="text-xs text-gray-500">{album.photoCount} photos</p>
-                      </Link>
-                    ))}
+                    {albums.map((album) => {
+                      const isExternal = album.isExternalGallery && album.externalGalleryUrl;
+                      const Wrapper = isExternal ? "a" : Link;
+                      const linkProps = isExternal
+                        ? { href: album.externalGalleryUrl!, target: "_blank", rel: "noopener noreferrer" }
+                        : { to: `/gallery/${album.slug}` };
+
+                      return (
+                        <Wrapper
+                          key={album.id}
+                          {...linkProps as any}
+                          className="group"
+                        >
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            {album.coverImage ? (
+                              <img
+                                src={album.coverImage}
+                                alt={album.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={32} className="text-gray-300" />
+                              </div>
+                            )}
+                            {isExternal && (
+                              <div className="absolute top-2 right-2">
+                                <ExternalLink size={16} className="text-white drop-shadow-md" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-sm font-medium text-gray-900 group-hover:text-primary-600">
+                            {album.title}
+                          </p>
+                          <p className="text-xs text-gray-500">{album.photoCount} photos</p>
+                        </Wrapper>
+                      );
+                    })}
                   </div>
                 </CardBody>
               </Card>
