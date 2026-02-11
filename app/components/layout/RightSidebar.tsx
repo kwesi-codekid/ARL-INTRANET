@@ -2,6 +2,7 @@ import { Card, CardBody, CardHeader, Button, Input, Chip } from "@heroui/react";
 import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play, FileText, Eye } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
+import { AppIcon } from "~/components/ui";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
 import type { SerializedSafetyTip, SerializedSafetyVideo } from "~/lib/services/safety.server";
 import type { SerializedMenu, MealType } from "~/lib/utils/menu-constants";
@@ -185,13 +186,12 @@ export function RightSidebar() {
                   className="flex items-center gap-2 rounded-lg p-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-600"
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-gray-100 text-xs">
-                    {link.iconType === "emoji" && link.icon ? (
-                      link.icon
-                    ) : link.iconType === "url" && link.icon ? (
-                      <img src={link.icon} alt="" className="h-4 w-4" />
-                    ) : (
-                      <AppWindow size={12} className="text-gray-500" />
-                    )}
+                    <AppIcon
+                      icon={link.icon}
+                      iconType={link.iconType || "lucide"}
+                      size={14}
+                      className="text-gray-500"
+                    />
                   </span>
                   <span className="truncate">{link.name}</span>
                 </a>

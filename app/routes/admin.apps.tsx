@@ -35,103 +35,8 @@ import {
   BarChart,
   MousePointerClick,
   GripVertical,
-  // Additional icons for display
-  LayoutGrid,
-  FileText,
-  Mail,
-  Calendar,
-  Database,
-  Users,
-  Settings,
-  Shield,
-  Truck,
-  Wrench,
-  Globe,
-  Briefcase,
-  Building,
-  Building2,
-  Calculator,
-  CreditCard,
-  DollarSign,
-  Landmark,
-  Receipt,
-  Scale,
-  Wallet,
-  Clock,
-  ClipboardList,
-  Target,
-  HardDrive,
-  Laptop,
-  Monitor,
-  Server,
-  Smartphone,
-  Wifi,
-  Zap,
-  Headphones,
-  MessageSquare,
-  Phone,
-  Video,
-  FileSpreadsheet,
-  LineChart,
-  Factory,
-  Home,
-  MapPin,
-  Package,
-  Printer,
-  ShoppingCart,
-  Warehouse,
-  Fuel,
-  HardHat,
-  Pickaxe,
-  Heart,
-  // Health & Medical (Med Treatment)
-  HeartPulse,
-  Activity,
-  Stethoscope,
-  Pill,
-  Syringe,
-  Cross,
-  CirclePlus,
-  Ambulance,
-  // Safety & HSE (HSE Suite)
-  AlertTriangle,
-  AlertCircle,
-  ShieldCheck,
-  ShieldAlert,
-  Flame,
-  Siren,
-  BadgeCheck,
-  ClipboardCheck,
-  FileCheck,
-  FileWarning,
-  // Additional utility
-  Eye,
-  Megaphone,
-  Bell,
-  BookOpen,
-  GraduationCap,
-  Layers,
-  PieChart,
-  TrendingUp,
-  Folder,
 } from "lucide-react";
-
-// Icon mapping for lucide icons
-const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  AppWindow, Folder, LayoutGrid, FileText, Mail, Calendar, Database, Users, Settings,
-  Shield, BarChart, Truck, Wrench, Globe, Briefcase, Building, Building2, Calculator,
-  CreditCard, DollarSign, Landmark, Receipt, Scale, Wallet, Clock, ClipboardList, Target,
-  HardDrive, Laptop, Monitor, Server, Smartphone, Wifi, Zap, Headphones, MessageSquare,
-  Phone, Video, FileSpreadsheet, LineChart, Factory, Home, MapPin, Package, Printer,
-  ShoppingCart, Warehouse, Fuel, HardHat, Pickaxe, Heart,
-  // Health & Medical
-  HeartPulse, Activity, Stethoscope, Pill, Syringe, Cross, CirclePlus, Ambulance,
-  // Safety & HSE
-  AlertTriangle, AlertCircle, ShieldCheck, ShieldAlert, Flame, Siren, BadgeCheck,
-  ClipboardCheck, FileCheck, FileWarning,
-  // Additional
-  Eye, Megaphone, Bell, BookOpen, GraduationCap, Layers, PieChart, TrendingUp,
-};
+import { AppIcon, iconMap } from "~/components/ui";
 
 
 
@@ -332,25 +237,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   return Response.json({ error: "Invalid action" });
-}
-
-// Helper component to render app icons
-function AppIcon({ icon, iconType, className }: { icon?: string; iconType: string; className?: string }) {
-  if (!icon) {
-    return <AppWindow size={20} className={className} />;
-  }
-
-  if (iconType === "emoji") {
-    return <span className="text-xl">{icon}</span>;
-  }
-
-  if (iconType === "url") {
-    return <img src={icon} alt="" className="h-5 w-5 object-contain" />;
-  }
-
-  // lucide icon
-  const IconComponent = iconMap[icon] || AppWindow;
-  return <IconComponent size={20} className={className} />;
 }
 
 export default function AdminApps() {
