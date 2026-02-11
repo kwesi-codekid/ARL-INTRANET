@@ -8,7 +8,6 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Divider,
 } from "@heroui/react";
 import {
@@ -79,15 +78,11 @@ export default function EventDetailPage() {
 
         {/* Hero Section */}
         {event.featuredImage ? (
-          <div className="relative h-64 sm:h-80 rounded-xl overflow-hidden">
-            <Image
+          <div className="relative h-72 sm:h-96 rounded-xl overflow-hidden">
+            <img
               src={event.featuredImage}
               alt={event.title}
-              classNames={{
-                wrapper: "w-full h-full",
-                img: "w-full h-full object-cover",
-              }}
-              radius="none"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -147,11 +142,13 @@ export default function EventDetailPage() {
             <Card className="shadow-sm">
               <CardBody className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About This Event</h2>
-                <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line text-base">
+                  {event.description}
+                </p>
 
                 {event.content && (
                   <div
-                    className="mt-4 prose prose-sm max-w-none text-gray-600"
+                    className="mt-4 prose prose-base max-w-none text-gray-600 prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800"
                     dangerouslySetInnerHTML={{ __html: event.content }}
                   />
                 )}
@@ -165,8 +162,8 @@ export default function EventDetailPage() {
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Images</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {event.images.map((image, index) => (
-                      <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                        <Image
+                      <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        <img
                           src={image}
                           alt={`${event.title} - Image ${index + 1}`}
                           className="w-full h-full object-cover"
@@ -203,7 +200,7 @@ export default function EventDetailPage() {
                       >
                         <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
                           {album.coverImage ? (
-                            <Image
+                            <img
                               src={album.coverImage}
                               alt={album.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"

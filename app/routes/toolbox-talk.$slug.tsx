@@ -11,7 +11,6 @@ import {
   CardHeader,
   Button,
   Chip,
-  Image,
   Spinner,
 } from "@heroui/react";
 import {
@@ -343,17 +342,13 @@ export default function ToolboxTalkDetailPage() {
                   <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
                     <div className="relative h-32 bg-gray-100">
                       {related.featuredMedia ? (
-                        <Image
+                        <img
                           src={
                             related.featuredMedia.thumbnail ||
                             related.featuredMedia.url
                           }
                           alt={related.title}
-                          classNames={{
-                            wrapper: "w-full h-full",
-                            img: "w-full h-full object-cover",
-                          }}
-                          radius="none"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100">

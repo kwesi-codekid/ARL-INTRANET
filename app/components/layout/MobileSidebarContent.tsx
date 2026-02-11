@@ -1,4 +1,4 @@
-import { Card, CardBody, Button, Input, Chip, Image } from "@heroui/react";
+import { Card, CardBody, Button, Input, Chip } from "@heroui/react";
 import { Shield, Phone, Search, ArrowRight, FileText, Star, Eye } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
@@ -102,11 +102,10 @@ export function MobileSidebarContent() {
                         <span className="text-xs font-medium text-green-700">PDF</span>
                       </div>
                     ) : (
-                      <Image
+                      <img
                         src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
                         alt={weeklyTalk.title}
                         className="h-full w-full object-cover"
-                        classNames={{ wrapper: "h-full w-full" }}
                       />
                     )}
                   </div>

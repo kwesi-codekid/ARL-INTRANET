@@ -3,7 +3,7 @@
  * Task: 1.2.1.3.6 - Add homepage "This Week's PSI Talk" widget
  */
 
-import { Card, CardBody, CardHeader, Button, Chip, Image } from "@heroui/react";
+import { Card, CardBody, CardHeader, Button, Chip } from "@heroui/react";
 import { Shield, ArrowRight, PlayCircle, Volume2, Calendar } from "lucide-react";
 import { Link } from "react-router";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
@@ -81,11 +81,10 @@ export function TodayToolboxTalkWidget({ talk, weekRange }: TodayToolboxTalkWidg
         {thumbnail && (
           <Link to={`/toolbox-talk/${talk.slug}`} className="block">
             <div className="relative h-40 w-full overflow-hidden rounded-lg">
-              <Image
+              <img
                 src={thumbnail}
                 alt={talk.title}
                 className="h-full w-full object-cover"
-                classNames={{ wrapper: "h-full w-full" }}
               />
 
               {/* Play overlay for video/audio */}

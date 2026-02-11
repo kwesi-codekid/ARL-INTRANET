@@ -8,7 +8,6 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Input,
 } from "@heroui/react";
 import { Camera, Search, Image as ImageIcon, Calendar, ArrowRight, ExternalLink } from "lucide-react";
@@ -66,14 +65,10 @@ function AlbumCard({ album }: { album: SerializedAlbum }) {
         {/* Image Section */}
         <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
           {album.coverImage ? (
-            <Image
+            <img
               src={album.coverImage}
               alt={album.title}
-              classNames={{
-                wrapper: "w-full h-full",
-                img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-              }}
-              radius="none"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

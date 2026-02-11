@@ -10,7 +10,6 @@ import {
   Button,
   Chip,
   Input,
-  Image,
   Pagination,
 } from "@heroui/react";
 import { Search, Clock, Eye, ArrowRight } from "lucide-react";
@@ -232,15 +231,11 @@ export default function NewsListingPage() {
               <Link key={item.id} to={`/news/${item.slug}`}>
                 <Card className="h-full overflow-hidden shadow-sm transition-shadow hover:shadow-md group">
                   {/* Image Section */}
-                  <div className="relative aspect-[16/10]">
-                    <Image
+                  <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                    <img
                       src={item.featuredImage || "https://via.placeholder.com/400x200?text=ARL+News"}
                       alt={item.title}
-                      classNames={{
-                        wrapper: "w-full h-full",
-                        img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                      }}
-                      radius="none"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {/* Badges on image */}
                     <div className="absolute top-2 left-2 flex gap-2">

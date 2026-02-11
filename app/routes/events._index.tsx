@@ -14,7 +14,6 @@ import {
   Button,
   ButtonGroup,
   Chip,
-  Image,
   Input,
   Select,
   SelectItem,
@@ -430,133 +429,122 @@ function EventCard({
   const dateInfo = formatEventDate(event.date);
 
   return (
-    <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
-      <CardBody className="p-0">
-        <div className="flex flex-col sm:flex-row">
-          {/* Featured Image - Full height on left */}
-          {event.featuredImage ? (
-            <Link
-              to={`/events/${event.slug}`}
-              className="relative h-40 w-full shrink-0 overflow-hidden sm:h-auto sm:w-48 md:w-56"
-            >
-              <Image
-                src={event.featuredImage}
-                alt={event.title}
-                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                radius="none"
-              />
-              {/* Date Badge Overlay */}
+    <Link to={`/events/${event.slug}`} className="block">
+      <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md cursor-pointer">
+        <CardBody className="p-0">
+          <div className="flex flex-col sm:flex-row">
+            {/* Featured Image - Full height on left */}
+            {event.featuredImage ? (
+              <div className="relative h-40 w-full shrink-0 overflow-hidden sm:h-auto sm:w-48 md:w-56 bg-gray-100">
+                <img
+                  src={event.featuredImage}
+                  alt={event.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {/* Date Badge Overlay */}
+                <div
+                  className={`absolute top-2 left-2 flex flex-col items-center justify-center rounded-lg px-3 py-1.5 ${isPast ? "bg-gray-800/80" : "bg-primary-600/90"}`}
+                >
+                  <span className="text-xs font-medium text-white">
+                    {dateInfo.month}
+                  </span>
+                  <span className="text-xl leading-tight font-bold text-white">
+                    {dateInfo.day}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* Date Badge without image */
               <div
-                className={`absolute top-2 left-2 flex flex-col items-center justify-center rounded-lg px-3 py-1.5 ${isPast ? "bg-gray-800/80" : "bg-primary-600/90"}`}
+                className={`flex w-full shrink-0 flex-col items-center justify-center py-4 sm:w-20 sm:py-0 ${isPast ? "bg-gray-100" : "bg-primary-50"}`}
               >
-                <span className="text-xs font-medium text-white">
+                <span
+                  className={`text-sm font-medium ${isPast ? "text-gray-500" : "text-primary-600"}`}
+                >
                   {dateInfo.month}
                 </span>
-                <span className="text-xl leading-tight font-bold text-white">
+                <span
+                  className={`text-2xl font-bold ${isPast ? "text-gray-700" : "text-primary-700"}`}
+                >
                   {dateInfo.day}
                 </span>
               </div>
-            </Link>
-          ) : (
-            /* Date Badge without image */
-            <div
-              className={`flex w-full shrink-0 flex-col items-center justify-center py-4 sm:w-20 sm:py-0 ${isPast ? "bg-gray-100" : "bg-primary-50"}`}
-            >
-              <span
-                className={`text-sm font-medium ${isPast ? "text-gray-500" : "text-primary-600"}`}
-              >
-                {dateInfo.month}
-              </span>
-              <span
-                className={`text-2xl font-bold ${isPast ? "text-gray-700" : "text-primary-700"}`}
-              >
-                {dateInfo.day}
-              </span>
-            </div>
-          )}
+            )}
 
-          {/* Event Details */}
-          <div className="flex-1 p-3 sm:p-4">
-            <div className="mb-1 flex flex-wrap items-center gap-2">
-              {event.isFeatured && (
-                <Chip size="sm" color="warning" variant="flat">
-                  Featured
-                </Chip>
-              )}
-              {event.category && (
-                <Chip size="sm" variant="flat">
-                  {event.category}
-                </Chip>
-              )}
-              {isPast && (
-                <Chip size="sm" color="default" variant="flat">
-                  Past Event
-                </Chip>
-              )}
-            </div>
-
-            <Link
-              to={`/events/${event.slug}`}
-              className="hover:text-primary-600 line-clamp-1 text-base font-semibold text-gray-900"
-            >
-              {event.title}
-            </Link>
-
-            <p className="mt-1 line-clamp-2 text-sm text-gray-600">
-              {event.description}
-            </p>
-
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-              {event.time && (
-                <span className="flex items-center gap-1">
-                  <Clock size={12} />
-                  {event.time}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <MapPin size={12} />
-                {event.location}
-              </span>
-              {event.organizer && (
-                <span className="flex items-center gap-1">
-                  <Users size={12} />
-                  {event.organizer}
-                </span>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="mt-3 flex items-center gap-2">
-              <Button
-                as={Link}
-                to={`/events/${event.slug}`}
-                size="sm"
-                variant="flat"
-                color="primary"
-                endContent={<ArrowRight size={14} />}
-              >
-                View Details
-              </Button>
-
-              {!isPast &&
-                event.registrationRequired &&
-                event.registrationLink && (
-                  <Button
-                    as="a"
-                    href={event.registrationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="sm"
-                    color="primary"
-                  >
-                    Register
-                  </Button>
+            {/* Event Details */}
+            <div className="flex-1 p-3 sm:p-4">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                {event.isFeatured && (
+                  <Chip size="sm" color="warning" variant="flat">
+                    Featured
+                  </Chip>
                 )}
+                {event.category && (
+                  <Chip size="sm" variant="flat">
+                    {event.category}
+                  </Chip>
+                )}
+                {isPast && (
+                  <Chip size="sm" color="default" variant="flat">
+                    Past Event
+                  </Chip>
+                )}
+              </div>
+
+              <h3 className="hover:text-primary-600 line-clamp-1 text-base font-semibold text-gray-900">
+                {event.title}
+              </h3>
+
+              <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+                {event.description}
+              </p>
+
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                {event.time && (
+                  <span className="flex items-center gap-1">
+                    <Clock size={12} />
+                    {event.time}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <MapPin size={12} />
+                  {event.location}
+                </span>
+                {event.organizer && (
+                  <span className="flex items-center gap-1">
+                    <Users size={12} />
+                    {event.organizer}
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="mt-3 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-primary-600">
+                  View Details <ArrowRight size={14} />
+                </span>
+
+                {!isPast &&
+                  event.registrationRequired &&
+                  event.registrationLink && (
+                    <Button
+                      as="a"
+                      href={event.registrationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      color="primary"
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                      Register
+                    </Button>
+                  )}
+              </div>
             </div>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+        </CardBody>
+      </Card>
+    </Link>
   );
 }
 

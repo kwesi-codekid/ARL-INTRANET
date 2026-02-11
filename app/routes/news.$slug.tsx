@@ -9,7 +9,6 @@ import {
   Chip,
   Avatar,
   Button,
-  Image,
   Divider,
 } from "@heroui/react";
 import { Clock, Eye, ArrowLeft, Share2, Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
@@ -207,21 +206,18 @@ export default function NewsDetailPage() {
 
           {/* Featured Image */}
           {article.featuredImage && (
-            <div className="mb-8 overflow-hidden rounded-xl">
-              <Image
+            <div className="mb-8 overflow-hidden rounded-xl bg-gray-100">
+              <img
                 src={article.featuredImage}
                 alt={article.title}
-                classNames={{
-                  wrapper: "w-full",
-                  img: "w-full h-auto max-h-[500px] object-cover",
-                }}
+                className="w-full max-h-[500px] object-contain mx-auto"
               />
             </div>
           )}
 
           {/* Content */}
           <div
-            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-primary-500"
+            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-primary-500 prose-li:text-gray-600 prose-strong:text-gray-800 prose-img:rounded-lg"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
 
@@ -231,14 +227,11 @@ export default function NewsDetailPage() {
               <h3 className="mb-4 text-lg font-semibold text-gray-900">Gallery</h3>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {article.images.map((img, index) => (
-                  <div key={index} className="overflow-hidden rounded-lg">
-                    <Image
+                  <div key={index} className="overflow-hidden rounded-lg bg-gray-100">
+                    <img
                       src={img}
                       alt={`${article.title} - Image ${index + 1}`}
-                      classNames={{
-                        wrapper: "w-full",
-                        img: "w-full h-32 object-cover",
-                      }}
+                      className="w-full h-32 object-cover"
                     />
                   </div>
                 ))}
@@ -303,15 +296,11 @@ export default function NewsDetailPage() {
               {relatedNews.map((item) => (
                 <Link key={item.id} to={`/news/${item.slug}`}>
                   <Card className="h-full overflow-hidden shadow-sm transition-shadow hover:shadow-md">
-                    <div className="relative h-32">
-                      <Image
+                    <div className="relative h-32 bg-gray-100">
+                      <img
                         src={item.featuredImage || "https://via.placeholder.com/400x200?text=ARL+News"}
                         alt={item.title}
-                        classNames={{
-                          wrapper: "w-full h-full",
-                          img: "w-full h-full object-cover",
-                        }}
-                        radius="none"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <CardBody className="p-3">

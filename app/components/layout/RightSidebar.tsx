@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Button, Input, Chip, Image } from "@heroui/react";
+import { Card, CardBody, CardHeader, Button, Input, Chip } from "@heroui/react";
 import { Shield, Star, ExternalLink, Search, AppWindow, Phone, ArrowRight, Calendar, PlayCircle, Volume2, Lightbulb, Video, UtensilsCrossed, Coffee, Sun, Moon, Clock, Play, FileText, Eye } from "lucide-react";
 import { Form, Link, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
@@ -250,11 +250,10 @@ export function RightSidebar() {
                       </div>
                     ) : (
                       <>
-                        <Image
+                        <img
                           src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
                           alt={weeklyTalk.title}
                           className="h-full w-full object-cover"
-                          classNames={{ wrapper: "h-full w-full" }}
                         />
                         {(weeklyTalk.featuredMedia.type === "video" || weeklyTalk.featuredMedia.type === "audio") && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">

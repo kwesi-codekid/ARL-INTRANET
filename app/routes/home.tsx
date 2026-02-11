@@ -9,7 +9,6 @@ import {
   Button,
   Chip,
   Avatar,
-  Image,
 } from "@heroui/react";
 import {
   MessageCircle,
@@ -1029,13 +1028,10 @@ export default function Home() {
                     {/* <div className="relative"> */}
                     <div className="md:h-52 md:w-64 w-full h-52 overflow-hidden flex-shrink-0">
 
-                      <Image
+                      <img
                         src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
                         alt={post.title}
-                        classNames={{
-                          img: "md:h-52 md:w-64 w-full h-52 object-cover object-center group-hover:scale-105 transition-transform",
-                        }}
-                        radius="none"
+                        className="md:h-52 md:w-64 w-full h-52 object-cover object-center group-hover:scale-105 transition-transform"
                       />
                     </div>
                       {/* Category badge on image */}

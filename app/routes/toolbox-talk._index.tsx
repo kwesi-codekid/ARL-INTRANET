@@ -13,7 +13,6 @@ import {
   Button,
   Chip,
   Input,
-  Image,
   Pagination,
 } from "@heroui/react";
 import { Search, Calendar, Eye, PlayCircle, Volume2, ChevronRight } from "lucide-react";
@@ -223,13 +222,10 @@ export default function ToolboxTalkPage() {
                   <div className="relative h-48 w-full overflow-hidden rounded-lg md:h-64 md:w-80 md:flex-shrink-0">
                     {todaysTalk.featuredMedia.type === "video" ? (
                       <div className="flex h-full items-center justify-center bg-gray-900">
-                        <Image
+                        <img
                           src={todaysTalk.featuredMedia.thumbnail || "/images/video-placeholder.jpg"}
                           alt={todaysTalk.title}
-                          classNames={{
-                            wrapper: "w-full h-full",
-                            img: "w-full h-full object-cover opacity-75",
-                          }}
+                          className="w-full h-full object-cover opacity-75"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
                           <PlayCircle className="text-white" size={64} />
@@ -240,13 +236,10 @@ export default function ToolboxTalkPage() {
                         <Volume2 className="text-white" size={64} />
                       </div>
                     ) : (
-                      <Image
+                      <img
                         src={todaysTalk.featuredMedia.url}
                         alt={todaysTalk.title}
-                        classNames={{
-                          wrapper: "w-full h-full",
-                          img: "w-full h-full object-cover",
-                        }}
+                        className="w-full h-full object-cover"
                       />
                     )}
                   </div>
@@ -320,18 +313,14 @@ export default function ToolboxTalkPage() {
                       <div className="relative h-40 bg-gray-100">
                         {talk.featuredMedia ? (
                           <>
-                            <Image
+                            <img
                               src={
                                 talk.featuredMedia.thumbnail ||
                                 talk.featuredMedia.url ||
                                 "/images/talk-placeholder.jpg"
                               }
                               alt={talk.title}
-                              classNames={{
-                                wrapper: "w-full h-full",
-                                img: "w-full h-full object-cover",
-                              }}
-                              radius="none"
+                              className="w-full h-full object-cover"
                             />
                             {talk.featuredMedia.type !== "image" && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black/30">

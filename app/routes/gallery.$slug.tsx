@@ -8,7 +8,6 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Modal,
   ModalContent,
   ModalBody,
@@ -230,31 +229,27 @@ export default function AlbumDetailPage() {
 
               {/* Cover Image */}
               {album.coverImage && (
-                <div className="w-full sm:w-48 h-32 rounded-lg overflow-hidden shrink-0">
-                  <Image
+                <div className="w-full sm:w-48 h-32 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                  <img
                     src={album.coverImage}
                     alt={album.title}
-                    classNames={{
-                      wrapper: "w-full h-full",
-                      img: "w-full h-full object-cover",
-                    }}
-                    radius="none"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
             </div>
 
             {/* Related Event */}
-            {album.event && (
+            {album.event?.slug && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <Button
                   as={Link}
-                  to={`/events/${album.event}`}
+                  to={`/events/${album.event.slug}`}
                   variant="flat"
                   color="primary"
                   size="sm"
                 >
-                  View Related Event
+                  {album.event.title ? `View Event: ${album.event.title}` : "View Related Event"}
                 </Button>
               </div>
             )}
