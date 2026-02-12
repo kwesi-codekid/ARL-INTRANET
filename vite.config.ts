@@ -5,6 +5,12 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  ssr: {
+    // recharts is client-only (loaded via dynamic import in useEffect);
+    // keep it external during SSR to avoid bundling browser-dependent code
+    noExternal: [],
+    external: ["recharts"],
+  },
   build: {
     rollupOptions: {
       onwarn(warning, warn) {

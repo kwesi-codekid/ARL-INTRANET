@@ -1,4 +1,3 @@
-import type { SerializedEvent } from "~/lib/services/event.server";
 import type { SerializedSafetyVideo, SerializedSafetyTip } from "~/lib/services/safety.server";
 
 import { useState, useEffect, useRef } from "react";
@@ -10,7 +9,6 @@ import {
   Button,
   Chip,
   Avatar,
-  Image,
 } from "@heroui/react";
 import {
   MessageCircle,
@@ -34,12 +32,17 @@ import {
   Cpu,
   HelpCircle,
   Pin,
+  Car,
+  Calendar,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { AlertToast } from "~/components/alerts";
-import { EventCalendar } from "~/components/dashboard";
+import { getResponsiveUrl, generateSrcSet, generateSizes, getOptimizedVideoUrl, isCloudinaryUrl } from "~/components/ui";
 
 
 
@@ -53,25 +56,31 @@ import type { CompanyImages } from "~/components/dashboard";
 
 // Loader for homepage data
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getUpcomingEvents, serializeEvent } = await import("~/lib/services/event.server");
   const { getSafetyVideos, getSafetyTips, serializeSafetyVideo, serializeSafetyTip } = await import("~/lib/services/safety.server");
   const { getActiveITTips } = await import("~/lib/services/it-tip.server");
   const { getActiveExecutiveMessages } = await import("~/lib/services/executive-message.server");
   const { getCompanyImages } = await import("~/lib/services/company-info.server");
+  const { getUpcomingEvents, serializeEvent } = await import("~/lib/services/event.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { News } = await import("~/lib/db/models/news.server");
   const { Alert } = await import("~/lib/db/models/alert.server");
 
   await connectDB();
 
-  const [recentNews, upcomingEvents, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages] = await Promise.all([
+  const [recentNews, featuredNews, activeAlerts, safetyVideosResult, safetyTipsResult, itTips, executiveMessages, companyImages, upcomingEvents] = await Promise.all([
     News.find({ status: "published" })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(5)
       .populate("category")
       .populate("author", "name")
       .lean(),
-    getUpcomingEvents(20), // Get more events for calendar view
+    // Fetch featured news separately so they always appear in carousel
+    News.find({ status: "published", isFeatured: true })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(5)
+      .populate("category")
+      .populate("author", "name")
+      .lean(),
     Alert.find({ isActive: true })
       .sort({ severity: -1, createdAt: -1 })
       .limit(3)
@@ -86,26 +95,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getActiveExecutiveMessages(),
     // Fetch company images for slideshow
     getCompanyImages(),
+    // Fetch upcoming events for highlights
+    getUpcomingEvents(2),
   ]);
 
+  // Serialize news helper
+  const serializeNews = (news: (typeof recentNews)[0]) => ({
+    id: news._id.toString(),
+    title: news.title,
+    slug: news.slug,
+    excerpt: news.excerpt || "",
+    featuredImage: news.featuredImage || null,
+    category: news.category ? {
+      name: (news.category as { name?: string }).name || "General",
+      color: (news.category as { color?: string }).color || "#D4AF37",
+    } : { name: "General", color: "#D4AF37" },
+    author: news.author ? {
+      name: (news.author as { name?: string }).name || "Admin",
+    } : { name: "Admin" },
+    publishedAt: news.publishedAt?.toISOString() || news.createdAt.toISOString(),
+    isPinned: news.isPinned,
+    isFeatured: news.isFeatured || false,
+  });
+
+  // Merge featured news into recent news, avoiding duplicates
+  const recentNewsIds = new Set(recentNews.map((n) => n._id.toString()));
+  const extraFeatured = featuredNews.filter((n) => !recentNewsIds.has(n._id.toString()));
+  const allNews = [...recentNews, ...extraFeatured];
+
   return Response.json({
-    recentNews: recentNews.map((news) => ({
-      id: news._id.toString(),
-      title: news.title,
-      slug: news.slug,
-      excerpt: news.excerpt || "",
-      featuredImage: news.featuredImage || null,
-      category: news.category ? {
-        name: (news.category as { name?: string }).name || "General",
-        color: (news.category as { color?: string }).color || "#D4AF37",
-      } : { name: "General", color: "#D4AF37" },
-      author: news.author ? {
-        name: (news.author as { name?: string }).name || "Admin",
-      } : { name: "Admin" },
-      publishedAt: news.publishedAt?.toISOString() || news.createdAt.toISOString(),
-      isPinned: news.isPinned,
-    })),
-    upcomingEvents: upcomingEvents.map(serializeEvent),
+    recentNews: allNews.map(serializeNews),
     activeAlerts: activeAlerts.map((alert) => ({
       id: alert._id.toString(),
       title: alert.title,
@@ -131,6 +150,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       message: msg.message,
     })),
     companyImages,
+    upcomingEvents: upcomingEvents.map(serializeEvent),
   });
 }
 
@@ -145,8 +165,8 @@ interface LoaderData {
     author: { name: string };
     publishedAt: string;
     isPinned: boolean;
+    isFeatured: boolean;
   }>;
-  upcomingEvents: SerializedEvent[];
   activeAlerts: Array<{
     id: string;
     title: string;
@@ -172,6 +192,19 @@ interface LoaderData {
     message: string;
   }>;
   companyImages: CompanyImages;
+  upcomingEvents: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    date: string;
+    endDate?: string;
+    time?: string;
+    location: string;
+    category?: string;
+    isFeatured: boolean;
+    featuredImage?: string;
+  }>;
 }
 
 // Type for carousel items (news, safety videos, safety tips, PDFs, company values)
@@ -246,9 +279,9 @@ function ITTipsSlideshow({
 
   if (tips.length === 0) {
     return (
-      <Card className="shadow-sm h-full bg-gradient-to-br from-blue-50 to-indigo-50">
-        <CardBody className="flex flex-col items-center justify-center py-12">
-          <Lightbulb size={48} className="text-gray-300 mb-3" />
+      <Card className="shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardBody className="flex flex-col items-center justify-center py-8">
+          <Lightbulb size={36} className="text-gray-300 mb-2" />
           <p className="text-gray-500 font-medium">No IT Tips Available</p>
           <p className="text-sm text-gray-400">Check back later for helpful tips</p>
         </CardBody>
@@ -263,10 +296,10 @@ function ITTipsSlideshow({
   const colors = categoryColors[tip.category] || categoryColors.general;
 
   return (
-    <Card className="shadow-sm h-full overflow-hidden">
-      <div className="h-full flex flex-col">
+    <Card className="shadow-sm overflow-hidden">
+      <div className="flex flex-col">
         {/* Header with gradient based on category */}
-        <div className={`bg-gradient-to-r ${colors.gradient} p-4 text-white`}>
+        <div className={`bg-gradient-to-r ${colors.gradient} p-5 text-white`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
@@ -278,22 +311,20 @@ function ITTipsSlideshow({
               </div>
             </div>
             {tip.isPinned && (
-              <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-xs">
-                <Pin size={12} />
+              <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                <Pin size={10} />
                 <span>Pinned</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Main Content - Big, Bold and Eye-Catching */}
-        <CardBody className={`flex-1 flex flex-col justify-center p-6 bg-gradient-to-br ${colors.bg} to-white`}>
-          {/* Title with colored accent */}
-          <div className="mb-4">
-            <h4 className={`text-2xl font-extrabold ${colors.text} mb-1`}>{tip.title}</h4>
+        {/* Main Content */}
+        <CardBody className={`p-5 bg-gradient-to-br ${colors.bg} to-white`}>
+          <div className="mb-3">
+            <h4 className={`text-xl font-extrabold ${colors.text} mb-1`}>{tip.title}</h4>
             <div className={`h-1 w-16 rounded-full bg-gradient-to-r ${colors.gradient}`} />
           </div>
-          {/* Tip content - Bold and prominent */}
           <div className={`p-4 rounded-xl bg-white shadow-sm border-l-4 ${colors.text.replace('text-', 'border-')}`}>
             <p className="text-lg font-semibold text-gray-800 leading-relaxed">
               {tip.content}
@@ -303,7 +334,7 @@ function ITTipsSlideshow({
 
         {/* Navigation Footer */}
         {tips.length > 1 && (
-          <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
+          <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between">
             {/* Dot Indicators */}
             <div className="flex gap-1.5">
               {tips.map((_, idx) => (
@@ -361,16 +392,10 @@ function ExecutiveMessagesCard({
   currentSlide: number;
   setCurrentSlide: (value: number | ((prev: number) => number)) => void;
 }) {
-  // Use database messages if available, otherwise show default CEO message
-  const messagesToShow = messages.length > 0
-    ? messages
-    : [{
-        id: "default-ceo",
-        name: "Angela List",
-        title: "CEO, Nguvu Mining Limited",
-        photo: "/images/ceo.jpg",
-        message: "Together, we are building a safer, stronger, and more connected workplace. This platform is your hub for staying informed, engaged, and part of our mining family. Safety first, always.",
-      }];
+  // Only show messages from the database
+  const messagesToShow = messages;
+
+  if (messagesToShow.length === 0) return null;
 
   // Auto-rotate executive messages
   useEffect(() => {
@@ -418,7 +443,7 @@ function ExecutiveMessagesCard({
               Message from Leadership
             </p>
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-              Welcome to ARL Connect
+              Welcome to ARL Intranet
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed mb-3">
               "{currentExec.message}"
@@ -458,7 +483,8 @@ function ExecutiveMessagesCard({
 }
 
 export default function Home() {
-  const { recentNews, upcomingEvents, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages } = useLoaderData<LoaderData>();
+  const { recentNews, activeAlerts, safetyVideos, safetyTips, itTips, executiveMessages, companyImages, upcomingEvents } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -482,9 +508,14 @@ export default function Home() {
     ...safetyTips
       .filter((t) => t.featuredImage && !t.documentUrl)
       .map((tip): CarouselItem => ({ type: "tip", data: tip })),
-    // Add pinned news items with images
+    // Add featured news items with images (what admin marks as featured)
     ...recentNews
-      .filter((n) => n.isPinned && n.featuredImage)
+      .filter((n) => n.isFeatured && n.featuredImage)
+      .slice(0, 5)
+      .map((news): CarouselItem => ({ type: "news", data: news })),
+    // Also add pinned news items with images (if not already featured)
+    ...recentNews
+      .filter((n) => n.isPinned && n.featuredImage && !n.isFeatured)
       .slice(0, 3)
       .map((news): CarouselItem => ({ type: "news", data: news })),
   ];
@@ -611,14 +642,14 @@ export default function Home() {
   };
 
   return (
-    <MainLayout showRightSidebar>
+    <MainLayout showRightSidebar user={portalUser}>
       {/* Alert Toast Notifications - Auto-dismissing popups */}
       <AlertToast alerts={activeAlerts} autoHideDuration={8000} />
 
       {/* Featured Banner Carousel - Safety Videos, PDFs, Tips, and News */}
       {carouselItems.length > 0 && currentItem && (
-        <Card className="mb-6 overflow-hidden shadow-lg">
-          <div className="relative h-[400px] sm:h-[500px] md:h-[600px] bg-gray-900">
+        <Card className="mb-4 sm:mb-6 overflow-hidden shadow-lg">
+          <div className="relative h-[250px] sm:h-[400px] md:h-[500px] lg:h-[600px] bg-gray-900">
             {/* Render based on item type */}
             {currentItem.type === "video" ? (
               <>
@@ -626,8 +657,8 @@ export default function Home() {
                 <video
                   key={currentItem.data.id}
                   ref={videoRef}
-                  src={currentItem.data.videoUrl}
-                  poster={currentItem.data.thumbnail || undefined}
+                  src={isCloudinaryUrl(currentItem.data.videoUrl) ? getOptimizedVideoUrl(currentItem.data.videoUrl, { quality: "auto" }) : currentItem.data.videoUrl}
+                  poster={currentItem.data.thumbnail ? (isCloudinaryUrl(currentItem.data.thumbnail) ? getResponsiveUrl(currentItem.data.thumbnail, "hero", "desktop") : currentItem.data.thumbnail) : undefined}
                   className="absolute inset-0 w-full h-full object-cover"
                   preload="metadata"
                   muted={isMuted}
@@ -653,26 +684,28 @@ export default function Home() {
                 {!isPlaying && (
                   <button
                     onClick={togglePlayPause}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30 hover:bg-white/50 p-6 sm:p-8 text-white transition-all backdrop-blur-sm hover:scale-110"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30 hover:bg-white/50 p-4 sm:p-6 md:p-8 text-white transition-all backdrop-blur-sm hover:scale-110"
                     aria-label="Play video"
                   >
-                    <Play size={48} fill="white" />
+                    <Play size={32} fill="white" className="sm:hidden" />
+                    <Play size={48} fill="white" className="hidden sm:block" />
                   </button>
                 )}
 
                 {/* Video Controls Bar - Bottom */}
-                <div className="absolute bottom-24 left-4 right-4 flex items-center gap-4">
+                <div className="absolute bottom-16 sm:bottom-24 left-2 sm:left-4 right-2 sm:right-4 flex items-center gap-2 sm:gap-4">
                   <button
                     onClick={togglePlayPause}
-                    className="rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors"
+                    className="rounded-full bg-black/50 hover:bg-black/70 p-2 sm:p-3 text-white transition-colors"
                     aria-label={isPlaying ? "Pause video" : "Play video"}
                   >
-                    {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                    {isPlaying ? <Pause size={18} className="sm:hidden" /> : <Play size={18} className="sm:hidden" />}
+                    {isPlaying ? <Pause size={24} className="hidden sm:block" /> : <Play size={24} className="hidden sm:block" />}
                   </button>
 
                   <button
                     onClick={toggleMute}
-                    className="rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors"
+                    className="rounded-full bg-black/50 hover:bg-black/70 p-2 sm:p-3 text-white transition-colors"
                     aria-label={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
@@ -688,7 +721,9 @@ export default function Home() {
                 {/* PDF Document Display - fills entire card */}
                 {currentItem.data.featuredImage ? (
                   <img
-                    src={currentItem.data.featuredImage}
+                    src={isCloudinaryUrl(currentItem.data.featuredImage) ? getResponsiveUrl(currentItem.data.featuredImage, "hero", "desktop") : currentItem.data.featuredImage}
+                    srcSet={isCloudinaryUrl(currentItem.data.featuredImage) ? generateSrcSet(currentItem.data.featuredImage, "hero") : undefined}
+                    sizes={isCloudinaryUrl(currentItem.data.featuredImage) ? generateSizes("hero") : undefined}
                     alt={currentItem.data.title}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -710,17 +745,20 @@ export default function Home() {
                   href={currentItem.data.documentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 hover:bg-blue-700 p-6 sm:p-8 text-white transition-all hover:scale-110 flex flex-col items-center gap-2"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 hover:bg-blue-700 p-4 sm:p-6 md:p-8 text-white transition-all hover:scale-110 flex flex-col items-center gap-1 sm:gap-2"
                 >
-                  <ExternalLink size={48} />
-                  <span className="text-sm font-medium">Open PDF</span>
+                  <ExternalLink size={32} className="sm:hidden" />
+                  <ExternalLink size={48} className="hidden sm:block" />
+                  <span className="text-xs sm:text-sm font-medium">Open PDF</span>
                 </a>
               </>
             ) : currentItem.type === "tip" ? (
               <>
                 {/* Safety Tip with featured image - fills entire card */}
                 <img
-                  src={currentItem.data.featuredImage || ""}
+                  src={isCloudinaryUrl(currentItem.data.featuredImage || "") ? getResponsiveUrl(currentItem.data.featuredImage || "", "hero", "desktop") : currentItem.data.featuredImage || ""}
+                  srcSet={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSrcSet(currentItem.data.featuredImage || "", "hero") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSizes("hero") : undefined}
                   alt={currentItem.data.title}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -731,7 +769,9 @@ export default function Home() {
               <>
                 {/* Company Values - Mission, Vision, Values - full image display */}
                 <img
-                  src={currentItem.data.image}
+                  src={isCloudinaryUrl(currentItem.data.image) ? getResponsiveUrl(currentItem.data.image, "companyValues", "desktop") : currentItem.data.image}
+                  srcSet={isCloudinaryUrl(currentItem.data.image) ? generateSrcSet(currentItem.data.image, "companyValues") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.image) ? generateSizes("companyValues") : undefined}
                   alt={currentItem.data.alt}
                   className="absolute inset-0 w-full h-full object-contain sm:object-cover bg-gray-900"
                 />
@@ -742,7 +782,9 @@ export default function Home() {
               <>
                 {/* News item with featured image - fills entire card */}
                 <img
-                  src={currentItem.data.featuredImage || ""}
+                  src={isCloudinaryUrl(currentItem.data.featuredImage || "") ? getResponsiveUrl(currentItem.data.featuredImage || "", "hero", "desktop") : currentItem.data.featuredImage || ""}
+                  srcSet={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSrcSet(currentItem.data.featuredImage || "", "hero") : undefined}
+                  sizes={isCloudinaryUrl(currentItem.data.featuredImage || "") ? generateSizes("hero") : undefined}
                   alt={currentItem.data.title}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -762,21 +804,21 @@ export default function Home() {
                 </Link>
               </div>
             ) : (
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 md:p-8">
                 <Chip
                   size="sm"
                   style={{ backgroundColor: getSlideBadge(currentItem).color }}
-                  className="mb-3 text-white font-medium"
+                  className="mb-1 sm:mb-3 text-white font-medium"
                 >
                   <span className="flex items-center">
                     {getSlideBadge(currentItem).icon}
                     {getSlideBadge(currentItem).label}
                   </span>
                 </Chip>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg leading-tight">
+                <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
                   {currentItem.data.title}
                 </h1>
-                <p className="mt-2 text-sm sm:text-base text-white/90 line-clamp-2 max-w-2xl drop-shadow">
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-white/90 line-clamp-1 sm:line-clamp-2 max-w-2xl drop-shadow">
                   {currentItem.type === "news" ? (currentItem.data.excerpt || "Click to read more") :
                    currentItem.type === "video" ? currentItem.data.description :
                    currentItem.type === "pdf" ? (currentItem.data.summary || "Click to view document") :
@@ -787,16 +829,16 @@ export default function Home() {
                     href={currentItem.data.documentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full transition-colors"
+                    className="mt-2 sm:mt-4 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors"
                   >
-                    <FileText size={16} /> View Document <ExternalLink size={14} />
+                    <FileText size={14} className="sm:hidden" /><FileText size={16} className="hidden sm:block" /> View Document <ExternalLink size={14} />
                   </a>
                 ) : (
                   <Link
                     to={getSlideLink(currentItem)}
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors backdrop-blur-sm"
+                    className="mt-2 sm:mt-4 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white bg-white/20 hover:bg-white/30 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors backdrop-blur-sm"
                   >
-                    {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={16} />
+                    {currentItem.type === "video" ? "View Details" : "Read More"} <ArrowRight size={14} className="sm:hidden" /><ArrowRight size={16} className="hidden sm:block" />
                   </Link>
                 )}
               </div>
@@ -807,37 +849,39 @@ export default function Home() {
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors z-10"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-1.5 sm:p-3 text-white transition-colors z-10"
                   aria-label="Previous slide"
                 >
-                  <ChevronLeft size={28} />
+                  <ChevronLeft size={20} className="sm:hidden" />
+                  <ChevronLeft size={28} className="hidden sm:block" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-3 text-white transition-colors z-10"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-1.5 sm:p-3 text-white transition-colors z-10"
                   aria-label="Next slide"
                 >
-                  <ChevronRight size={28} />
+                  <ChevronRight size={20} className="sm:hidden" />
+                  <ChevronRight size={28} className="hidden sm:block" />
                 </button>
 
                 {/* Slide Indicators with type colors */}
-                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-1.5 sm:gap-2 z-10">
                   {carouselItems.map((item, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`h-2.5 rounded-full transition-all ${
+                      className={`h-2 sm:h-2.5 rounded-full transition-all ${
                         idx === currentSlide
-                          ? "w-8 bg-white"
+                          ? "w-6 sm:w-8 bg-white"
                           : item.type === "video"
-                            ? "w-2.5 bg-red-500/80"
+                            ? "w-2 sm:w-2.5 bg-red-500/80"
                             : item.type === "pdf"
-                              ? "w-2.5 bg-blue-500/80"
+                              ? "w-2 sm:w-2.5 bg-blue-500/80"
                               : item.type === "tip"
-                                ? "w-2.5 bg-green-500/80"
+                                ? "w-2 sm:w-2.5 bg-green-500/80"
                                 : item.type === "company"
-                                  ? "w-2.5 bg-primary-500/80"
-                                  : "w-2.5 bg-white/50"
+                                  ? "w-2 sm:w-2.5 bg-primary-500/80"
+                                  : "w-2 sm:w-2.5 bg-white/50"
                       }`}
                       aria-label={`Go to slide ${idx + 1} (${item.type})`}
                     />
@@ -845,9 +889,13 @@ export default function Home() {
                 </div>
 
                 {/* Slide Counter */}
-                <div className="absolute top-4 left-4 bg-black/50 rounded-full px-3 py-1 text-white text-sm z-10">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/50 text-white z-10"
+                >
                   {currentSlide + 1} / {carouselItems.length}
-                </div>
+                </Chip>
               </>
             )}
           </div>
@@ -861,31 +909,99 @@ export default function Home() {
         setCurrentSlide={setExecSlide}
       />
 
-      {/* Calendar and IT Tips Row */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        {/* Events Calendar */}
-        <div className="lg:col-span-2">
-          <EventCalendar
-            landscape
-            initialEvents={upcomingEvents.map((event) => ({
-              id: event.id,
-              title: event.title,
-              slug: event.slug,
-              date: event.date,
-              time: event.time,
-              location: event.location,
-              category: event.category,
-              description: event.description,
-              isFeatured: event.isFeatured,
-            }))}
-          />
+      {/* Upcoming Events & IT Tips - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100">
+                  <Calendar size={18} className="text-primary-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Upcoming Events</h2>
+              </div>
+              <Button
+                as={Link}
+                to="/events"
+                size="sm"
+                variant="light"
+                color="primary"
+                endContent={<ArrowRight size={14} />}
+              >
+                All Events
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {upcomingEvents.map((event) => {
+                const eventDate = new Date(event.date);
+                const monthShort = eventDate.toLocaleDateString("en-US", { month: "short" });
+                const dayNum = eventDate.getDate();
+
+                return (
+                  <Link key={event.id} to={`/events/${event.slug}`}>
+                    <Card className="shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                      <CardBody className="p-0">
+                        <div className="flex">
+                          {/* Featured Image or Date Fallback */}
+                          {event.featuredImage ? (
+                            <div className="relative h-auto w-40 flex-shrink-0 overflow-hidden">
+                              <img
+                                src={event.featuredImage}
+                                alt={event.title}
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {/* Date Badge Overlay */}
+                              <div className="absolute top-2 left-2 flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 bg-primary-600/90">
+                                <span className="text-xs font-medium text-white">{monthShort}</span>
+                                <span className="text-xl leading-tight font-bold text-white">{dayNum}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-shrink-0 w-40 bg-gradient-to-b from-primary-500 to-primary-700 flex flex-col items-center justify-center py-6 text-white">
+                              <span className="text-sm font-medium uppercase tracking-wider opacity-90">{monthShort}</span>
+                              <span className="text-4xl font-bold leading-none">{dayNum}</span>
+                            </div>
+                          )}
+
+                          {/* Event Details */}
+                          <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
+                            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                              {event.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">{event.description}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                              {event.time && (
+                                <span className="flex items-center gap-1.5">
+                                  <Clock size={14} />
+                                  {event.time}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1.5 truncate">
+                                <MapPin size={14} className="flex-shrink-0" />
+                                <span className="truncate">{event.location}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* IT Tips */}
+        <div>
+          <ITTipsSlideshow tips={itTips} />
         </div>
-        {/* IT Tips Card - Slideshow Style (ONE tip at a time) */}
-        <ITTipsSlideshow tips={itTips} />
       </div>
 
       {/* News Posts Grid */}
-      <div className="mb-6">
+      <div className="mb-8 lg:mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Latest News</h2>
           <Button
@@ -901,72 +1017,76 @@ export default function Home() {
         </div>
 
         {recentNews.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentNews.map((post) => (
+          <div className="flex flex-col gap-4">
+            {/* All news cards - consistent full-width layout */}
+            {recentNews.map((post, index) => (
               <Link key={post.id} to={`/news/${post.slug}`}>
-                <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group h-full">
-                  {/* Image Section */}
-                  <div className="relative aspect-[16/10]">
-                    <Image
-                      src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
-                      alt={post.title}
-                      classNames={{
-                        wrapper: "w-full h-full",
-                        img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                      }}
-                      radius="none"
-                    />
-                    {/* Category badge on image */}
-                    <div className="absolute top-2 left-2 flex gap-2">
-                      <Chip
-                        size="sm"
-                        style={{ backgroundColor: post.category.color }}
-                        className="text-white font-medium"
-                      >
-                        {post.category.name}
-                      </Chip>
-                      {post.isPinned && (
-                        <Chip size="sm" color="warning">
-                          Pinned
-                        </Chip>
-                      )}
-                    </div>
-                  </div>
-                  {/* Content Section - Solid Background */}
-                  <CardBody className="p-3 bg-white">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Avatar
-                        name={getInitials(post.author.name)}
-                        size="sm"
-                        classNames={{
-                          base: "bg-primary-500 text-white font-semibold text-xs",
-                        }}
+                <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden group md:h-52 p-0">
+                  <CardBody className="p-0 h-full">
+                  <div className="flex flex-col md:flex-row gap-3 md:gap-6">
+                    {/* Image Section */}
+                    {/* <div className="relative"> */}
+                    <div className="md:h-52 md:w-64 w-full h-52 overflow-hidden flex-shrink-0">
+
+                      <img
+                        src={post.featuredImage || "https://via.placeholder.com/800x450?text=ARL+News"}
+                        alt={post.title}
+                        className="md:h-52 md:w-64 w-full h-52 object-cover object-center group-hover:scale-105 transition-transform"
                       />
-                      <div>
-                        <p className="text-xs font-medium text-gray-900">{post.author.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {formatRelativeTime(post.publishedAt)}
-                        </p>
-                      </div>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{post.title}</h3>
-                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">{post.excerpt || "Click to read more..."}</p>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
-                          <ThumbsUp size={12} />
-                          Like
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
-                          <Share2 size={12} />
-                          Share
-                        </span>
+                      {/* Category badge on image */}
+                      <div className="flex-1 py-4 px-5 flex flex-col justify-between">
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          // color={post.category.color}
+                          style={{ backgroundColor: post.category.color }}
+                          className="text-white font-medium"
+                        >
+                          {post.category.name}
+                        </Chip>
+                        <div>
+
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2 mt-3">{post.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">{post.excerpt || "Click to read more..."}</p>
+                        </div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <Avatar
+                          name={getInitials(post.author.name)}
+                          size="sm"
+                          classNames={{
+                            base: "bg-primary-500 text-white font-semibold text-xs",
+                          }}
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{post.author.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatRelativeTime(post.publishedAt)}
+                          </p>
+                        </div>
                       </div>
-                      <span className="flex items-center gap-1 text-xs text-primary-600 font-medium">
-                        Read <ArrowRight size={12} />
-                      </span>
-                    </div>
-                  </CardBody>
+                      </div>
+                    {/* </div> */}
+                    {/* Content Section */}
+                    {/* <CardBody className="p-4 sm:w-3/5 bg-white flex flex-col justify-center"> */}
+                      {/* <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 text-sm text-gray-500">
+                            <ThumbsUp size={14} />
+                            Like
+                          </span>
+                          <span className="flex items-center gap-1 text-sm text-gray-500">
+                            <Share2 size={14} />
+                            Share
+                          </span>
+                        </div>
+                        <span className="flex items-center gap-1 text-sm text-primary-600 font-medium">
+                          Read <ArrowRight size={14} />
+                        </span>
+                      </div> */}
+                    {/* </CardBody> */}
+                  </div>
+                </CardBody>
                 </Card>
               </Link>
             ))}

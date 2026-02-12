@@ -296,8 +296,8 @@ export default function AdminDepartments() {
 
       {/* Departments Table */}
       <Card>
-        <CardBody className="p-0">
-          <Table aria-label="Departments table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Departments table" removeWrapper className="min-w-[500px]">
             <TableHeader>
               <TableColumn>NAME</TableColumn>
               <TableColumn>CODE</TableColumn>

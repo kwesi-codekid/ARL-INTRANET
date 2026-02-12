@@ -8,14 +8,14 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Input,
 } from "@heroui/react";
 import { Camera, Search, Image as ImageIcon, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useOutletContext } from "react-router";
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlbum } from "~/lib/services/gallery.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -65,14 +65,10 @@ function AlbumCard({ album }: { album: SerializedAlbum }) {
         {/* Image Section */}
         <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
           {album.coverImage ? (
-            <Image
+            <img
               src={album.coverImage}
               alt={album.title}
-              classNames={{
-                wrapper: "w-full h-full",
-                img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-              }}
-              radius="none"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -137,6 +133,7 @@ export default function GalleryPage() {
     page: number;
     search: string;
   }>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(search);
@@ -165,7 +162,7 @@ export default function GalleryPage() {
     : albums;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

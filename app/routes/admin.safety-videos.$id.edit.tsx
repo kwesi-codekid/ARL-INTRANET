@@ -172,7 +172,7 @@ export default function AdminEditSafetyVideoPage() {
             </Card>
 
             <Card className="shadow-sm">
-              <CardHeader className="flex justify-between">
+              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:justify-between">
                 <h2 className="font-semibold">Video Source</h2>
                 <div className="flex gap-2">
                   <Button

@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { Card, CardBody, CardHeader, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Chip } from "@heroui/react";
+import { Card, CardBody, CardHeader, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Chip, Spinner } from "@heroui/react";
 import { Calendar, Clock, MapPin, ArrowRight } from "lucide-react";
 import { Link, useFetcher } from "react-router";
 
@@ -153,7 +153,7 @@ export function EventCalendar({ initialEvents = [], landscape = false }: EventCa
               />
             ) : (
               <div className="flex items-center justify-center py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+                <Spinner size="lg" color="warning" />
               </div>
             )}
           </div>

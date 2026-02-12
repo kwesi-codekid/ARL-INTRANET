@@ -1,7 +1,7 @@
 import type { SerializedToolboxTalk, AdjacentTalks } from "~/lib/services/toolbox-talk.server";
 
 /**
- * Single Toolbox Talk Detail Page
+ * Single PSI Talk Detail Page
  * Task: 1.2.1.3.3-4 (Video/Audio Player Integration)
  */
 
@@ -11,24 +11,101 @@ import {
   CardHeader,
   Button,
   Chip,
-  Image,
-  Divider,
+  Spinner,
 } from "@heroui/react";
 import {
   Calendar,
   Eye,
-  PlayCircle,
-  Volume2,
   ChevronLeft,
   ChevronRight,
   Share2,
   User,
+  FileText,
+  Download,
+  ExternalLink,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
 } from "lucide-react";
+import { useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
+// PDF Viewer Component - uses Google Docs Viewer for reliable cross-browser PDF display
+interface PDFViewerProps {
+  pdfUrl: string;
+  title: string;
+  fileName?: string;
+}
 
+function PDFViewer({ pdfUrl, title, fileName }: PDFViewerProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Google Docs Viewer - works reliably for displaying PDFs from any public URL
+  const googleDocsViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+
+  return (
+    <div className="mb-6">
+      {/* PDF Toolbar */}
+      <div className="flex flex-col gap-2 rounded-t-lg bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <FileText className="text-red-400" size={20} />
+          <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
+            {fileName || title}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Open in new tab button - uses Google Docs viewer to display PDF */}
+          <Button
+            as="a"
+            href={googleDocsViewerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+            variant="flat"
+            className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
+            startContent={<ExternalLink size={14} />}
+          >
+            Open
+          </Button>
+          {/* Download button */}
+          <Button
+            as="a"
+            href={pdfUrl}
+            download={fileName || "document.pdf"}
+            size="sm"
+            color="primary"
+            className="flex-1 sm:flex-none"
+            startContent={<Download size={14} />}
+          >
+            Download
+          </Button>
+        </div>
+      </div>
+
+      {/* PDF Embed Area - Google Docs Viewer */}
+      <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+            <div className="text-center">
+              <Spinner size="lg" color="warning" className="mb-3" />
+              <p className="text-sm text-gray-600">Loading PDF document...</p>
+            </div>
+          </div>
+        )}
+        <iframe
+          src={googleDocsViewerUrl}
+          title={`PDF: ${title}`}
+          className="w-full border-0"
+          style={{ height: '75vh', minHeight: '500px' }}
+          onLoad={() => setIsLoading(false)}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface LoaderData {
   talk: SerializedToolboxTalk;
@@ -94,9 +171,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function ToolboxTalkDetailPage() {
   const { talk, navigation, relatedTalks } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const shortMonthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const formatWeek = (talk: typeof relatedTalks[0] | SerializedToolboxTalk) => {
+    if ('week' in talk && talk.week && talk.month && talk.year) {
+      return `Week ${talk.week} of ${monthNames[talk.month]} ${talk.year}`;
+    }
+    // Fallback
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -104,8 +189,12 @@ export default function ToolboxTalkDetailPage() {
     });
   };
 
-  const formatShortDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const formatShortWeek = (talk: typeof relatedTalks[0]) => {
+    if (talk.featuredMedia && 'week' in talk.featuredMedia) {
+      // Check if the talk object has week info
+    }
+    // Use scheduledDate for related talks which don't have full week info
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
     });
@@ -129,7 +218,7 @@ export default function ToolboxTalkDetailPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-4xl">
         {/* Back Button */}
         <Link
@@ -137,7 +226,7 @@ export default function ToolboxTalkDetailPage() {
           className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft size={16} />
-          Back to Toolbox Talks
+          Back to PSI Talks
         </Link>
 
         {/* Main Content Card */}
@@ -148,7 +237,7 @@ export default function ToolboxTalkDetailPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="text-amber-600" size={20} />
                 <span className="font-medium text-amber-700">
-                  {formatDate(talk.scheduledDate)}
+                  {formatWeek(talk)}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -176,51 +265,13 @@ export default function ToolboxTalkDetailPage() {
           </CardHeader>
 
           <CardBody className="p-6">
-            {/* Featured Media - Task: 1.2.1.3.3, 1.2.1.3.4 */}
-            {talk.featuredMedia && (
-              <div className="mb-6">
-                {talk.featuredMedia.type === "video" ? (
-                  // Task: 1.2.1.2.5 - Video player component
-                  <div className="relative overflow-hidden rounded-lg bg-black">
-                    <video
-                      controls
-                      className="w-full"
-                      poster={talk.featuredMedia.thumbnail}
-                      preload="metadata"
-                    >
-                      <source src={talk.featuredMedia.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                    {talk.featuredMedia.caption && (
-                      <p className="mt-2 text-center text-sm text-gray-500">
-                        {talk.featuredMedia.caption}
-                      </p>
-                    )}
-                  </div>
-                ) : talk.featuredMedia.type === "audio" ? (
-                  // Task: 1.2.1.2.6 - Audio player component
-                  <div className="rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 p-6">
-                    <div className="mb-4 flex items-center justify-center">
-                      <Volume2 className="text-amber-600" size={48} />
-                    </div>
-                    <audio controls className="w-full" preload="metadata">
-                      <source src={talk.featuredMedia.url} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                    {talk.featuredMedia.caption && (
-                      <p className="mt-2 text-center text-sm text-gray-600">
-                        {talk.featuredMedia.caption}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <Image
-                    src={talk.featuredMedia.url}
-                    alt={talk.title}
-                    className="w-full rounded-lg"
-                  />
-                )}
-              </div>
+            {/* PDF Document - Using Cloudinary image transformation */}
+            {talk.featuredMedia && talk.featuredMedia.type === "pdf" && (
+              <PDFViewer
+                pdfUrl={talk.featuredMedia.url}
+                title={talk.title}
+                fileName={talk.featuredMedia.fileName}
+              />
             )}
 
             {/* Tags */}
@@ -234,61 +285,10 @@ export default function ToolboxTalkDetailPage() {
               </div>
             )}
 
-            {/* Content */}
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: talk.content }}
-            />
-
-            {/* Additional Media Gallery */}
-            {talk.media && talk.media.length > 0 && (
-              <div className="mt-8">
-                <Divider className="mb-6" />
-                <h3 className="mb-4 font-semibold text-gray-900">
-                  Additional Resources
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {talk.media.map((item, index) => (
-                    <div
-                      key={index}
-                      className="overflow-hidden rounded-lg border bg-gray-50"
-                    >
-                      {item.type === "video" ? (
-                        <video
-                          controls
-                          className="w-full"
-                          poster={item.thumbnail}
-                          preload="metadata"
-                        >
-                          <source src={item.url} type="video/mp4" />
-                        </video>
-                      ) : item.type === "audio" ? (
-                        <div className="p-4">
-                          <div className="mb-2 flex items-center gap-2">
-                            <Volume2 size={20} className="text-amber-600" />
-                            <span className="text-sm font-medium">
-                              {item.caption || `Audio ${index + 1}`}
-                            </span>
-                          </div>
-                          <audio controls className="w-full" preload="metadata">
-                            <source src={item.url} type="audio/mpeg" />
-                          </audio>
-                        </div>
-                      ) : (
-                        <a href={item.url} target="_blank" rel="noopener noreferrer">
-                          <Image
-                            src={item.url}
-                            alt={item.caption || `Image ${index + 1}`}
-                            className="aspect-video object-cover"
-                          />
-                        </a>
-                      )}
-                      {item.caption && item.type !== "audio" && (
-                        <p className="p-2 text-sm text-gray-600">{item.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            {/* Summary/Description */}
+            {talk.summary && (
+              <div className="prose max-w-none text-gray-700">
+                <p>{talk.summary}</p>
               </div>
             )}
           </CardBody>
@@ -334,7 +334,7 @@ export default function ToolboxTalkDetailPage() {
         {relatedTalks.length > 0 && (
           <div className="mt-8">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Recent Toolbox Talks
+              Recent PSI Talks
             </h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {relatedTalks.map((related) => (
@@ -342,17 +342,13 @@ export default function ToolboxTalkDetailPage() {
                   <Card className="overflow-hidden shadow-sm transition-shadow hover:shadow-md">
                     <div className="relative h-32 bg-gray-100">
                       {related.featuredMedia ? (
-                        <Image
+                        <img
                           src={
                             related.featuredMedia.thumbnail ||
                             related.featuredMedia.url
                           }
                           alt={related.title}
-                          classNames={{
-                            wrapper: "w-full h-full",
-                            img: "w-full h-full object-cover",
-                          }}
-                          radius="none"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100">
@@ -361,7 +357,7 @@ export default function ToolboxTalkDetailPage() {
                       )}
                       <div className="absolute left-2 top-2">
                         <Chip size="sm" color="warning" variant="solid">
-                          {formatShortDate(related.scheduledDate)}
+                          {formatShortWeek(related)}
                         </Chip>
                       </div>
                     </div>

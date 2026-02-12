@@ -10,13 +10,13 @@ import {
   Button,
   Chip,
   Input,
-  Image,
   Pagination,
 } from "@heroui/react";
 import { Search, Clock, Eye, ArrowRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 
 
@@ -139,6 +139,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function NewsListingPage() {
   const { news, featuredNews, categories, pagination, currentCategory, searchQuery } =
     useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleCategoryChange = (category: string) => {
@@ -175,7 +176,7 @@ export default function NewsListingPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -230,15 +231,11 @@ export default function NewsListingPage() {
               <Link key={item.id} to={`/news/${item.slug}`}>
                 <Card className="h-full overflow-hidden shadow-sm transition-shadow hover:shadow-md group">
                   {/* Image Section */}
-                  <div className="relative aspect-[16/10]">
-                    <Image
+                  <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                    <img
                       src={item.featuredImage || "https://via.placeholder.com/400x200?text=ARL+News"}
                       alt={item.title}
-                      classNames={{
-                        wrapper: "w-full h-full",
-                        img: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                      }}
-                      radius="none"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {/* Badges on image */}
                     <div className="absolute top-2 left-2 flex gap-2">

@@ -43,12 +43,12 @@ async function clearFakeImages() {
     );
     console.log(`Cleared featuredImage from ${eventsResult.modifiedCount} events`);
 
-    // Clear images from Toolbox Talks
+    // Clear images from PSI Talks
     const toolboxResult = await mongoose.connection.db.collection("toolboxtalks").updateMany(
       { featuredMedia: { $ne: null } },
       { $unset: { featuredMedia: "" } }
     );
-    console.log(`Cleared featuredMedia from ${toolboxResult.modifiedCount} toolbox talks`);
+    console.log(`Cleared featuredMedia from ${toolboxResult.modifiedCount} PSI talks`);
 
     // Clear images from Safety Tips
     const safetyTipsResult = await mongoose.connection.db.collection("safetytips").updateMany(

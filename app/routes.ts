@@ -15,7 +15,7 @@ export default [
     // Public apps routes
     route("apps", "routes/apps._index.tsx"),
 
-    // Public toolbox talk routes (Phase 2)
+    // Public PSI talk routes (Phase 2)
     route("toolbox-talk", "routes/toolbox-talk._index.tsx"),
     route("toolbox-talk/:slug", "routes/toolbox-talk.$slug.tsx"),
 
@@ -58,8 +58,16 @@ export default [
     route("about", "routes/about.tsx"),
   ]),
 
+  // User authentication routes
+  route("login", "routes/user.login.tsx"),
+  route("logout", "routes/user.logout.tsx"),
+
   // API routes (not affected by maintenance mode)
   route("api/quick-links", "routes/api.quick-links.tsx"),
+
+  // User auth API routes
+  route("api/user/auth", "routes/api.user.auth.ts"),
+  route("api/user/me", "routes/api.user.me.ts"),
   route("api/toolbox-talk-weekly", "routes/api.toolbox-talk-weekly.tsx"),
   route("api/upload", "routes/api.upload.tsx"),
   route("api/csv-template", "routes/api.csv-template.tsx"),
@@ -72,8 +80,9 @@ export default [
   route("api/albums", "routes/api.albums.ts"),
   route("api/suggestions", "routes/api.suggestions.tsx"),
   route("api/suggestions/categories", "routes/api.suggestions.categories.tsx"),
-  route("api/chat", "routes/api.chat.tsx"),
+  // route("api/chat", "routes/api.chat.tsx"), // Commented out - AI chatbot disabled for now
   route("api/gold-news", "routes/api.gold-news.tsx"),
+  route("api/featured-news", "routes/api.featured-news.tsx"),
 
   // Admin routes
   layout("routes/admin.tsx", [
@@ -82,6 +91,11 @@ export default [
     route("admin/logout", "routes/admin.logout.tsx"),
     route("admin/users", "routes/admin.users.tsx"),
     route("admin/activity", "routes/admin.activity.tsx"),
+
+    // Admin portal users routes (employee management)
+    route("admin/portal-users", "routes/admin.portal-users.tsx"),
+    route("admin/portal-users/new", "routes/admin.portal-users.new.tsx"),
+    route("admin/portal-users/:id/edit", "routes/admin.portal-users.$id.edit.tsx"),
 
     // Admin news routes
     route("admin/news", "routes/admin.news._index.tsx"),
@@ -95,9 +109,8 @@ export default [
 
     // Admin apps routes
     route("admin/apps", "routes/admin.apps.tsx"),
-    route("admin/apps/categories", "routes/admin.apps.categories.tsx"),
 
-    // Admin toolbox talk routes (Phase 2)
+    // Admin PSI talk routes (Phase 2)
     route("admin/toolbox-talks", "routes/admin.toolbox-talks._index.tsx"),
     route("admin/toolbox-talks/new", "routes/admin.toolbox-talks.new.tsx"),
     route("admin/toolbox-talks/:id/edit", "routes/admin.toolbox-talks.$id.edit.tsx"),
@@ -143,8 +156,8 @@ export default [
     route("admin/suggestions", "routes/admin.suggestions._index.tsx"),
     route("admin/suggestions/categories", "routes/admin.suggestions.categories.tsx"),
 
-    // Admin chatbot routes (Phase 4)
-    route("admin/faqs", "routes/admin.faqs._index.tsx"),
+    // Admin chatbot routes (Phase 4) - Commented out, AI chatbot disabled for now
+    // route("admin/faqs", "routes/admin.faqs._index.tsx"),
 
     // Admin IT tips route
     route("admin/it-tips", "routes/admin.it-tips.tsx"),

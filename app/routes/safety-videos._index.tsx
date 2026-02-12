@@ -21,8 +21,9 @@ import {
 } from "@heroui/react";
 import { Search, Video, Play, Eye, Clock, X } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import { VideoPlayer } from "~/components/ui";
 import type { SerializedSafetyVideo, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
@@ -81,6 +82,7 @@ function formatDuration(seconds: number): string {
 export default function SafetyVideosPage() {
   const { videos, total, page, totalPages, categories, selectedCategory, searchQuery } =
     useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [search, setSearch] = useState(searchQuery);
   const [selectedVideo, setSelectedVideo] = useState<SerializedSafetyVideo | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -91,16 +93,17 @@ export default function SafetyVideosPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
+      <div className="overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 flex-shrink-0">
             <Video size={24} className="text-blue-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900">Safety Videos</h1>
-            <p className="text-gray-500">Watch and learn important safety procedures</p>
+            <p className="text-gray-500 truncate">Watch and learn important safety procedures</p>
           </div>
         </div>
       </div>
@@ -128,7 +131,7 @@ export default function SafetyVideosPage() {
       </Card>
 
       {/* Category Tabs - Task: 1.2.2.3.4 */}
-      <div className="mb-6 overflow-x-auto">
+      <div className="mb-6 overflow-x-auto max-w-full">
         <Tabs
           selectedKey={selectedCategory}
           onSelectionChange={(key) => {
@@ -140,7 +143,7 @@ export default function SafetyVideosPage() {
           variant="underlined"
           color="primary"
           classNames={{
-            tabList: "gap-4",
+            tabList: "gap-4 flex-nowrap",
           }}
         >
           <Tab key="all" title="All Videos" />
@@ -215,9 +218,13 @@ export default function SafetyVideosPage() {
                 )}
                 {/* Duration Badge */}
                 {video.duration > 0 && (
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    className="absolute top-2 right-2 bg-black/70 text-white"
+                  >
                     {formatDuration(video.duration)}
-                  </div>
+                  </Chip>
                 )}
               </div>
               {/* Content Section - Solid Background */}
@@ -260,14 +267,17 @@ export default function SafetyVideosPage() {
         </div>
       )}
 
+      </div>
+
       {/* Video Player Modal - Task: 1.2.2.3.3 */}
       <Modal
         isOpen={isOpen}
         onClose={onClose}
         size="4xl"
         classNames={{
-          base: "bg-black",
+          base: "bg-black max-sm:m-0 max-sm:rounded-none max-sm:h-full",
           closeButton: "text-white hover:bg-white/20 z-50",
+          wrapper: "max-sm:p-0",
         }}
       >
         <ModalContent>
@@ -278,8 +288,8 @@ export default function SafetyVideosPage() {
                 title={selectedVideo.title}
                 autoPlay={true}
               />
-              <div className="p-4 bg-gray-900 text-white">
-                <h3 className="font-semibold text-lg">{selectedVideo.title}</h3>
+              <div className="p-3 sm:p-4 bg-gray-900 text-white">
+                <h3 className="font-semibold text-base sm:text-lg break-words">{selectedVideo.title}</h3>
                 <p className="text-gray-400 text-sm mt-1">{selectedVideo.description}</p>
               </div>
             </ModalBody>

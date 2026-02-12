@@ -8,7 +8,6 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Modal,
   ModalContent,
   ModalBody,
@@ -25,8 +24,9 @@ import {
 } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlbum, SerializedPhoto } from "~/lib/services/gallery.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -176,6 +176,7 @@ export default function AlbumDetailPage() {
     album: SerializedAlbum;
     photos: SerializedPhoto[];
   }>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -188,7 +189,7 @@ export default function AlbumDetailPage() {
   });
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Back Button */}
         <Button
@@ -228,31 +229,27 @@ export default function AlbumDetailPage() {
 
               {/* Cover Image */}
               {album.coverImage && (
-                <div className="w-full sm:w-48 h-32 rounded-lg overflow-hidden shrink-0">
-                  <Image
+                <div className="w-full sm:w-48 h-32 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                  <img
                     src={album.coverImage}
                     alt={album.title}
-                    classNames={{
-                      wrapper: "w-full h-full",
-                      img: "w-full h-full object-cover",
-                    }}
-                    radius="none"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
             </div>
 
             {/* Related Event */}
-            {album.event && (
+            {album.event?.slug && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <Button
                   as={Link}
-                  to={`/events/${album.event}`}
+                  to={`/events/${album.event.slug}`}
                   variant="flat"
                   color="primary"
                   size="sm"
                 >
-                  View Related Event
+                  {album.event.title ? `View Event: ${album.event.title}` : "View Related Event"}
                 </Button>
               </div>
             )}

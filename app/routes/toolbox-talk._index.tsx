@@ -1,8 +1,8 @@
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
 
 /**
- * Public Toolbox Talk Listing Page
- * Task: 1.2.1.3.1-7 (Public Toolbox Talk UI)
+ * Public PSI Talk Listing Page
+ * Task: 1.2.1.3.1-7 (Public PSI Talk UI)
  */
 
 import {
@@ -13,13 +13,13 @@ import {
   Button,
   Chip,
   Input,
-  Image,
   Pagination,
 } from "@heroui/react";
 import { Search, Calendar, Eye, PlayCircle, Volume2, ChevronRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 
 
@@ -110,6 +110,7 @@ export default function ToolboxTalkPage() {
     currentYear,
     currentMonth,
   } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (value: string) => {
@@ -142,10 +143,27 @@ export default function ToolboxTalkPage() {
     setSearchParams(new URLSearchParams());
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+  const formatWeek = (talk: SerializedToolboxTalk) => {
+    const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (talk.week && talk.month && talk.year) {
+      return `Wk ${talk.week}, ${monthNames[talk.month]}`;
+    }
+    // Fallback to date format for legacy data
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
+    });
+  };
+
+  const formatFullWeek = (talk: SerializedToolboxTalk) => {
+    const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    if (talk.week && talk.month && talk.year) {
+      return `Week ${talk.week} of ${monthNames[talk.month]} ${talk.year}`;
+    }
+    // Fallback
+    return new Date(talk.scheduledDate).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
       year: "numeric",
     });
   };
@@ -166,14 +184,14 @@ export default function ToolboxTalkPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Daily Toolbox Talk</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Weekly PSI Talk</h1>
             <p className="text-sm text-gray-500">
-              Start your day with safety awareness and best practices
+              Weekly safety awareness and best practices
             </p>
           </div>
           <Input
@@ -192,8 +210,8 @@ export default function ToolboxTalkPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="text-amber-600" size={24} />
                 <div>
-                  <p className="text-lg font-bold text-amber-800">Today's Toolbox Talk</p>
-                  <p className="text-sm text-amber-600">{formatDate(todaysTalk.scheduledDate)}</p>
+                  <p className="text-lg font-bold text-amber-800">This Week's PSI Talk</p>
+                  <p className="text-sm text-amber-600">{formatFullWeek(todaysTalk)}</p>
                 </div>
               </div>
             </CardHeader>
@@ -204,13 +222,10 @@ export default function ToolboxTalkPage() {
                   <div className="relative h-48 w-full overflow-hidden rounded-lg md:h-64 md:w-80 md:flex-shrink-0">
                     {todaysTalk.featuredMedia.type === "video" ? (
                       <div className="flex h-full items-center justify-center bg-gray-900">
-                        <Image
+                        <img
                           src={todaysTalk.featuredMedia.thumbnail || "/images/video-placeholder.jpg"}
                           alt={todaysTalk.title}
-                          classNames={{
-                            wrapper: "w-full h-full",
-                            img: "w-full h-full object-cover opacity-75",
-                          }}
+                          className="w-full h-full object-cover opacity-75"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
                           <PlayCircle className="text-white" size={64} />
@@ -221,13 +236,10 @@ export default function ToolboxTalkPage() {
                         <Volume2 className="text-white" size={64} />
                       </div>
                     ) : (
-                      <Image
+                      <img
                         src={todaysTalk.featuredMedia.url}
                         alt={todaysTalk.title}
-                        classNames={{
-                          wrapper: "w-full h-full",
-                          img: "w-full h-full object-cover",
-                        }}
+                        className="w-full h-full object-cover"
                       />
                     )}
                   </div>
@@ -301,18 +313,14 @@ export default function ToolboxTalkPage() {
                       <div className="relative h-40 bg-gray-100">
                         {talk.featuredMedia ? (
                           <>
-                            <Image
+                            <img
                               src={
                                 talk.featuredMedia.thumbnail ||
                                 talk.featuredMedia.url ||
                                 "/images/talk-placeholder.jpg"
                               }
                               alt={talk.title}
-                              classNames={{
-                                wrapper: "w-full h-full",
-                                img: "w-full h-full object-cover",
-                              }}
-                              radius="none"
+                              className="w-full h-full object-cover"
                             />
                             {talk.featuredMedia.type !== "image" && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -327,7 +335,7 @@ export default function ToolboxTalkPage() {
                         )}
                         <div className="absolute left-2 top-2">
                           <Chip size="sm" color="warning" variant="solid">
-                            {formatDate(talk.scheduledDate)}
+                            {formatWeek(talk)}
                           </Chip>
                         </div>
                       </div>
@@ -363,7 +371,7 @@ export default function ToolboxTalkPage() {
               <Card className="shadow-sm">
                 <CardBody className="py-12 text-center">
                   <Calendar className="mx-auto mb-4 text-gray-300" size={48} />
-                  <p className="text-gray-500">No toolbox talks found</p>
+                  <p className="text-gray-500">No PSI talks found</p>
                   {(searchQuery || currentYear) && (
                     <Button
                       className="mt-4"

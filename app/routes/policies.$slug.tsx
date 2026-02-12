@@ -1,9 +1,10 @@
 /**
  * Public Policy Detail Page
- * View a single policy with content and PDF download
+ * View a single policy with content and PDF viewer
  */
 
-import { Card, CardBody, Chip, Button, Divider } from "@heroui/react";
+import { useState } from "react";
+import { Card, CardBody, Chip, Button, Spinner } from "@heroui/react";
 import {
   ArrowLeft,
   FileText,
@@ -12,13 +13,16 @@ import {
   Eye,
   Clock,
   User,
+  ExternalLink,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  const { getPolicyBySlug, incrementPolicyViews, serializePolicy } = await import("~/lib/services/policy.server");
+  const { getPolicyBySlug, incrementPolicyViews, serializePolicy } =
+    await import("~/lib/services/policy.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await connectDB();
@@ -44,6 +48,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function PolicyDetailPage() {
   const { policy } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
+  const [isPdfLoading, setIsPdfLoading] = useState(true);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
@@ -54,8 +60,12 @@ export default function PolicyDetailPage() {
     });
   };
 
+  const googleDocsViewerUrl = policy.pdfUrl
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(policy.pdfUrl)}&embedded=true`
+    : "";
+
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Back Link */}
         <Link
@@ -67,13 +77,13 @@ export default function PolicyDetailPage() {
         </Link>
 
         {/* Header */}
-        <Card className="mb-8 shadow-lg">
-          <CardBody className="p-8">
+        <Card className="mb-6 shadow-lg">
+          <CardBody className="p-6 sm:p-8">
             <div className="mb-6 flex flex-wrap items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary-100">
-                <FileText size={32} className="text-primary-600" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-100 flex-shrink-0">
+                <FileText size={28} className="text-primary-600" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 {typeof policy.category === "object" && policy.category && (
                   <Chip
                     size="sm"
@@ -87,17 +97,19 @@ export default function PolicyDetailPage() {
                     {policy.category.name}
                   </Chip>
                 )}
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {policy.title}
                 </h1>
                 {policy.excerpt && (
-                  <p className="mt-2 text-lg text-gray-600">{policy.excerpt}</p>
+                  <p className="mt-2 text-base sm:text-lg text-gray-600">
+                    {policy.excerpt}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500">
               {policy.version && (
                 <span className="flex items-center gap-2">
                   <FileText size={16} />
@@ -125,47 +137,72 @@ export default function PolicyDetailPage() {
                 </span>
               )}
             </div>
-
-            {/* PDF Download */}
-            {policy.pdfUrl && (
-              <>
-                <Divider className="my-6" />
-                <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
-                  <div className="flex items-center gap-3">
-                    <FileText size={24} className="text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {policy.pdfFileName || "Policy Document.pdf"}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Download the official PDF document
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    as="a"
-                    href={policy.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
-                    color="primary"
-                    startContent={<Download size={18} />}
-                  >
-                    Download PDF
-                  </Button>
-                </div>
-              </>
-            )}
           </CardBody>
         </Card>
+
+        {/* PDF Viewer - same as PSI talk */}
+        {policy.pdfUrl && (
+          <div className="mb-6">
+            {/* PDF Toolbar */}
+            <div className="flex flex-col gap-2 rounded-t-lg bg-gray-800 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="text-red-400" size={20} />
+                <span className="text-sm font-medium text-white truncate max-w-[200px] sm:max-w-none">
+                  {policy.pdfFileName || "Policy Document.pdf"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  as="a"
+                  href={googleDocsViewerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                  variant="flat"
+                  className="flex-1 sm:flex-none bg-white/20 text-white hover:bg-white/30"
+                  startContent={<ExternalLink size={14} />}
+                >
+                  Open
+                </Button>
+                <Button
+                  as="a"
+                  href={policy.pdfUrl}
+                  download={policy.pdfFileName || "document.pdf"}
+                  size="sm"
+                  color="primary"
+                  className="flex-1 sm:flex-none"
+                  startContent={<Download size={14} />}
+                >
+                  Download
+                </Button>
+              </div>
+            </div>
+
+            {/* PDF Embed - Google Docs Viewer */}
+            <div className="border border-t-0 border-gray-300 bg-white rounded-b-lg overflow-hidden relative">
+              {isPdfLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                  <div className="text-center">
+                    <Spinner size="lg" color="warning" className="mb-3" />
+                    <p className="text-sm text-gray-600">Loading PDF document...</p>
+                  </div>
+                </div>
+              )}
+              <iframe
+                src={googleDocsViewerUrl}
+                title={`PDF: ${policy.title}`}
+                className="w-full border-0"
+                style={{ height: "75vh", minHeight: "500px" }}
+                onLoad={() => setIsPdfLoading(false)}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Policy Content */}
         {policy.content && (
           <Card className="shadow-lg">
-            <CardBody className="p-8">
-              <h2 className="mb-6 text-xl font-bold text-gray-900">
-                Policy Content
-              </h2>
+            <CardBody className="p-6 sm:p-8">
               <div
                 className="prose prose-lg max-w-none text-gray-700"
                 dangerouslySetInnerHTML={{ __html: policy.content }}

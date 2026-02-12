@@ -15,7 +15,7 @@ test.setTimeout(60000);
 test.describe("Public Pages", () => {
   test("Home page loads correctly", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Title could be "ARL Connect" or contain "ARL"
+    // Title could be "ARL Intranet" or contain "ARL"
     await expect(page).toHaveTitle(/ARL/);
 
     // Check header exists
@@ -76,7 +76,7 @@ test.describe("Public Pages", () => {
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test("Toolbox Talk page loads", async ({ page }) => {
+  test("PSI Talk page loads", async ({ page }) => {
     await page.goto(`${BASE_URL}/toolbox-talk`);
     await expect(page.locator("body")).toBeVisible();
   });
@@ -165,7 +165,7 @@ test.describe("Admin Pages", () => {
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test("Admin toolbox talks page loads", async ({ page }) => {
+  test("Admin PSI talks page loads", async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/toolbox-talks`);
     await expect(page.locator("body")).toBeVisible();
   });

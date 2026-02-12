@@ -27,8 +27,9 @@ import {
   Clock,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, useNavigation, Link } from "react-router";
+import { useLoaderData, useSearchParams, useNavigation, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getGoldNews, getNewsStats } = await import("~/lib/services/gold-news.server");
@@ -63,6 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function GoldNewsPage() {
   const { news, total, page, totalPages, stats } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -117,7 +119,7 @@ export default function GoldNewsPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

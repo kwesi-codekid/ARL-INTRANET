@@ -56,7 +56,13 @@
       "Bash(copy \"C:\\\\Users\\\\Dell\\\\Desktop\\\\adamus\\\\vission.png\" \"C:\\\\Users\\\\Dell\\\\intranet\\\\public\\\\uploads\\\\company\\\\vision.png\")",
       "Bash(copy \"C:\\\\Users\\\\Dell\\\\Desktop\\\\adamus\\\\mission.png\" \"C:\\\\Users\\\\Dell\\\\intranet\\\\public\\\\uploads\\\\company\\\\mission.png\")",
       "Bash(copy \"C:\\\\Users\\\\Dell\\\\Desktop\\\\adamus\\\\values.png\" \"C:\\\\Users\\\\Dell\\\\intranet\\\\public\\\\uploads\\\\company\\\\values.png\")",
-      "Bash(cmd /c \"copy \"\"C:\\\\Users\\\\Dell\\\\Desktop\\\\adamus\\\\vission.png\"\" \"\"C:\\\\Users\\\\Dell\\\\intranet\\\\public\\\\uploads\\\\company\\\\vision.png\"\"\")"
+      "Bash(cmd /c \"copy \"\"C:\\\\Users\\\\Dell\\\\Desktop\\\\adamus\\\\vission.png\"\" \"\"C:\\\\Users\\\\Dell\\\\intranet\\\\public\\\\uploads\\\\company\\\\vision.png\"\"\")",
+      "Bash(xargs -I {} sh -c 'grep -l \"\"export default\"\" {} 2>/dev/null')",
+      "Bash(node:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx react-router dev --host)",
+      "Bash(npx playwright:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

@@ -92,10 +92,14 @@ export function SafetyVideoWidget({ video }: SafetyVideoWidgetProps) {
             </div>
             {/* Duration Badge */}
             {video.duration > 0 && (
-              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                <Clock size={10} />
+              <Chip
+                size="sm"
+                variant="flat"
+                className="absolute bottom-2 right-2 bg-black/70 text-white"
+                startContent={<Clock size={10} />}
+              >
                 {formatDuration(video.duration)}
-              </div>
+              </Chip>
             )}
           </div>
         </Link>

@@ -21,14 +21,14 @@ export const adminSeeds: Partial<IAdmin>[] = [
  */
 export const newsSeeds: Partial<INews>[] = [
   {
-    title: "Welcome to ARL Connect",
+    title: "Welcome to ARL Intranet",
     content: `
-      <p>Welcome to <strong>ARL Connect</strong>, the official intranet portal for Adamus Resources Limited.</p>
+      <p>Welcome to <strong>ARL Intranet</strong>, the official intranet portal for Adamus Resources Limited.</p>
       <p>This platform is designed to keep you informed about company news, safety updates, and provide easy access to important resources and tools.</p>
       <h3>What you can do here:</h3>
       <ul>
         <li>Stay updated with the latest company news and announcements</li>
-        <li>Access safety information and toolbox talks</li>
+        <li>Access safety information and PSI talks</li>
         <li>Find contact information for colleagues across all departments</li>
         <li>View and share photos from company events</li>
         <li>Access frequently used business applications</li>

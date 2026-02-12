@@ -192,9 +192,9 @@ export default function AdminSafetyVideosPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Safety Videos</h1>
           <p className="text-gray-500">Manage safety training videos</p>
@@ -204,54 +204,59 @@ export default function AdminSafetyVideosPage() {
           to="/admin/safety-videos/new"
           color="primary"
           startContent={<Plus size={18} />}
+          className="w-full sm:w-auto"
         >
           Add Video
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
         <Card className="shadow-sm">
-          <CardBody className="flex flex-row items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <Video size={20} className="text-blue-600" />
+          <CardBody className="flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-blue-100 flex-shrink-0">
+              <Video size={18} className="text-blue-600 sm:hidden" />
+              <Video size={20} className="text-blue-600 hidden sm:block" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalVideos}</p>
-              <p className="text-xs text-gray-500">Total Videos</p>
+            <div className="min-w-0">
+              <p className="text-xl sm:text-2xl font-bold">{stats.totalVideos}</p>
+              <p className="text-xs text-gray-500 truncate">Total Videos</p>
             </div>
           </CardBody>
         </Card>
         <Card className="shadow-sm">
-          <CardBody className="flex flex-row items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <Eye size={20} className="text-green-600" />
+          <CardBody className="flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-green-100 flex-shrink-0">
+              <Eye size={18} className="text-green-600 sm:hidden" />
+              <Eye size={20} className="text-green-600 hidden sm:block" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.publishedVideos}</p>
-              <p className="text-xs text-gray-500">Published</p>
-            </div>
-          </CardBody>
-        </Card>
-        <Card className="shadow-sm">
-          <CardBody className="flex flex-row items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-              <Star size={20} className="text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalCategories}</p>
-              <p className="text-xs text-gray-500">Categories</p>
+            <div className="min-w-0">
+              <p className="text-xl sm:text-2xl font-bold">{stats.publishedVideos}</p>
+              <p className="text-xs text-gray-500 truncate">Published</p>
             </div>
           </CardBody>
         </Card>
         <Card className="shadow-sm">
-          <CardBody className="flex flex-row items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-              <Eye size={20} className="text-orange-600" />
+          <CardBody className="flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-purple-100 flex-shrink-0">
+              <Star size={18} className="text-purple-600 sm:hidden" />
+              <Star size={20} className="text-purple-600 hidden sm:block" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalViews}</p>
-              <p className="text-xs text-gray-500">Total Views</p>
+            <div className="min-w-0">
+              <p className="text-xl sm:text-2xl font-bold">{stats.totalCategories}</p>
+              <p className="text-xs text-gray-500 truncate">Categories</p>
+            </div>
+          </CardBody>
+        </Card>
+        <Card className="shadow-sm">
+          <CardBody className="flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-4">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-orange-100 flex-shrink-0">
+              <Eye size={18} className="text-orange-600 sm:hidden" />
+              <Eye size={20} className="text-orange-600 hidden sm:block" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl sm:text-2xl font-bold">{stats.totalViews}</p>
+              <p className="text-xs text-gray-500 truncate">Total Views</p>
             </div>
           </CardBody>
         </Card>
@@ -269,35 +274,37 @@ export default function AdminSafetyVideosPage() {
               classNames={{ inputWrapper: "bg-gray-50" }}
             />
           </form>
-          <Select
-            placeholder="Status"
-            selectedKeys={[currentStatus]}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className="w-40"
-          >
-            <SelectItem key="all">All Status</SelectItem>
-            <SelectItem key="published">Published</SelectItem>
-            <SelectItem key="draft">Draft</SelectItem>
-            <SelectItem key="archived">Archived</SelectItem>
-          </Select>
-          <Select
-            placeholder="Category"
-            selectedKeys={currentCategory ? [currentCategory] : []}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            className="w-48"
-          >
-            <SelectItem key="">All Categories</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id}>{cat.name}</SelectItem>
-            ))}
-          </Select>
+          <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+            <Select
+              placeholder="Status"
+              selectedKeys={[currentStatus]}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="w-full xs:flex-1 sm:w-40 sm:flex-none"
+            >
+              <SelectItem key="all">All Status</SelectItem>
+              <SelectItem key="published">Published</SelectItem>
+              <SelectItem key="draft">Draft</SelectItem>
+              <SelectItem key="archived">Archived</SelectItem>
+            </Select>
+            <Select
+              placeholder="Category"
+              selectedKeys={currentCategory ? [currentCategory] : []}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="w-full xs:flex-1 sm:w-48 sm:flex-none"
+            >
+              <SelectItem key="">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id}>{cat.name}</SelectItem>
+              ))}
+            </Select>
+          </div>
         </CardBody>
       </Card>
 
       {/* Table */}
       <Card className="shadow-sm">
-        <CardBody className="p-0">
-          <Table aria-label="Safety videos table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Safety videos table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>VIDEO</TableColumn>
               <TableColumn>CATEGORY</TableColumn>

@@ -268,8 +268,8 @@ export default function AdminNewsListingPage() {
             className="max-w-xs"
           />
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="News articles table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="News articles table" removeWrapper className="min-w-[700px]">
             <TableHeader>
               <TableColumn>ARTICLE</TableColumn>
               <TableColumn>CATEGORY</TableColumn>

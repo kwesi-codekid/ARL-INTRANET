@@ -6,7 +6,6 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
-  Input,
   Avatar,
   Button,
   Dropdown,
@@ -18,12 +17,32 @@ import {
   PopoverContent,
   Badge,
   Chip,
+  Progress,
 } from "@heroui/react";
-import { Search, Bell, Settings, LogOut, User, AlertTriangle, AlertCircle, Info, ChevronRight } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import {
+  Bell,
+  LogOut,
+  User,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  ChevronRight,
+  Shield,
+  Phone,
+  UtensilsCrossed,
+  Lightbulb,
+  Video,
+  Calendar,
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Link, NavLink, useNavigation } from "react-router";
 import { useAlertsSafe } from "~/components/alerts";
 import { GoldPriceTicker } from "~/components/ui";
+import type { PortalUser } from "./MainLayout";
+
+interface HeaderProps {
+  user?: PortalUser | null;
+}
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -32,6 +51,7 @@ const navItems = [
   { label: "Safety", href: "/safety" },
   { label: "Directory", href: "/directory" },
   { label: "Events", href: "/events" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Apps", href: "/apps" },
   { label: "Suggestions", href: "/suggestions" },
 ];
@@ -48,9 +68,79 @@ const severityColors = {
   info: "text-blue-500",
 };
 
-export function Header() {
+function NavigationProgress() {
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
+  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setProgress(0);
+      setVisible(true);
+      // Animate progress: fast at first, then slow down
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev;
+          if (prev >= 70) return prev + 0.5;
+          if (prev >= 50) return prev + 1;
+          return prev + 3;
+        });
+      }, 50);
+    } else {
+      if (visible) {
+        // Complete the bar, then hide
+        setProgress(100);
+        const timeout = setTimeout(() => {
+          setVisible(false);
+          setProgress(0);
+        }, 300);
+        return () => clearTimeout(timeout);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isLoading]);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className="w-full"
+      style={{
+        opacity: progress === 100 ? 0 : 1,
+        transition: "opacity 200ms ease-out",
+      }}
+    >
+      <Progress
+        size="sm"
+        value={progress}
+        color="warning"
+        aria-label="Loading page"
+        classNames={{
+          base: "h-[3px]",
+          track: "bg-transparent",
+          indicator: "bg-gradient-to-r from-[#c7a262] via-[#d2ab67] to-[#e0c080]",
+        }}
+      />
+    </div>
+  );
+}
+
+export function Header({ user }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
+
+  // Get user initials for avatar
+  const getUserInitials = (name: string) => {
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
 
   // Get alerts from context - returns null if AlertProvider not mounted
   const alertContext = useAlertsSafe();
@@ -65,11 +155,6 @@ export function Header() {
     type: a.type,
   })) ?? [];
   const openPopup = alertContext?.openPopup ?? null;
-
-  const isActive = (href: string) => {
-    if (href === "/") return location.pathname === "/";
-    return location.pathname.startsWith(href);
-  };
 
   return (
     <div className="sticky top-0 z-50">
@@ -99,8 +184,8 @@ export function Header() {
             <img
               src="/images/logo.png"
               alt="Adamus Resources"
-              className="h-10 sm:h-12 w-auto object-contain"
-              style={{ maxWidth: '180px' }}
+              className="h-12 sm:h-14 w-auto object-contain"
+              style={{ maxWidth: '200px' }}
             />
           </Link>
         </NavbarBrand>
@@ -109,22 +194,25 @@ export function Header() {
         <div className="hidden gap-1 sm:flex">
           {navItems.map((item) => (
             <NavbarItem key={item.href}>
-              <Link
+              <NavLink
                 to={item.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
+                end={item.href === "/"}
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`
+                }
               >
                 {item.label}
-              </Link>
+              </NavLink>
             </NavbarItem>
           ))}
         </div>
       </NavbarContent>
 
-      {/* Search & Actions */}
+      {/* Actions */}
       <NavbarContent justify="end" className="gap-2 sm:gap-3">
         {/* Gold Price Ticker - beside search */}
         <NavbarItem className="hidden lg:block">
@@ -133,178 +221,141 @@ export function Header() {
           </div>
         </NavbarItem>
 
-        {/* Search */}
-        <NavbarItem className="hidden md:flex">
-          <Input
-            classNames={{
-              base: "max-w-[200px]",
-              inputWrapper: "bg-white/20 hover:bg-white/30 group-data-[focus=true]:bg-white/30 border-0",
-              input: "text-white placeholder:text-white/60 text-sm",
-            }}
-            placeholder="Search..."
-            size="sm"
-            startContent={<Search size={16} className="text-white/60" />}
-            type="search"
-          />
-        </NavbarItem>
-
-        {/* Notifications/Alerts */}
-        <NavbarItem>
-          <Popover placement="bottom-end" showArrow>
-            <PopoverTrigger>
-              <Button
-                isIconOnly
-                variant="light"
-                aria-label="Alerts"
-                className="text-white hover:bg-white/20"
-                size="sm"
-              >
-                <Badge
-                  content={alertCount > 0 ? alertCount : undefined}
-                  color="danger"
-                  size="sm"
-                  isInvisible={alertCount === 0}
-                >
-                  <Bell size={20} />
-                </Badge>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0">
-              <div className="p-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Alerts</h3>
-                  {alertCount > 0 && (
-                    <Chip size="sm" color="danger" variant="flat">
-                      {alertCount} active
-                    </Chip>
-                  )}
-                </div>
-              </div>
-              <div className="max-h-80 overflow-y-auto">
-                {alerts.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {alerts.map((alert) => {
-                      const Icon = severityIcons[alert.severity];
-                      return (
-                        <Link
-                          key={alert.id}
-                          to={`/alerts/${alert.id}`}
-                          className="flex items-start gap-3 p-3 hover:bg-gray-50 transition-colors"
-                        >
-                          <div className={`mt-0.5 ${severityColors[alert.severity]}`}>
-                            <Icon size={18} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-900 truncate">
-                              {alert.title}
-                            </p>
-                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
-                              {alert.message}
-                            </p>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-6 text-center text-gray-500">
-                    <Bell size={32} className="mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No active alerts</p>
-                  </div>
-                )}
-              </div>
-              <div className="p-2 border-t border-gray-200 bg-gray-50">
-                <div className="flex gap-2">
-                  {openPopup && alertCount > 0 && (
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      color="warning"
-                      className="flex-1"
-                      onPress={openPopup}
-                    >
-                      View Popup
-                    </Button>
-                  )}
-                  <Button
-                    as={Link}
-                    to="/alerts"
-                    size="sm"
-                    variant="flat"
-                    color="primary"
-                    className="flex-1"
-                    endContent={<ChevronRight size={14} />}
-                  >
-                    View All Alerts
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </NavbarItem>
-
         {/* User Menu */}
         <NavbarItem>
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
+          {user ? (
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Button variant="light" className="gap-2 px-2">
+                  <Avatar
+                    name={getUserInitials(user.name)}
+                    size="sm"
+                    classNames={{
+                      base: "bg-white text-primary-600 font-semibold cursor-pointer",
+                    }}
+                  />
+                  <span className="hidden sm:inline text-white text-sm font-medium max-w-[120px] truncate">
+                    {user.name}
+                  </span>
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="User menu">
+                <DropdownItem
+                  key="user-info"
+                  isReadOnly
+                  className="cursor-default opacity-100"
+                  textValue={user.name}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-900">{user.name}</span>
+                    {user.position && (
+                      <span className="text-xs text-gray-500">{user.position}</span>
+                    )}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  key="logout"
+                  color="danger"
+                  startContent={<LogOut size={16} />}
+                  onPress={() => { window.location.href = "/logout"; }}
+                >
+                  Log Out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <Link to="/login">
               <Avatar
-                as="button"
-                name="PK"
+                icon={<User size={18} />}
                 size="sm"
                 classNames={{
-                  base: "bg-white text-primary-600 font-semibold cursor-pointer",
+                  base: "bg-white/20 text-white cursor-pointer hover:bg-white/30 transition-colors",
                 }}
               />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="User menu">
-              <DropdownItem key="profile" startContent={<User size={16} />}>
-                My Profile
-              </DropdownItem>
-              <DropdownItem key="settings" startContent={<Settings size={16} />}>
-                Settings
-              </DropdownItem>
-              <DropdownItem
-                key="logout"
-                color="danger"
-                startContent={<LogOut size={16} />}
-              >
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+            </Link>
+          )}
         </NavbarItem>
       </NavbarContent>
 
       {/* Mobile menu */}
-      <NavbarMenu className="bg-[#1a1a1a] pt-6">
-        {/* Mobile Search */}
-        <div className="mb-4 px-2">
-          <Input
-            classNames={{
-              inputWrapper: "bg-white/20 border-0",
-              input: "text-white placeholder:text-white/60",
-            }}
-            placeholder="Search..."
-            size="sm"
-            startContent={<Search size={16} className="text-white/60" />}
-            type="search"
-          />
-        </div>
+      <NavbarMenu className="bg-[#1a1a1a] pt-6 pb-24">
+        {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>
-            <Link
+            <NavLink
               to={item.href}
-              className={`block w-full rounded-lg px-3 py-2 text-lg ${
-                isActive(item.href)
-                  ? "bg-white/20 font-semibold text-white"
-                  : "text-white/80"
-              }`}
+              end={item.href === "/"}
+              className={({ isActive }) =>
+                `block w-full rounded-lg px-3 py-2 text-lg ${
+                  isActive
+                    ? "bg-white/20 font-semibold text-white"
+                    : "text-white/80"
+                }`
+              }
               onClick={() => setIsMenuOpen(false)}
             >
               {item.label}
-            </Link>
+            </NavLink>
           </NavbarMenuItem>
         ))}
+
+        {/* Quick Access Section */}
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+            Quick Access
+          </p>
+          <NavbarMenuItem>
+            <Link
+              to="/toolbox-talk"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Shield size={18} className="text-green-400" />
+              <span>Weekly PSI Talk</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/safety-tips"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Lightbulb size={18} className="text-emerald-400" />
+              <span>Safety Tips</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/safety-videos"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Video size={18} className="text-blue-400" />
+              <span>Safety Videos</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/canteen"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <UtensilsCrossed size={18} className="text-orange-400" />
+              <span>Today's Menu</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/events"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Calendar size={18} className="text-purple-400" />
+              <span>Upcoming Events</span>
+            </Link>
+          </NavbarMenuItem>
+        </div>
+
         <NavbarMenuItem>
           <Link
             to="/admin"
@@ -316,6 +367,7 @@ export function Header() {
         </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>
+    <NavigationProgress />
     </div>
   );
 }

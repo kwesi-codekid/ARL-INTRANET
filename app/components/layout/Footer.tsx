@@ -1,5 +1,5 @@
 import { Link } from "@heroui/react";
-import { Phone, Mail } from "lucide-react";
+import { Phone, Mail, Settings } from "lucide-react";
 
 const quickLinks = [
   { label: "Home", href: "/" },
@@ -11,16 +11,15 @@ const quickLinks = [
 ];
 
 const emergencyContacts = [
-  { label: "Emergency", value: "Call Control Room", icon: Phone },
-  { label: "HSE", value: "Safety Hotline", icon: Phone },
-  { label: "IT Support", value: "Help Desk", icon: Mail },
+  { label: "Emergency", value: "1111 / 0501316835", icon: Phone, tel: "1111" },
+  { label: "IT Support", value: "1000 / 0544337551", icon: Phone, tel: "1000" },
 ];
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#1a1a1a] text-white">
+    <footer className="bg-[#1a1a1a] text-white pb-16 lg:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand & Description */}
@@ -32,7 +31,7 @@ export function Footer() {
                 className="h-10 object-contain"
               />
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-primary-500">ARL Connect</span>
+                <span className="text-lg font-bold text-primary-500">ARL Intranet</span>
                 <span className="text-xs text-gray-400">Nguvu Mining Limited</span>
               </div>
             </div>
@@ -74,7 +73,9 @@ export function Footer() {
                     <span className="text-sm font-medium text-gray-300">
                       {contact.label}:
                     </span>{" "}
-                    <span className="text-sm text-gray-400">{contact.value}</span>
+                    <a href={`tel:${contact.tel}`} className="text-sm text-gray-400 hover:text-primary-500 transition-colors">
+                      {contact.value}
+                    </a>
                   </div>
                 </li>
               ))}
@@ -92,11 +93,20 @@ export function Footer() {
         <div className="mt-8 border-t border-gray-700 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-gray-500">
-              © {currentYear} Nguvu Mining Limited. All rights reserved.
+              © {currentYear} Adamus Resources Limited. All rights reserved.
             </p>
-            <p className="text-xs text-gray-600">
-              Internal Use Only - Accessible on Company Network
-            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/admin"
+                className="flex items-center gap-1.5 text-xs text-gray-500 transition-colors hover:text-primary-500"
+              >
+                <Settings size={14} />
+                Admin Portal
+              </Link>
+              <p className="text-xs text-gray-600">
+                Internal Use Only
+              </p>
+            </div>
           </div>
         </div>
       </div>

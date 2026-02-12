@@ -5,3 +5,5 @@
 
 export { ToolboxTalkCalendar } from "./ToolboxTalkCalendar";
 export { RichTextEditor } from "./RichTextEditor";
+export { FileUpload } from "./FileUpload";
+export { ContentDistributionChart, ActivityTimelineChart, ContentStatusChart } from "./charts";

@@ -13,8 +13,9 @@ import {
 } from "@heroui/react";
 import { Shield, ArrowLeft, Eye, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedSafetyTip } from "~/lib/services/safety.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -60,9 +61,10 @@ interface LoaderData {
 
 export default function SafetyTipDetailPage() {
   const { tip, relatedTips } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Back Button */}
       <Button
         as={Link}
@@ -79,11 +81,11 @@ export default function SafetyTipDetailPage() {
         <div className="lg:col-span-2">
           <Card className="shadow-sm">
             {tip.featuredImage && (
-              <div className="h-64 overflow-hidden">
+              <div className="h-64 sm:h-80 overflow-hidden bg-gray-100">
                 <img
                   src={tip.featuredImage}
                   alt={tip.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
             )}
@@ -122,7 +124,7 @@ export default function SafetyTipDetailPage() {
             <Divider />
             <CardBody>
               <div
-                className="prose prose-green max-w-none"
+                className="prose prose-base prose-green max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800"
                 dangerouslySetInnerHTML={{ __html: tip.content }}
               />
             </CardBody>

@@ -1,26 +1,24 @@
 /**
- * Admin Toolbox Talk Creation Page
+ * Admin PSI Talk Creation Page
  * Task: 1.2.1.4.2-4, 1.2.1.2.4 (Video thumbnail auto-generation)
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   Card,
   CardBody,
   CardHeader,
   Input,
-  Textarea,
   Button,
   Select,
   SelectItem,
   Chip,
   Divider,
-  Spinner,
 } from "@heroui/react";
-import { ArrowLeft, Save, Calendar, Upload, X, Video, Volume2, Image, RefreshCw } from "lucide-react";
+import { ArrowLeft, Save, Calendar, FileText, Image as ImageIcon } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useActionData, useNavigation, Form, Link, redirect } from "react-router";
-import { RichTextEditor } from "~/components/admin";
+import { useActionData, useNavigation, Form, Link, redirect } from "react-router";
+import { FileUpload } from "~/components/admin";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { requireAuth } = await import("~/lib/services/session.server");
@@ -32,7 +30,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { generateUniqueSlug, createToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
-  const { uploadThumbnailFromBase64 } = await import("~/lib/services/upload.server");
 
   await requireAuth(request);
   const sessionData = await getSessionData(request);
@@ -41,22 +38,26 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
-  const summary = formData.get("summary") as string;
-  const scheduledDate = formData.get("scheduledDate") as string;
+  const week = parseInt(formData.get("week") as string);
+  const month = parseInt(formData.get("month") as string);
+  const year = parseInt(formData.get("year") as string);
   const status = formData.get("status") as "draft" | "published";
   const tagsStr = formData.get("tags") as string;
-  const featuredMediaUrl = formData.get("featuredMediaUrl") as string;
-  const featuredMediaType = formData.get("featuredMediaType") as "image" | "video" | "audio";
-  const thumbnailDataUrl = formData.get("thumbnailDataUrl") as string;
+  const pdfUrl = formData.get("pdfUrl") as string;
+  const pdfFileName = formData.get("pdfFileName") as string;
+  const coverImageUrl = formData.get("coverImageUrl") as string;
 
   // Validation
-  if (!title || !content || !scheduledDate) {
+  if (!title || !week || !month || !year) {
     return Response.json(
-      { error: "Title, content, and scheduled date are required" },
+      { error: "Title, week, month, and year are required" },
       { status: 400 }
     );
   }
+
+  // Create a scheduledDate from week/month/year (first day of that week)
+  const { getDateFromWeek } = await import("~/lib/services/toolbox-talk.server");
+  const scheduledDate = getDateFromWeek(week, month, year);
 
   // Generate unique slug
   const slug = await generateUniqueSlug(title);
@@ -66,32 +67,27 @@ export async function action({ request }: ActionFunctionArgs) {
     ? tagsStr.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
-  // Task: 1.2.1.2.4 - Handle thumbnail upload for videos
-  let thumbnailUrl: string | undefined;
-  if (thumbnailDataUrl && featuredMediaType === "video") {
-    const thumbnailResult = await uploadThumbnailFromBase64(thumbnailDataUrl);
-    if (thumbnailResult.success && thumbnailResult.url) {
-      thumbnailUrl = thumbnailResult.url;
-    }
-  }
-
-  // Build featured media object if provided
-  const featuredMedia = featuredMediaUrl && featuredMediaType
+  // Build featured media object for PDF
+  const featuredMedia = pdfUrl
     ? {
-        type: featuredMediaType,
-        url: featuredMediaUrl,
-        ...(thumbnailUrl && { thumbnail: thumbnailUrl }),
+        type: "pdf" as const,
+        url: pdfUrl,
+        ...(pdfFileName && { fileName: pdfFileName }),
+        ...(coverImageUrl && { thumbnail: coverImageUrl }),
       }
     : undefined;
 
-  // Create toolbox talk using service
+  // Create PSI talk using service
   const talk = await createToolboxTalk({
     title,
     slug,
-    content,
-    summary: summary || content.substring(0, 200),
+    content: title,
+    summary: title,
     author: sessionData?.userId || "",
-    scheduledDate: new Date(scheduledDate),
+    scheduledDate,
+    week,
+    month,
+    year,
     status,
     tags,
     featuredMedia,
@@ -107,62 +103,40 @@ export default function AdminToolboxTalkNewPage() {
 
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [mediaType, setMediaType] = useState<"image" | "video" | "audio" | "">("");
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfFileName, setPdfFileName] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
 
-  // Task: 1.2.1.2.4 - Video thumbnail state
-  const [videoUrl, setVideoUrl] = useState("");
-  const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null);
-  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  // Week/month/year state - default to current week
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  // Calculate current week of month
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstDayOfWeek = firstDay.getDay();
+  const currentWeek = Math.ceil((today.getDate() + firstDayOfWeek) / 7);
 
-  // Auto-generate thumbnail when video URL changes
-  const generateThumbnail = useCallback(async (url: string) => {
-    if (!url || mediaType !== "video") return;
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
-    setIsGeneratingThumbnail(true);
-    setThumbnailError(null);
+  const months = [
+    { value: 1, label: "January" },
+    { value: 2, label: "February" },
+    { value: 3, label: "March" },
+    { value: 4, label: "April" },
+    { value: 5, label: "May" },
+    { value: 6, label: "June" },
+    { value: 7, label: "July" },
+    { value: 8, label: "August" },
+    { value: 9, label: "September" },
+    { value: 10, label: "October" },
+    { value: 11, label: "November" },
+    { value: 12, label: "December" },
+  ];
 
-    try {
-      // Dynamic import to avoid SSR issues
-      const { generateThumbnailFromUrl, getDefaultVideoThumbnail } = await import(
-        "~/lib/utils/video-thumbnail"
-      );
-
-      const result = await generateThumbnailFromUrl(url);
-
-      if (result.success && result.dataUrl) {
-        setThumbnailDataUrl(result.dataUrl);
-      } else {
-        // Use default placeholder if generation fails
-        setThumbnailDataUrl(getDefaultVideoThumbnail());
-        setThumbnailError(result.error || "Could not generate thumbnail");
-      }
-    } catch (err) {
-      setThumbnailError("Failed to generate thumbnail");
-      // Try to set default thumbnail
-      try {
-        const { getDefaultVideoThumbnail } = await import("~/lib/utils/video-thumbnail");
-        setThumbnailDataUrl(getDefaultVideoThumbnail());
-      } catch {
-        // Ignore if default also fails
-      }
-    } finally {
-      setIsGeneratingThumbnail(false);
-    }
-  }, [mediaType]);
-
-  // Effect to generate thumbnail when video URL is entered
-  useEffect(() => {
-    if (videoUrl && mediaType === "video") {
-      const timeoutId = setTimeout(() => {
-        generateThumbnail(videoUrl);
-      }, 500); // Debounce 500ms
-      return () => clearTimeout(timeoutId);
-    } else {
-      setThumbnailDataUrl(null);
-      setThumbnailError(null);
-    }
-  }, [videoUrl, mediaType, generateThumbnail]);
+  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const weeks = [1, 2, 3, 4, 5];
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -182,11 +156,6 @@ export default function AdminToolboxTalkNewPage() {
     }
   };
 
-  // Get tomorrow's date as default
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const defaultDate = tomorrow.toISOString().split("T")[0];
-
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
@@ -198,8 +167,8 @@ export default function AdminToolboxTalkNewPage() {
           <ArrowLeft size={20} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Toolbox Talk</h1>
-          <p className="text-sm text-gray-500">Schedule a new daily safety talk</p>
+          <h1 className="text-2xl font-bold text-gray-900">Create PSI Talk</h1>
+          <p className="text-sm text-gray-500">Upload the weekly safety talk PDF</p>
         </div>
       </div>
 
@@ -211,166 +180,77 @@ export default function AdminToolboxTalkNewPage() {
 
       <Form method="post">
         <input type="hidden" name="tags" value={tags.join(",")} />
+        <input type="hidden" name="pdfUrl" value={pdfUrl} />
+        <input type="hidden" name="pdfFileName" value={pdfFileName} />
+        <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
+        <input type="hidden" name="week" value={selectedWeek} />
+        <input type="hidden" name="month" value={selectedMonth} />
+        <input type="hidden" name="year" value={selectedYear} />
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
+            {/* PDF Upload */}
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Talk Content</h2>
+                <div className="flex items-center gap-2">
+                  <FileText size={20} className="text-green-600" />
+                  <h2 className="font-semibold">PDF Document</h2>
+                </div>
               </CardHeader>
               <CardBody className="space-y-4">
-                <Input
-                  name="title"
-                  label="Title"
-                  placeholder="Enter talk title"
-                  isRequired
-                  classNames={{ inputWrapper: "bg-gray-50" }}
+                <FileUpload
+                  accept="pdf"
+                  label="Upload PDF File *"
+                  description="PDF files up to 20MB"
+                  folder="toolbox-talks"
+                  currentUrl={pdfUrl}
+                  currentType="pdf"
+                  onUpload={(result) => {
+                    setPdfUrl(result.url);
+                  }}
+                  onRemove={() => {
+                    setPdfUrl("");
+                    setPdfFileName("");
+                  }}
                 />
 
-                <Textarea
-                  name="summary"
-                  label="Summary"
-                  placeholder="Brief summary of the talk (optional)"
-                  maxLength={500}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
-                />
-
-                <RichTextEditor
-                  name="content"
-                  label="Content"
-                  placeholder="Write your toolbox talk content here..."
-                  isRequired
-                  minHeight="250px"
-                />
+                {pdfUrl && (
+                  <Input
+                    value={pdfFileName}
+                    onValueChange={setPdfFileName}
+                    label="Display Name (Optional)"
+                    placeholder="Week 5 - Working at Heights Safety Talk.pdf"
+                    description="Name shown to users when downloading"
+                    classNames={{ inputWrapper: "bg-gray-50" }}
+                  />
+                )}
               </CardBody>
             </Card>
 
-            {/* Media Upload - Task: 1.2.1.4.3 */}
+            {/* Cover Image */}
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Featured Media (Optional)</h2>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant={mediaType === "image" ? "solid" : "flat"}
-                    color={mediaType === "image" ? "primary" : "default"}
-                    startContent={<Image size={16} />}
-                    onPress={() => setMediaType(mediaType === "image" ? "" : "image")}
-                    size="sm"
-                  >
-                    Image
-                  </Button>
-                  <Button
-                    variant={mediaType === "video" ? "solid" : "flat"}
-                    color={mediaType === "video" ? "primary" : "default"}
-                    startContent={<Video size={16} />}
-                    onPress={() => setMediaType(mediaType === "video" ? "" : "video")}
-                    size="sm"
-                  >
-                    Video
-                  </Button>
-                  <Button
-                    variant={mediaType === "audio" ? "solid" : "flat"}
-                    color={mediaType === "audio" ? "primary" : "default"}
-                    startContent={<Volume2 size={16} />}
-                    onPress={() => setMediaType(mediaType === "audio" ? "" : "audio")}
-                    size="sm"
-                  >
-                    Audio
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <ImageIcon size={20} className="text-blue-600" />
+                  <h2 className="font-semibold">Cover Image (Optional)</h2>
                 </div>
-
-                {mediaType && (
-                  <>
-                    <input type="hidden" name="featuredMediaType" value={mediaType} />
-                    {/* Task: 1.2.1.2.4 - Hidden input for auto-generated thumbnail */}
-                    {thumbnailDataUrl && mediaType === "video" && (
-                      <input type="hidden" name="thumbnailDataUrl" value={thumbnailDataUrl} />
-                    )}
-                    <Input
-                      name="featuredMediaUrl"
-                      label={`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} URL`}
-                      placeholder={
-                        mediaType === "video"
-                          ? "https://example.com/video.mp4"
-                          : mediaType === "audio"
-                            ? "https://example.com/audio.mp3"
-                            : "https://example.com/image.jpg"
-                      }
-                      description={`Enter the URL of the ${mediaType} file`}
-                      classNames={{ inputWrapper: "bg-gray-50" }}
-                      value={mediaType === "video" ? videoUrl : undefined}
-                      onValueChange={mediaType === "video" ? setVideoUrl : undefined}
-                    />
-
-                    {/* Task: 1.2.1.2.4 - Video thumbnail preview */}
-                    {mediaType === "video" && videoUrl && (
-                      <div className="rounded-lg border border-gray-200 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            Video Thumbnail
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="light"
-                            isDisabled={isGeneratingThumbnail}
-                            startContent={
-                              isGeneratingThumbnail ? (
-                                <Spinner size="sm" />
-                              ) : (
-                                <RefreshCw size={14} />
-                              )
-                            }
-                            onPress={() => generateThumbnail(videoUrl)}
-                          >
-                            {isGeneratingThumbnail ? "Generating..." : "Regenerate"}
-                          </Button>
-                        </div>
-
-                        {isGeneratingThumbnail && !thumbnailDataUrl && (
-                          <div className="flex h-32 items-center justify-center rounded bg-gray-100">
-                            <div className="text-center">
-                              <Spinner size="md" />
-                              <p className="mt-2 text-xs text-gray-500">
-                                Generating thumbnail...
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {thumbnailDataUrl && (
-                          <div className="relative">
-                            <img
-                              src={thumbnailDataUrl}
-                              alt="Video thumbnail"
-                              className="h-32 w-auto rounded object-cover"
-                            />
-                            {thumbnailError && (
-                              <p className="mt-1 text-xs text-amber-600">
-                                {thumbnailError} (using placeholder)
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {!thumbnailDataUrl && !isGeneratingThumbnail && (
-                          <div className="flex h-32 items-center justify-center rounded bg-gray-100">
-                            <p className="text-xs text-gray-500">
-                              Thumbnail will be generated automatically
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                <p className="text-xs text-gray-500">
-                  Tip: Upload files using the media library first, then paste the URL here.
-                  {mediaType === "video" && " A thumbnail will be auto-generated from the video."}
-                </p>
+              </CardHeader>
+              <CardBody>
+                <FileUpload
+                  accept="image"
+                  label="Upload Cover Image"
+                  description="JPG, PNG, GIF, WebP up to 5MB - Shown as thumbnail in lists"
+                  folder="toolbox-talks"
+                  currentUrl={coverImageUrl}
+                  currentType="image"
+                  onUpload={(result) => {
+                    setCoverImageUrl(result.url);
+                  }}
+                  onRemove={() => {
+                    setCoverImageUrl("");
+                  }}
+                />
               </CardBody>
             </Card>
 
@@ -418,19 +298,64 @@ export default function AdminToolboxTalkNewPage() {
           <div className="space-y-6">
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Schedule</h2>
+                <div className="flex items-center gap-2">
+                  <Calendar size={20} className="text-amber-600" />
+                  <h2 className="font-semibold">Schedule</h2>
+                </div>
               </CardHeader>
               <CardBody className="space-y-4">
-                {/* Task: 1.2.1.4.4 - Scheduling interface */}
                 <Input
-                  name="scheduledDate"
-                  label="Scheduled Date"
-                  type="date"
-                  defaultValue={defaultDate}
+                  name="title"
+                  label="Title"
+                  placeholder="e.g., Working at Heights Safety"
                   isRequired
-                  startContent={<Calendar size={16} className="text-gray-400" />}
                   classNames={{ inputWrapper: "bg-gray-50" }}
                 />
+
+                <Divider />
+
+                {/* Week-based scheduling */}
+                <Select
+                  label="Week"
+                  selectedKeys={[selectedWeek.toString()]}
+                  onSelectionChange={(keys) => setSelectedWeek(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {weeks.map((w) => (
+                    <SelectItem key={w.toString()}>Week {w}</SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Month"
+                  selectedKeys={[selectedMonth.toString()]}
+                  onSelectionChange={(keys) => setSelectedMonth(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {months.map((m) => (
+                    <SelectItem key={m.value.toString()}>{m.label}</SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Year"
+                  selectedKeys={[selectedYear.toString()]}
+                  onSelectionChange={(keys) => setSelectedYear(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {years.map((y) => (
+                    <SelectItem key={y.toString()}>{y}</SelectItem>
+                  ))}
+                </Select>
+
+                <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                  <strong>Scheduled for:</strong> Week {selectedWeek} of {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
+                </div>
+
+                <Divider />
 
                 <Select
                   name="status"
@@ -464,9 +389,9 @@ export default function AdminToolboxTalkNewPage() {
               </CardHeader>
               <CardBody className="text-sm text-gray-600">
                 <ul className="list-inside list-disc space-y-2">
-                  <li>Schedule talks in advance for each working day</li>
-                  <li>Include relevant images or videos for better engagement</li>
-                  <li>Keep content concise and actionable</li>
+                  <li>Schedule talks in advance for each week</li>
+                  <li>Upload the safety PDF document</li>
+                  <li>Add a cover image for better visibility</li>
                   <li>Use tags to categorize by safety topics</li>
                 </ul>
               </CardBody>

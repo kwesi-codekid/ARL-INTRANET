@@ -6,6 +6,7 @@ import {
   Users,
   Calendar,
   AppWindow,
+  Images,
   Utensils,
   MessageSquare,
   HelpCircle,
@@ -21,6 +22,7 @@ const menuItems = [
   { label: "Safety", href: "/safety", icon: Shield },
   { label: "Directory", href: "/directory", icon: Users },
   { label: "Events", href: "/events", icon: Calendar },
+  { label: "Gallery", href: "/gallery", icon: Images },
   { label: "Apps", href: "/apps", icon: AppWindow },
 ];
 

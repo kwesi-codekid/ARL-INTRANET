@@ -22,8 +22,9 @@ import {
 } from "@heroui/react";
 import { AlertTriangle, AlertCircle, Info, Bell, Calendar, Filter } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlert, AlertSeverity } from "~/lib/services/alert.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -158,6 +159,7 @@ function AlertCard({ alert }: { alert: SerializedAlert }) {
 export default function AlertsPage() {
   const { alerts, total, page, totalPages, tab, severity, startDate, endDate } =
     useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [localStartDate, setLocalStartDate] = useState(startDate);
   const [localEndDate, setLocalEndDate] = useState(endDate);
@@ -197,7 +199,7 @@ export default function AlertsPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

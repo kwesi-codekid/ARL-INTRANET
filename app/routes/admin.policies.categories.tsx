@@ -255,8 +255,8 @@ export default function AdminPolicyCategoriesPage() {
         <CardHeader>
           <h2 className="text-lg font-semibold">Categories</h2>
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Policy categories table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Policy categories table" removeWrapper className="min-w-[500px]">
             <TableHeader>
               <TableColumn width={50}></TableColumn>
               <TableColumn>CATEGORY</TableColumn>

@@ -4,11 +4,13 @@ import type { Document, Model, Types } from "mongoose";
 // Task: 1.2.1.1.1 - Create ToolboxTalk schema (title, content, date, media, author)
 
 export interface IMediaItem {
-  type: "image" | "video" | "audio";
+  type: "image" | "video" | "audio" | "pdf";
   url: string;
   thumbnail?: string;
   duration?: number; // in seconds, for video/audio
   caption?: string;
+  fileName?: string; // for PDF display
+  fileSize?: number; // in bytes, for PDF display
 }
 
 export interface IToolboxTalk extends Document {
@@ -20,6 +22,10 @@ export interface IToolboxTalk extends Document {
   media: IMediaItem[];
   featuredMedia?: IMediaItem;
   scheduledDate: Date;
+  // Week-based scheduling
+  week: number; // 1-5 (week of the month)
+  month: number; // 1-12
+  year: number;
   status: "draft" | "published" | "archived";
   tags: string[];
   views: number;
@@ -31,7 +37,7 @@ const MediaItemSchema = new Schema<IMediaItem>(
   {
     type: {
       type: String,
-      enum: ["image", "video", "audio"],
+      enum: ["image", "video", "audio", "pdf"],
       required: true,
     },
     url: {
@@ -47,6 +53,13 @@ const MediaItemSchema = new Schema<IMediaItem>(
     caption: {
       type: String,
       trim: true,
+    },
+    fileName: {
+      type: String,
+      trim: true,
+    },
+    fileSize: {
+      type: Number,
     },
   },
   { _id: false }
@@ -87,6 +100,21 @@ const ToolboxTalkSchema = new Schema<IToolboxTalk>(
       type: Date,
       required: true,
     },
+    // Week-based scheduling
+    week: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: 1,
+    },
+    month: {
+      type: Number,
+      min: 1,
+      max: 12,
+    },
+    year: {
+      type: Number,
+    },
     status: {
       type: String,
       enum: ["draft", "published", "archived"],
@@ -112,6 +140,7 @@ const ToolboxTalkSchema = new Schema<IToolboxTalk>(
 ToolboxTalkSchema.index({ status: 1, scheduledDate: -1 });
 ToolboxTalkSchema.index({ scheduledDate: 1 }); // For "today's talk" queries
 ToolboxTalkSchema.index({ title: "text", content: "text" });
+ToolboxTalkSchema.index({ year: -1, month: -1, week: -1 }); // For week-based queries
 
 export const ToolboxTalk: Model<IToolboxTalk> =
   mongoose.models.ToolboxTalk || mongoose.model<IToolboxTalk>("ToolboxTalk", ToolboxTalkSchema);

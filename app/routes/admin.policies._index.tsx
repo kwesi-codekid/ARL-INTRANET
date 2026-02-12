@@ -381,8 +381,8 @@ export default function AdminPoliciesListingPage() {
             className="max-w-xs"
           />
         </CardHeader>
-        <CardBody className="p-0">
-          <Table aria-label="Policies table" removeWrapper>
+        <CardBody className="overflow-x-auto p-0">
+          <Table aria-label="Policies table" removeWrapper className="min-w-[700px]">
             <TableHeader>
               <TableColumn>POLICY</TableColumn>
               <TableColumn>CATEGORY</TableColumn>

@@ -81,11 +81,11 @@ const faqData = [
     keywords: ["loto", "lockout", "tagout", "energy isolation", "maintenance safety"],
   },
   {
-    question: "What is a Toolbox Talk?",
+    question: "What is a PSI Talk?",
     answer:
-      "A Toolbox Talk is a short safety meeting (5-15 minutes) held at the start of a shift or before a specific task. Topics include: hazards for the day, safety reminders, lessons from recent incidents, and new procedures. All workers must attend and sign the attendance sheet. Current week's Toolbox Talk topic is displayed on the intranet homepage.",
+      "A PSI Talk is a short safety meeting (5-15 minutes) held at the start of a shift or before a specific task. Topics include: hazards for the day, safety reminders, lessons from recent incidents, and new procedures. All workers must attend and sign the attendance sheet. Current week's PSI Talk topic is displayed on the intranet homepage.",
     category: "Safety",
-    keywords: ["toolbox talk", "safety meeting", "pre-start", "briefing", "tbt"],
+    keywords: ["PSI talk", "safety meeting", "pre-start", "briefing", "tbt"],
   },
   {
     question: "How do I report a hazard?",
@@ -277,7 +277,7 @@ const faqData = [
   {
     question: "What can I do on the intranet?",
     answer:
-      "The ARL Intranet allows you to: Read company news and announcements, View staff directory and contacts, Check canteen menus, See upcoming events, Access the photo gallery, Find safety information and toolbox talks, View documents and policies, Submit suggestions anonymously, Use the AI chat assistant. More features are being added regularly!",
+      "The ARL Intranet allows you to: Read company news and announcements, View staff directory and contacts, Check canteen menus, See upcoming events, Access the photo gallery, Find safety information and PSI talks, View documents and policies, Submit suggestions anonymously, Use the AI chat assistant. More features are being added regularly!",
     category: "Intranet",
     keywords: ["intranet", "website", "portal", "system", "features"],
   },
@@ -298,11 +298,11 @@ const faqData = [
 
   // ========== GENERAL QUERIES ==========
   {
-    question: "What is today's toolbox talk topic?",
+    question: "What is today's PSI talk topic?",
     answer:
-      "The current week's Toolbox Talk topic is displayed on the intranet homepage in the right sidebar widget. Topics change weekly and cover important safety subjects. Past toolbox talks are archived and can be viewed in the Safety section. Make sure you attend your department's toolbox talk session and sign the attendance sheet!",
+      "The current week's PSI Talk topic is displayed on the intranet homepage in the right sidebar widget. Topics change weekly and cover important safety subjects. Past PSI talks are archived and can be viewed in the Safety section. Make sure you attend your department's PSI talk session and sign the attendance sheet!",
     category: "Safety",
-    keywords: ["toolbox talk", "topic", "today", "this week", "safety topic"],
+    keywords: ["PSI talk", "topic", "today", "this week", "safety topic"],
   },
   {
     question: "What is the WiFi password?",

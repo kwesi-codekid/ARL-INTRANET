@@ -17,8 +17,9 @@ import {
 } from "@heroui/react";
 import { Search, Shield, Eye, ArrowRight } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedSafetyTip, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -69,19 +70,21 @@ interface LoaderData {
 export default function SafetyTipsPage() {
   const { tips, total, page, totalPages, categories, selectedCategory, searchQuery } =
     useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [search, setSearch] = useState(searchQuery);
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
+      <div className="overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 flex-shrink-0">
             <Shield size={24} className="text-green-600" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900">Safety Tips</h1>
-            <p className="text-gray-500">Stay safe with these important safety guidelines</p>
+            <p className="text-gray-500 truncate">Stay safe with these important safety guidelines</p>
           </div>
         </div>
       </div>
@@ -109,7 +112,7 @@ export default function SafetyTipsPage() {
       </Card>
 
       {/* Category Tabs - Task: 1.2.2.2.3 */}
-      <div className="mb-6 overflow-x-auto">
+      <div className="mb-6 overflow-x-auto max-w-full">
         <Tabs
           selectedKey={selectedCategory}
           onSelectionChange={(key) => {
@@ -121,7 +124,7 @@ export default function SafetyTipsPage() {
           variant="underlined"
           color="success"
           classNames={{
-            tabList: "gap-4",
+            tabList: "gap-4 flex-nowrap",
           }}
         >
           <Tab key="all" title="All Tips" />
@@ -226,6 +229,7 @@ export default function SafetyTipsPage() {
           />
         </div>
       )}
+      </div>
     </MainLayout>
   );
 }

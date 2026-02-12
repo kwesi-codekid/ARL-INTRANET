@@ -7,7 +7,7 @@ import type { PaginatedContacts } from "~/lib/services/contact.server";
 
 import { useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams, Form } from "react-router";
+import { useLoaderData, useSearchParams, Form, useOutletContext } from "react-router";
 import {
   Card,
   CardBody,
@@ -42,13 +42,17 @@ import {
   Users,
 } from "lucide-react";
 import { MainLayout } from "~/components/layout";
-
+import type { PublicOutletContext } from "~/routes/_public";
 
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
   const { getContacts, getDepartments, getContactLetters } = await import("~/lib/services/contact.server");
   const { connectDB } = await import("~/lib/db/connection.server");
+
+  // Require user authentication to access directory
+  await requireUserAuth(request);
 
   await connectDB();
 
@@ -98,9 +102,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // All letters A-Z for the navigation
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+// Get 2 initials from a name (first and last)
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function DirectoryPage() {
   const { contacts, total, page, totalPages, departments, availableLetters, filters } =
     useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedContact, setSelectedContact] = useState<IContact | null>(null);
 
@@ -183,7 +197,7 @@ export default function DirectoryPage() {
   const hasFilters = filters.search || filters.department || filters.letter || filters.location || filters.role || filters.emergency;
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -374,7 +388,7 @@ export default function DirectoryPage() {
                   }}
                   classNames={{
                     wrapper: "shadow-none",
-                    tr: "cursor-pointer hover:bg-gray-50",
+                    tr: "cursor-pointer hover:bg-gray-50 border-b last:border-0 border-warning/40",
                   }}
                 >
                   <TableHeader>
@@ -387,11 +401,11 @@ export default function DirectoryPage() {
                   </TableHeader>
                   <TableBody>
                     {contacts.map((contact: IContact) => (
-                      <TableRow key={contact._id.toString()}>
+                      <TableRow key={contact._id.toString()} className="border-b">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar
-                              name={contact.name}
+                              name={getInitials(contact.name)}
                               src={contact.photo}
                               size="sm"
                               classNames={{
@@ -516,7 +530,7 @@ export default function DirectoryPage() {
               <>
                 <ModalHeader className="flex items-center gap-4">
                   <Avatar
-                    name={selectedContact.name}
+                    name={getInitials(selectedContact.name)}
                     src={selectedContact.photo}
                     size="lg"
                     classNames={{

@@ -6,8 +6,9 @@
 import { Card, CardBody, Divider } from "@heroui/react";
 import { Target, Eye, Heart, Shield, Users, Award } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 interface CoreValue {
   title: string;
@@ -54,10 +55,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function AboutPage() {
   const { companyInfo } = useLoaderData<LoaderData>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   if (!companyInfo) {
     return (
-      <MainLayout>
+      <MainLayout user={portalUser}>
         <div className="container mx-auto max-w-6xl px-4 py-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">About Us</h1>
@@ -71,7 +73,7 @@ export default function AboutPage() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="container mx-auto max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-12 text-center">

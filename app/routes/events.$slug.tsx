@@ -8,7 +8,6 @@ import {
   CardBody,
   Button,
   Chip,
-  Image,
   Divider,
 } from "@heroui/react";
 import {
@@ -23,8 +22,9 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
+import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { getEventBySlug, serializeEvent } = await import("~/lib/services/event.server");
@@ -50,6 +50,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function EventDetailPage() {
   const { event, albums } = useLoaderData<typeof loader>();
+  const { portalUser } = useOutletContext<PublicOutletContext>();
 
   const eventDate = new Date(event.date);
   const isPast = eventDate < new Date();
@@ -62,7 +63,7 @@ export default function EventDetailPage() {
   });
 
   return (
-    <MainLayout>
+    <MainLayout user={portalUser}>
       <div className="space-y-6">
         {/* Back Button */}
         <Button
@@ -77,15 +78,11 @@ export default function EventDetailPage() {
 
         {/* Hero Section */}
         {event.featuredImage ? (
-          <div className="relative h-64 sm:h-80 rounded-xl overflow-hidden">
-            <Image
+          <div className="relative h-72 sm:h-96 rounded-xl overflow-hidden">
+            <img
               src={event.featuredImage}
               alt={event.title}
-              classNames={{
-                wrapper: "w-full h-full",
-                img: "w-full h-full object-cover",
-              }}
-              radius="none"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -145,11 +142,13 @@ export default function EventDetailPage() {
             <Card className="shadow-sm">
               <CardBody className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About This Event</h2>
-                <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line text-base">
+                  {event.description}
+                </p>
 
                 {event.content && (
                   <div
-                    className="mt-4 prose prose-sm max-w-none text-gray-600"
+                    className="mt-4 prose prose-base max-w-none text-gray-600 prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800"
                     dangerouslySetInnerHTML={{ __html: event.content }}
                   />
                 )}
@@ -163,8 +162,8 @@ export default function EventDetailPage() {
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Images</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {event.images.map((image, index) => (
-                      <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                        <Image
+                      <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        <img
                           src={image}
                           alt={`${event.title} - Image ${index + 1}`}
                           className="w-full h-full object-cover"
@@ -193,31 +192,44 @@ export default function EventDetailPage() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {albums.map((album) => (
-                      <Link
-                        key={album.id}
-                        to={`/gallery/${album.slug}`}
-                        className="group"
-                      >
-                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                          {album.coverImage ? (
-                            <Image
-                              src={album.coverImage}
-                              alt={album.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon size={32} className="text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="mt-2 text-sm font-medium text-gray-900 group-hover:text-primary-600">
-                          {album.title}
-                        </p>
-                        <p className="text-xs text-gray-500">{album.photoCount} photos</p>
-                      </Link>
-                    ))}
+                    {albums.map((album) => {
+                      const isExternal = album.isExternalGallery && album.externalGalleryUrl;
+                      const Wrapper = isExternal ? "a" : Link;
+                      const linkProps = isExternal
+                        ? { href: album.externalGalleryUrl!, target: "_blank", rel: "noopener noreferrer" }
+                        : { to: `/gallery/${album.slug}` };
+
+                      return (
+                        <Wrapper
+                          key={album.id}
+                          {...linkProps as any}
+                          className="group"
+                        >
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            {album.coverImage ? (
+                              <img
+                                src={album.coverImage}
+                                alt={album.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={32} className="text-gray-300" />
+                              </div>
+                            )}
+                            {isExternal && (
+                              <div className="absolute top-2 right-2">
+                                <ExternalLink size={16} className="text-white drop-shadow-md" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-sm font-medium text-gray-900 group-hover:text-primary-600">
+                            {album.title}
+                          </p>
+                          <p className="text-xs text-gray-500">{album.photoCount} photos</p>
+                        </Wrapper>
+                      );
+                    })}
                   </div>
                 </CardBody>
               </Card>

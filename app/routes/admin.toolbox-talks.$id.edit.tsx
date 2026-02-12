@@ -1,5 +1,5 @@
 /**
- * Admin Toolbox Talk Edit Page
+ * Admin PSI Talk Edit Page
  * Task: 1.2.1.4.5
  */
 
@@ -9,30 +9,30 @@ import {
   CardBody,
   CardHeader,
   Input,
-  Textarea,
   Button,
   Select,
   SelectItem,
   Chip,
   Divider,
 } from "@heroui/react";
-import { ArrowLeft, Save, Calendar, Trash2, Video, Volume2, Image as ImageIcon, Eye } from "lucide-react";
+import { ArrowLeft, Save, Calendar, Trash2, Eye, FileText, Image as ImageIcon } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
-import { RichTextEditor } from "~/components/admin";
+import { FileUpload } from "~/components/admin";
 
 interface EditLoaderData {
   talk: {
     id: string;
     title: string;
     slug: string;
-    content: string;
-    summary: string;
-    scheduledDate: string;
+    week: number;
+    month: number;
+    year: number;
     status: string;
     tags: string[];
-    featuredMedia: { type: string; url: string } | null;
-    media: Array<{ type: string; url: string }>;
+    pdfUrl: string;
+    pdfFileName: string;
+    coverImageUrl: string;
     views: number;
   };
 }
@@ -59,13 +59,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       id: serialized.id,
       title: serialized.title,
       slug: serialized.slug,
-      content: serialized.content,
-      summary: serialized.summary || "",
-      scheduledDate: serialized.scheduledDate.split("T")[0],
+      week: serialized.week,
+      month: serialized.month,
+      year: serialized.year,
       status: serialized.status,
       tags: serialized.tags || [],
-      featuredMedia: serialized.featuredMedia,
-      media: serialized.media || [],
+      pdfUrl: serialized.featuredMedia?.url || "",
+      pdfFileName: serialized.featuredMedia?.fileName || "",
+      coverImageUrl: serialized.featuredMedia?.thumbnail || "",
       views: serialized.views,
     },
   };
@@ -94,38 +95,51 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
-  const summary = formData.get("summary") as string;
-  const scheduledDate = formData.get("scheduledDate") as string;
+  const week = parseInt(formData.get("week") as string);
+  const month = parseInt(formData.get("month") as string);
+  const year = parseInt(formData.get("year") as string);
   const status = formData.get("status") as "draft" | "published" | "archived";
   const tagsStr = formData.get("tags") as string;
-  const featuredMediaUrl = formData.get("featuredMediaUrl") as string;
-  const featuredMediaType = formData.get("featuredMediaType") as "image" | "video" | "audio" | "";
+  const pdfUrl = formData.get("pdfUrl") as string;
+  const pdfFileName = formData.get("pdfFileName") as string;
+  const coverImageUrl = formData.get("coverImageUrl") as string;
 
   // Validation
-  if (!title || !content || !scheduledDate) {
+  if (!title || !week || !month || !year) {
     return Response.json(
-      { error: "Title, content, and scheduled date are required" },
+      { error: "Title, week, month, and year are required" },
       { status: 400 }
     );
   }
+
+  // Create a scheduledDate from week/month/year
+  const { getDateFromWeek } = await import("~/lib/services/toolbox-talk.server");
+  const scheduledDate = getDateFromWeek(week, month, year);
 
   // Parse tags
   const tags = tagsStr
     ? tagsStr.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
-  // Build featured media object if provided
-  const featuredMedia = featuredMediaUrl && featuredMediaType
-    ? { type: featuredMediaType, url: featuredMediaUrl }
+  // Build featured media object for PDF
+  const featuredMedia = pdfUrl
+    ? {
+        type: "pdf" as const,
+        url: pdfUrl,
+        ...(pdfFileName && { fileName: pdfFileName }),
+        ...(coverImageUrl && { thumbnail: coverImageUrl }),
+      }
     : undefined;
 
-  // Update toolbox talk using service
+  // Update PSI talk using service
   const updated = await updateToolboxTalk(params.id!, {
     title,
-    content,
-    summary: summary || content.substring(0, 200),
-    scheduledDate: new Date(scheduledDate),
+    content: title,
+    summary: title,
+    scheduledDate,
+    week,
+    month,
+    year,
     status,
     tags,
     featuredMedia,
@@ -147,9 +161,33 @@ export default function AdminToolboxTalkEditPage() {
 
   const [tags, setTags] = useState<string[]>(talk.tags);
   const [tagInput, setTagInput] = useState("");
-  const [mediaType, setMediaType] = useState<"image" | "video" | "audio" | "">(
-    talk.featuredMedia?.type || ""
-  );
+  const [pdfUrl, setPdfUrl] = useState(talk.pdfUrl);
+  const [pdfFileName, setPdfFileName] = useState(talk.pdfFileName);
+  const [coverImageUrl, setCoverImageUrl] = useState(talk.coverImageUrl);
+
+  // Week/month/year state
+  const [selectedWeek, setSelectedWeek] = useState(talk.week);
+  const [selectedMonth, setSelectedMonth] = useState(talk.month);
+  const [selectedYear, setSelectedYear] = useState(talk.year);
+
+  const currentYear = new Date().getFullYear();
+  const months = [
+    { value: 1, label: "January" },
+    { value: 2, label: "February" },
+    { value: 3, label: "March" },
+    { value: 4, label: "April" },
+    { value: 5, label: "May" },
+    { value: 6, label: "June" },
+    { value: 7, label: "July" },
+    { value: 8, label: "August" },
+    { value: 9, label: "September" },
+    { value: 10, label: "October" },
+    { value: 11, label: "November" },
+    { value: 12, label: "December" },
+  ];
+
+  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const weeks = [1, 2, 3, 4, 5];
 
   // Show success message on URL param
   useEffect(() => {
@@ -177,7 +215,7 @@ export default function AdminToolboxTalkEditPage() {
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this toolbox talk? This action cannot be undone.")) {
+    if (confirm("Are you sure you want to delete this PSI talk? This action cannot be undone.")) {
       const form = document.createElement("form");
       form.method = "post";
       form.innerHTML = `<input type="hidden" name="intent" value="delete" />`;
@@ -198,7 +236,7 @@ export default function AdminToolboxTalkEditPage() {
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Toolbox Talk</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Edit PSI Talk</h1>
             <p className="text-sm text-gray-500">{talk.title}</p>
           </div>
         </div>
@@ -237,105 +275,77 @@ export default function AdminToolboxTalkEditPage() {
 
       <Form method="post">
         <input type="hidden" name="tags" value={tags.join(",")} />
+        <input type="hidden" name="pdfUrl" value={pdfUrl} />
+        <input type="hidden" name="pdfFileName" value={pdfFileName} />
+        <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
+        <input type="hidden" name="week" value={selectedWeek} />
+        <input type="hidden" name="month" value={selectedMonth} />
+        <input type="hidden" name="year" value={selectedYear} />
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
+            {/* PDF Upload */}
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Talk Content</h2>
+                <div className="flex items-center gap-2">
+                  <FileText size={20} className="text-green-600" />
+                  <h2 className="font-semibold">PDF Document</h2>
+                </div>
               </CardHeader>
               <CardBody className="space-y-4">
-                <Input
-                  name="title"
-                  label="Title"
-                  placeholder="Enter talk title"
-                  defaultValue={talk.title}
-                  isRequired
-                  classNames={{ inputWrapper: "bg-gray-50" }}
+                <FileUpload
+                  accept="pdf"
+                  label="Upload PDF File *"
+                  description="PDF files up to 20MB"
+                  folder="toolbox-talks"
+                  currentUrl={pdfUrl}
+                  currentType="pdf"
+                  onUpload={(result) => {
+                    setPdfUrl(result.url);
+                  }}
+                  onRemove={() => {
+                    setPdfUrl("");
+                    setPdfFileName("");
+                  }}
                 />
 
-                <Textarea
-                  name="summary"
-                  label="Summary"
-                  placeholder="Brief summary of the talk (optional)"
-                  defaultValue={talk.summary}
-                  maxLength={500}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
-                />
-
-                <RichTextEditor
-                  name="content"
-                  label="Content"
-                  placeholder="Write your toolbox talk content here..."
-                  initialContent={talk.content}
-                  isRequired
-                  minHeight="250px"
-                />
+                {pdfUrl && (
+                  <Input
+                    value={pdfFileName}
+                    onValueChange={setPdfFileName}
+                    label="Display Name (Optional)"
+                    placeholder="Week 5 - Working at Heights Safety Talk.pdf"
+                    description="Name shown to users when downloading"
+                    classNames={{ inputWrapper: "bg-gray-50" }}
+                  />
+                )}
               </CardBody>
             </Card>
 
-            {/* Media Upload */}
+            {/* Cover Image */}
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Featured Media</h2>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant={mediaType === "image" ? "solid" : "flat"}
-                    color={mediaType === "image" ? "primary" : "default"}
-                    startContent={<ImageIcon size={16} />}
-                    onPress={() => setMediaType(mediaType === "image" ? "" : "image")}
-                    size="sm"
-                  >
-                    Image
-                  </Button>
-                  <Button
-                    variant={mediaType === "video" ? "solid" : "flat"}
-                    color={mediaType === "video" ? "primary" : "default"}
-                    startContent={<Video size={16} />}
-                    onPress={() => setMediaType(mediaType === "video" ? "" : "video")}
-                    size="sm"
-                  >
-                    Video
-                  </Button>
-                  <Button
-                    variant={mediaType === "audio" ? "solid" : "flat"}
-                    color={mediaType === "audio" ? "primary" : "default"}
-                    startContent={<Volume2 size={16} />}
-                    onPress={() => setMediaType(mediaType === "audio" ? "" : "audio")}
-                    size="sm"
-                  >
-                    Audio
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <ImageIcon size={20} className="text-blue-600" />
+                  <h2 className="font-semibold">Cover Image (Optional)</h2>
                 </div>
-
-                {mediaType && (
-                  <>
-                    <input type="hidden" name="featuredMediaType" value={mediaType} />
-                    <Input
-                      name="featuredMediaUrl"
-                      label={`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} URL`}
-                      defaultValue={talk.featuredMedia?.url || ""}
-                      placeholder={
-                        mediaType === "video"
-                          ? "https://example.com/video.mp4"
-                          : mediaType === "audio"
-                            ? "https://example.com/audio.mp3"
-                            : "https://example.com/image.jpg"
-                      }
-                      description={`Enter the URL of the ${mediaType} file`}
-                      classNames={{ inputWrapper: "bg-gray-50" }}
-                    />
-                  </>
-                )}
-
-                {!mediaType && talk.featuredMedia && (
-                  <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
-                    Current media will be removed. Select a type to keep or replace it.
-                  </div>
-                )}
+              </CardHeader>
+              <CardBody>
+                <FileUpload
+                  accept="image"
+                  label="Upload Cover Image"
+                  description="JPG, PNG, GIF, WebP up to 5MB - Shown as thumbnail in lists"
+                  folder="toolbox-talks"
+                  currentUrl={coverImageUrl}
+                  currentType="image"
+                  onUpload={(result) => {
+                    setCoverImageUrl(result.url);
+                  }}
+                  onRemove={() => {
+                    setCoverImageUrl("");
+                  }}
+                />
               </CardBody>
             </Card>
 
@@ -380,18 +390,65 @@ export default function AdminToolboxTalkEditPage() {
           <div className="space-y-6">
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Schedule & Status</h2>
+                <div className="flex items-center gap-2">
+                  <Calendar size={20} className="text-amber-600" />
+                  <h2 className="font-semibold">Schedule & Status</h2>
+                </div>
               </CardHeader>
               <CardBody className="space-y-4">
                 <Input
-                  name="scheduledDate"
-                  label="Scheduled Date"
-                  type="date"
-                  defaultValue={talk.scheduledDate}
+                  name="title"
+                  label="Title"
+                  placeholder="e.g., Working at Heights Safety"
+                  defaultValue={talk.title}
                   isRequired
-                  startContent={<Calendar size={16} className="text-gray-400" />}
                   classNames={{ inputWrapper: "bg-gray-50" }}
                 />
+
+                <Divider />
+
+                {/* Week-based scheduling */}
+                <Select
+                  label="Week"
+                  selectedKeys={[selectedWeek.toString()]}
+                  onSelectionChange={(keys) => setSelectedWeek(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {weeks.map((w) => (
+                    <SelectItem key={w.toString()}>Week {w}</SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Month"
+                  selectedKeys={[selectedMonth.toString()]}
+                  onSelectionChange={(keys) => setSelectedMonth(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {months.map((m) => (
+                    <SelectItem key={m.value.toString()}>{m.label}</SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Year"
+                  selectedKeys={[selectedYear.toString()]}
+                  onSelectionChange={(keys) => setSelectedYear(Number(Array.from(keys)[0]))}
+                  classNames={{ trigger: "bg-gray-50" }}
+                  isRequired
+                >
+                  {years.map((y) => (
+                    <SelectItem key={y.toString()}>{y}</SelectItem>
+                  ))}
+                </Select>
+
+                <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                  <strong>Scheduled for:</strong> Week {selectedWeek} of {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
+                </div>
+
+                <Divider />
 
                 <Select
                   name="status"
@@ -425,15 +482,9 @@ export default function AdminToolboxTalkEditPage() {
                 <h2 className="font-semibold">Statistics</h2>
               </CardHeader>
               <CardBody>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{talk.views}</p>
-                    <p className="text-sm text-gray-500">Views</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{talk.media?.length || 0}</p>
-                    <p className="text-sm text-gray-500">Media Files</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900">{talk.views}</p>
+                  <p className="text-sm text-gray-500">Views</p>
                 </div>
               </CardBody>
             </Card>
