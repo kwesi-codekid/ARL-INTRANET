@@ -402,7 +402,7 @@ function ExecutiveMessagesCard({
     if (messagesToShow.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % messagesToShow.length);
-    }, 8000); // 8 seconds per slide
+    }, 60000); // 60 seconds per slide
     return () => clearInterval(timer);
   }, [messagesToShow.length, setCurrentSlide]);
 
