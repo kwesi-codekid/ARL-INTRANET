@@ -31,7 +31,7 @@ export function GoldPriceTicker({ className = "" }: GoldPriceTickerProps) {
       );
       const result = await response.json();
 
-      if (result) {
+      if (response.ok) {
         setData(result);
         console.log("Data: ", result);
       }
@@ -77,7 +77,8 @@ export function GoldPriceTicker({ className = "" }: GoldPriceTickerProps) {
           </p>
         </div>
         <p className="text-[8px] text-white">
-          Gold Price last updated on {getLongDateFromTimestamp(data?.ts)}
+          Gold Price last updated on{" "}
+          {data && getLongDateFromTimestamp(data?.ts)}
         </p>
       </div>
     </div>
