@@ -1,5 +1,5 @@
 import { Link } from "@heroui/react";
-import { Phone, Mail, Settings, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import { Phone, Mail, Settings, Facebook, Instagram, Linkedin } from "lucide-react";
 
 const quickLinks = [
   { label: "Home", href: "/" },
@@ -11,15 +11,14 @@ const quickLinks = [
 ];
 
 const socialLinks = [
-  { label: "Facebook", href: "https://facebook.com/adamusresources", icon: Facebook },
-  { label: "X (Twitter)", href: "https://x.com/adamusresources", icon: Twitter },
-  { label: "LinkedIn", href: "https://linkedin.com/company/adamusresources", icon: Linkedin },
-  { label: "Instagram", href: "https://instagram.com/adamusresources", icon: Instagram },
+  { label: "Facebook", href: "https://www.facebook.com/NguvuMiningLimited", icon: Facebook },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/nguvu-mining/", icon: Linkedin },
+  { label: "Instagram", href: "https://www.instagram.com/nguvu_mining_limited/", icon: Instagram },
 ];
 
 const emergencyContacts = [
   { label: "Emergency", value: "1111 / 0501316835", icon: Phone, tel: "1111" },
-  { label: "IT Support", value: "1000 / 0544337551", icon: Phone, tel: "1000" },
+  { label: "IT Support", value: "1000 / 1001 / 1002", icon: Phone, tel: "1000" },
 ];
 
 export function Footer() {
@@ -39,7 +38,7 @@ export function Footer() {
               />
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-primary-500">ARL Intranet</span>
-                <span className="text-xs text-gray-400">Nguvu Mining Limited</span>
+                <span className="text-xs text-gray-400">Adamus Resources Limited</span>
               </div>
             </div>
             <p className="mt-4 text-sm text-gray-400">
