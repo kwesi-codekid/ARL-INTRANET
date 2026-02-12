@@ -53,6 +53,10 @@ export function GoldPriceTicker({ className = "" }: GoldPriceTickerProps) {
     return () => clearInterval(interval);
   }, []);
 
+  if (!data) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center gap-2">
