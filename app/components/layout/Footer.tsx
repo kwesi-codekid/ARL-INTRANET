@@ -1,5 +1,5 @@
 import { Link } from "@heroui/react";
-import { Phone, Mail, Settings } from "lucide-react";
+import { Phone, Mail, Settings, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 
 const quickLinks = [
   { label: "Home", href: "/" },
@@ -8,6 +8,13 @@ const quickLinks = [
   { label: "Directory", href: "/directory" },
   { label: "Gallery", href: "/gallery" },
   { label: "Apps", href: "/apps" },
+];
+
+const socialLinks = [
+  { label: "Facebook", href: "https://facebook.com/adamusresources", icon: Facebook },
+  { label: "X (Twitter)", href: "https://x.com/adamusresources", icon: Twitter },
+  { label: "LinkedIn", href: "https://linkedin.com/company/adamusresources", icon: Linkedin },
+  { label: "Instagram", href: "https://instagram.com/adamusresources", icon: Instagram },
 ];
 
 const emergencyContacts = [
@@ -95,6 +102,20 @@ export function Footer() {
             <p className="text-sm text-gray-500">
               © {currentYear} Adamus Resources Limited. All rights reserved.
             </p>
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className="text-gray-500 transition-colors hover:text-primary-500"
+                >
+                  <social.icon size={18} />
+                </a>
+              ))}
+            </div>
             <div className="flex items-center gap-4">
               <Link
                 href="/admin"
