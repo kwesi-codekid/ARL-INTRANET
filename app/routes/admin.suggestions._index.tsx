@@ -33,6 +33,7 @@ import {
   Archive,
   AlertCircle,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link } from "react-router";
@@ -238,9 +239,16 @@ export default function AdminSuggestionsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Suggestion Box</h1>
           <p className="text-sm text-gray-500">Manage anonymous suggestions</p>
         </div>
-        <Link to="/admin/suggestions/categories">
-          <Button variant="flat">Manage Categories</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/admin/suggestions/report">
+            <Button variant="flat" startContent={<BarChart3 size={16} />}>
+              View Report
+            </Button>
+          </Link>
+          <Link to="/admin/suggestions/categories">
+            <Button variant="flat">Manage Categories</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Cards */}

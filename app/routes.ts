@@ -80,6 +80,7 @@ export default [
   route("api/albums", "routes/api.albums.ts"),
   route("api/suggestions", "routes/api.suggestions.tsx"),
   route("api/suggestions/categories", "routes/api.suggestions.categories.tsx"),
+  route("api/suggestions/export", "routes/api.suggestions.export.tsx"),
   // route("api/chat", "routes/api.chat.tsx"), // Commented out - AI chatbot disabled for now
   route("api/gold-news", "routes/api.gold-news.tsx"),
   route("api/featured-news", "routes/api.featured-news.tsx"),
@@ -155,6 +156,7 @@ export default [
     // Admin suggestions routes (Phase 3)
     route("admin/suggestions", "routes/admin.suggestions._index.tsx"),
     route("admin/suggestions/categories", "routes/admin.suggestions.categories.tsx"),
+    route("admin/suggestions/report", "routes/admin.suggestions.report.tsx"),
 
     // Admin chatbot routes (Phase 4) - Commented out, AI chatbot disabled for now
     // route("admin/faqs", "routes/admin.faqs._index.tsx"),
