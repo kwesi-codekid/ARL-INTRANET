@@ -192,14 +192,14 @@ export default function AdminLayout() {
               className="h-10 w-10 object-contain"
             />
             <div>
-              <span className="font-bold text-white">ARL</span>
-              <span className="ml-1.5 text-xs font-medium text-white/70">Admin Portal</span>
+              <span className="font-bold text-black">ARL</span>
+              <span className="ml-1.5 text-xs font-medium text-black/70">Admin Portal</span>
             </div>
           </Link>
           <Button
             isIconOnly
             variant="light"
-            className="lg:hidden text-white"
+            className="lg:hidden text-black"
             onPress={() => setSidebarOpen(false)}
           >
             <X size={20} />
@@ -216,13 +216,13 @@ export default function AdminLayout() {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                    ? "bg-white/20 text-black"
+                    : "text-black/80 hover:bg-white/10 hover:text-black"
                 }`}
               >
                 <item.icon
                   size={20}
-                  className={isActive(item.href) ? "text-white" : "text-white/60"}
+                  className={isActive(item.href) ? "text-black" : "text-black/60"}
                 />
                 {item.label}
               </Link>
@@ -231,7 +231,7 @@ export default function AdminLayout() {
 
           {/* Safety Section */}
           <div className="my-4 border-t border-white/20" />
-          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-black/50">
             Safety
           </p>
           <div className="space-y-1">
@@ -242,13 +242,13 @@ export default function AdminLayout() {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                    ? "bg-white/20 text-black"
+                    : "text-black/80 hover:bg-white/10 hover:text-black"
                 }`}
               >
                 <item.icon
                   size={20}
-                  className={isActive(item.href) ? "text-white" : "text-white/60"}
+                  className={isActive(item.href) ? "text-black" : "text-black/60"}
                 />
                 {item.label}
               </Link>
@@ -259,7 +259,7 @@ export default function AdminLayout() {
           {user?.role === "superadmin" && (
             <>
               <div className="my-4 border-t border-white/20" />
-              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-black/50">
                 Superadmin
               </p>
               <div className="space-y-1">
@@ -270,13 +270,13 @@ export default function AdminLayout() {
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive(item.href)
-                        ? "bg-white/20 text-white"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                        ? "bg-white/20 text-black"
+                        : "text-black/80 hover:bg-white/10 hover:text-black"
                     }`}
                   >
                     <item.icon
                       size={20}
-                      className={isActive(item.href) ? "text-white" : "text-white/60"}
+                      className={isActive(item.href) ? "text-black" : "text-black/60"}
                     />
                     {item.label}
                   </Link>
@@ -293,14 +293,14 @@ export default function AdminLayout() {
               name={user?.name?.charAt(0) || "A"}
               size="sm"
               classNames={{
-                base: "bg-white/20 text-white font-semibold",
+                base: "bg-white/20 text-black font-semibold",
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">
+              <p className="truncate text-sm font-medium text-black">
                 {user?.name}
               </p>
-              <p className="truncate text-xs text-white/60 capitalize">
+              <p className="truncate text-xs text-black/60 capitalize">
                 {user?.role}
               </p>
             </div>
