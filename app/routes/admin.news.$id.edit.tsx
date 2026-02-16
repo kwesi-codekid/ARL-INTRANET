@@ -81,7 +81,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       content: article.content,
       excerpt: article.excerpt,
       featuredImage: article.featuredImage,
-      category: article.category.toString(),
+      category: article.category?.toString(),
       status: article.status,
       isFeatured: article.isFeatured,
       isPinned: article.isPinned,
