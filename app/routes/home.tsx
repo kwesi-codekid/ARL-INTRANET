@@ -773,7 +773,7 @@ export default function Home() {
                   srcSet={isCloudinaryUrl(currentItem.data.image) ? generateSrcSet(currentItem.data.image, "companyValues") : undefined}
                   sizes={isCloudinaryUrl(currentItem.data.image) ? generateSizes("companyValues") : undefined}
                   alt={currentItem.data.alt}
-                  className="absolute inset-0 w-full h-full object-contain sm:object-cover bg-gray-900"
+                  className="absolute inset-0 h-full object-cover bg-gray-900"
                 />
                 {/* Minimal overlay to keep text readable without covering the branded image */}
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
