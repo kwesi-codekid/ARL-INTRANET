@@ -398,6 +398,7 @@ export default function AdminEventsNewPage() {
                   label="Event Category"
                   placeholder="Choose a category"
                   classNames={{ trigger: "bg-gray-50" }}
+                  isRequired={false}
                 >
                   {EVENT_CATEGORIES.map((cat) => (
                     <SelectItem key={cat}>{cat}</SelectItem>
