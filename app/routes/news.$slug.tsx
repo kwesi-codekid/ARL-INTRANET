@@ -71,11 +71,14 @@ export async function loader({ params }: LoaderFunctionArgs) {
   await article.save();
 
   // Get related news (same category)
-  const relatedNews = await News.find({
+  const relatedQuery: Record<string, unknown> = {
     _id: { $ne: article._id },
-    category: article.category._id,
     status: "published",
-  })
+  };
+  if (article.category) {
+    relatedQuery.category = article.category._id;
+  }
+  const relatedNews = await News.find(relatedQuery)
     .populate("category", "name slug color")
     .sort({ publishedAt: -1 })
     .limit(3)

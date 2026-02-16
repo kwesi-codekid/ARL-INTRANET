@@ -103,9 +103,9 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Validation
-  if (!title || !content || !categoryId) {
+  if (!title || !content) {
     return Response.json(
-      { error: "Title, content, and category are required" },
+      { error: "Title and content are required" },
       { status: 400 }
     );
   }
@@ -123,7 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
     slug,
     content,
     excerpt: excerpt || content.substring(0, 200),
-    category: categoryId,
+    category: categoryId || undefined,
     author: sessionData?.userId,
     featuredImage,
     featuredVideo,
@@ -394,7 +394,6 @@ export default function AdminNewsNewPage() {
                   name="category"
                   label="Select Category"
                   placeholder="Choose a category"
-                  isRequired
                   classNames={{ trigger: "bg-gray-50" }}
                 >
                   {categories.map((cat) => (
