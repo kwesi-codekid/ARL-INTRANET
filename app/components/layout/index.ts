@@ -6,3 +6,4 @@ export { LeftSidebar } from "./LeftSidebar";
 export { RightSidebar } from "./RightSidebar";
 export { BottomNavigation } from "./BottomNavigation";
 export { MobileSidebarContent } from "./MobileSidebarContent";
+export { NotificationPrompt } from "./NotificationPrompt";

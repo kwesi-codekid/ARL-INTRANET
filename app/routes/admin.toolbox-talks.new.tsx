@@ -93,6 +93,15 @@ export async function action({ request }: ActionFunctionArgs) {
     featuredMedia,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "New PSI Talk: " + title,
+      body: title,
+      url: "/toolbox-talk/" + slug,
+    });
+  }
+
   return redirect(`/admin/toolbox-talks/${talk._id}/edit?success=created`);
 }
 

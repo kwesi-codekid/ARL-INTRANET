@@ -116,6 +116,15 @@ export async function action({ request }: ActionFunctionArgs) {
     createdBy: user._id.toString(),
   });
 
+  {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "Today's Menu Updated",
+      body: "The canteen menu has been updated. Check out what's available!",
+      url: "/canteen",
+    });
+  }
+
   return redirect("/admin/menus");
 }
 

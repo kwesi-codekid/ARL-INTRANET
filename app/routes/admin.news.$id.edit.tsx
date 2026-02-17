@@ -31,7 +31,7 @@ interface ArticleData {
   content: string;
   excerpt?: string;
   featuredImage?: string;
-  category: string;
+  category?: string;
   status: string;
   isFeatured: boolean;
   isPinned: boolean;
@@ -81,7 +81,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       content: article.content,
       excerpt: article.excerpt,
       featuredImage: article.featuredImage,
-      category: article.category.toString(),
+      category: article.category?.toString(),
       status: article.status,
       isFeatured: article.isFeatured,
       isPinned: article.isPinned,
@@ -125,9 +125,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const keepExistingImage = formData.get("keepExistingImage") === "true";
 
   // Validation
-  if (!title || !content || !categoryId) {
+  if (!title || !content) {
     return Response.json(
-      { error: "Title, content, and category are required" },
+      { error: "Title and content are required" },
       { status: 400 }
     );
   }
@@ -157,7 +157,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   article.title = title;
   article.content = content;
   article.excerpt = excerpt || content.replace(/<[^>]*>/g, "").substring(0, 200);
-  article.category = categoryId as any;
+  if (categoryId) {
+    article.category = categoryId as any;
+  } else {
+    article.category = undefined;
+  }
   article.featuredImage = featuredImage;
   article.isFeatured = isFeatured;
   article.isPinned = isPinned;
@@ -425,8 +429,7 @@ export default function AdminNewsEditPage() {
                 <Select
                   name="category"
                   label="Select Category"
-                  defaultSelectedKeys={[article.category]}
-                  isRequired
+                  defaultSelectedKeys={article.category ? [article.category] : undefined}
                   classNames={{ trigger: "bg-gray-50" }}
                 >
                   {categories.map((cat) => (

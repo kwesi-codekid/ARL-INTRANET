@@ -122,6 +122,15 @@ export async function action({ request }: ActionFunctionArgs) {
     createdBy: sessionData?.userId,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "New Photo Album: " + title,
+      body: description || "A new photo album has been published.",
+      url: "/gallery",
+    });
+  }
+
   // If external gallery, redirect to gallery list, otherwise to photos management
   if (isExternalGallery) {
     return redirect(`/admin/gallery?success=created`);

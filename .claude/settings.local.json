@@ -62,7 +62,14 @@
       "Bash(npm ls:*)",
       "Bash(npx react-router dev --host)",
       "Bash(npx playwright:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" status)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" diff app/routes/admin.tsx)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" log --oneline -3)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" add app/routes/admin.tsx)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" commit -m \"$\\(cat <<''EOF''\nstyle\\(admin\\): change sidebar text color from white to black\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" push)",
+      "Bash(git checkout:*)"
     ]
   }
 }

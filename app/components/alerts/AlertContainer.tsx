@@ -55,6 +55,7 @@ export function AlertContainer({
             message: a.message,
             severity: a.severity,
             type: a.type,
+            playSound: a.playSound,
           }))}
         />
       )}

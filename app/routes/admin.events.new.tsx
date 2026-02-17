@@ -132,6 +132,15 @@ export async function action({ request }: ActionFunctionArgs) {
     createdBy: sessionData?.userId,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "New Event: " + title,
+      body: description.substring(0, 120),
+      url: "/events/" + slug,
+    });
+  }
+
   return redirect(`/admin/events/${event._id}/edit?success=created`);
 }
 
@@ -398,6 +407,7 @@ export default function AdminEventsNewPage() {
                   label="Event Category"
                   placeholder="Choose a category"
                   classNames={{ trigger: "bg-gray-50" }}
+                  isRequired={false}
                 >
                   {EVENT_CATEGORIES.map((cat) => (
                     <SelectItem key={cat}>{cat}</SelectItem>

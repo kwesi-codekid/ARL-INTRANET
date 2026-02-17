@@ -17,7 +17,7 @@ export interface INews extends Document {
   slug: string;
   content: string;
   excerpt?: string;
-  category: Types.ObjectId;
+  category?: Types.ObjectId;
   author: Types.ObjectId;
   images: string[];
   featuredImage?: string;
@@ -95,7 +95,6 @@ const NewsSchema = new Schema<INews>(
     category: {
       type: Schema.Types.ObjectId,
       ref: "NewsCategory",
-      required: true,
       index: true,
     },
     author: {

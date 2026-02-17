@@ -110,6 +110,15 @@ export async function action({ request }: ActionFunctionArgs) {
     createdBy: sessionData?.userId!,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "New Policy: " + title,
+      body: excerpt || "A new company policy has been published.",
+      url: "/policies",
+    });
+  }
+
   await logActivity({
     userId: sessionData?.userId,
     action: "create",
