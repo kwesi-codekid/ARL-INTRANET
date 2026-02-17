@@ -95,6 +95,15 @@ export async function action({ request }: ActionFunctionArgs) {
     showInSlideshow,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "Safety Video: " + title,
+      body: description.substring(0, 120),
+      url: "/safety-videos",
+    });
+  }
+
   return redirect("/admin/safety-videos");
 }
 

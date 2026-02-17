@@ -69,6 +69,15 @@ export async function action({ request }: ActionFunctionArgs) {
     author: user._id.toString(),
   });
 
+  if (isActive) {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "Alert: " + title,
+      body: message.substring(0, 120),
+      url: "/alerts",
+    });
+  }
+
   return redirect("/admin/alerts");
 }
 

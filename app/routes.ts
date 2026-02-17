@@ -84,6 +84,9 @@ export default [
   // route("api/chat", "routes/api.chat.tsx"), // Commented out - AI chatbot disabled for now
   route("api/gold-news", "routes/api.gold-news.tsx"),
   route("api/featured-news", "routes/api.featured-news.tsx"),
+  route("api/push-subscription", "routes/api.push-subscription.ts"),
+  route("api/vapid-public-key", "routes/api.vapid-public-key.ts"),
+  route("api/test-push", "routes/api.test-push.ts"),
 
   // Admin routes
   layout("routes/admin.tsx", [

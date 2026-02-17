@@ -5,6 +5,7 @@ import { BottomNavigation } from "./BottomNavigation";
 import { MobileSidebarContent } from "./MobileSidebarContent";
 // import { ChatWidget } from "../chat/ChatWidget"; // Commented out - AI chatbot disabled for now
 import { AlertProvider, AlertContainer } from "../alerts";
+import { NotificationPrompt } from "./NotificationPrompt";
 import type { SerializedAlert } from "~/lib/services/alert.server";
 
 export interface PortalUser {
@@ -47,6 +48,7 @@ export function MainLayout({
         </div>
         <Footer />
         <BottomNavigation />
+        <NotificationPrompt />
         {/* Chat widget - disabled for now */}
         {/* {showChatWidget && (
           <div className="hidden lg:block">

@@ -4,10 +4,11 @@
  * Task: 1.2.3.2.3 - Implement severity-based styling
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@heroui/react";
 import { X, AlertTriangle, AlertCircle, Info, Volume2 } from "lucide-react";
 import type { SerializedAlert } from "~/lib/services/alert.server";
+import { playAlertSound } from "./alertSound";
 
 interface AlertBannerProps {
   alerts: SerializedAlert[];
@@ -56,6 +57,17 @@ export function AlertBanner({ alerts, onDismiss }: AlertBannerProps) {
   const visibleAlerts = alerts.filter(
     (alert) => alert.showBanner && !dismissedAlerts.has(alert.id)
   );
+
+  // Play sound once when banner alerts with playSound first appear
+  const playedSoundIds = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    visibleAlerts.forEach((alert) => {
+      if (alert.playSound && !playedSoundIds.current.has(alert.id)) {
+        playedSoundIds.current.add(alert.id);
+        playAlertSound(alert.severity);
+      }
+    });
+  }, [visibleAlerts]);
 
   // Auto-rotate alerts every 5 seconds
   useEffect(() => {

@@ -95,6 +95,15 @@ export async function action({ request }: ActionFunctionArgs) {
     showInSlideshow,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "Safety Tip: " + title,
+      body: summary || title,
+      url: "/safety-tips",
+    });
+  }
+
   return redirect("/admin/safety-tips");
 }
 

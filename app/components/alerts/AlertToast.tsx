@@ -3,10 +3,11 @@
  * Auto-dismissing popup notifications for alerts
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, AlertCircle, Info, X } from "lucide-react";
 import { Link } from "react-router";
+import { playAlertSound } from "./alertSound";
 
 interface AlertToastItem {
   id: string;
@@ -14,6 +15,7 @@ interface AlertToastItem {
   message: string;
   severity: "critical" | "warning" | "info";
   type: string;
+  playSound?: boolean;
 }
 
 interface AlertToastProps {
@@ -64,9 +66,19 @@ export function AlertToast({ alerts, autoHideDuration = 6000 }: AlertToastProps)
     }
   }, []);
 
+  // Play sound once when toast alerts with playSound first appear
+  const playedSoundIds = useRef<Set<string>>(new Set());
+
   // Filter and show alerts that haven't been dismissed
   useEffect(() => {
     const newAlerts = alerts.filter((alert) => !dismissedIds.has(alert.id));
+    // Play sound for newly visible alerts
+    newAlerts.forEach((alert) => {
+      if (alert.playSound && !playedSoundIds.current.has(alert.id)) {
+        playedSoundIds.current.add(alert.id);
+        playAlertSound(alert.severity);
+      }
+    });
     setVisibleAlerts(newAlerts);
   }, [alerts, dismissedIds]);
 

@@ -133,6 +133,15 @@ export async function action({ request }: ActionFunctionArgs) {
     publishedAt: status === "published" ? new Date() : null,
   });
 
+  if (status === "published") {
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    sendPushNotificationToAll({
+      title: "New Article: " + title,
+      body: excerpt || content.substring(0, 120),
+      url: "/news/" + slug,
+    });
+  }
+
   return redirect(`/admin/news/${news._id}/edit?success=created`);
 }
 
