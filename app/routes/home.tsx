@@ -961,10 +961,10 @@ export default function Home() {
                       : undefined
                   }
                   alt={currentItem.data.alt}
-                  className="absolute inset-0 h-full w-full bg-gray-900 object-cover"
+                  className="absolute inset-0 h-full w-full bg-gray-900 bg-center object-fill xl:min-w-5xl"
                 />
                 {/* Minimal overlay to keep text readable without covering the branded image */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/70 to-transparent" />
               </>
             ) : (
               <>
