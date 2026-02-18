@@ -1273,8 +1273,8 @@ export default function Home() {
                         <Chip
                           size="sm"
                           variant="flat"
-                          // color={post.category.color}
-                          style={{ backgroundColor: post.category.color }}
+                          color={"warning"}
+                          // style={{ backgroundColor: post.category.color }}
                           className="font-medium text-white"
                         >
                           {post.category.name}
