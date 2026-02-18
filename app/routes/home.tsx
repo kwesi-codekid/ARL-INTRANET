@@ -1288,21 +1288,13 @@ export default function Home() {
                           </p>
                         </div>
                         <div className="mt-3 flex items-center gap-2">
-                          <Avatar
-                            name={getInitials(post.author.name)}
-                            size="sm"
-                            classNames={{
-                              base: "bg-primary-500 text-white font-semibold text-xs",
-                            }}
-                          />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {post.author.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatRelativeTime(post.publishedAt)}
-                            </p>
-                          </div>
+                          <Button
+                            color="warning"
+                            as={Link}
+                            href={`/news/${post.slug}`}
+                          >
+                            Read More
+                          </Button>
                         </div>
                       </div>
                       {/* </div> */}
