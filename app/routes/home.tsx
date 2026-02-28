@@ -275,12 +275,12 @@ function getInitials(name: string): string {
 function ITTipsSlideshow({ tips }: { tips: LoaderData["itTips"] }) {
   const [currentTip, setCurrentTip] = useState(0);
 
-  // Auto-rotate tips every 8 seconds
+  // Auto-rotate tips every 60 seconds
   useEffect(() => {
     if (tips.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentTip((prev) => (prev + 1) % tips.length);
-    }, 8000);
+    }, 60000);
     return () => clearInterval(timer);
   }, [tips.length]);
 
@@ -1255,43 +1255,41 @@ export default function Home() {
               <Link key={post.id} to={`/news/${post.slug}`}>
                 <Card className="group overflow-hidden p-0 shadow-sm transition-shadow hover:shadow-md md:h-52">
                   <CardBody className="h-full p-0">
-                    <div className="flex flex-col gap-3 md:flex-row md:gap-6">
+                    <div className="flex flex-col md:flex-row">
                       {/* Image Section */}
-                      {/* <div className="relative"> */}
-                      <div className="h-52 w-full flex-shrink-0 overflow-hidden md:h-52 md:w-64">
+                      <div className="h-40 w-full flex-shrink-0 overflow-hidden sm:h-48 md:h-52 md:w-64">
                         <img
                           src={
                             post.featuredImage ||
                             "https://via.placeholder.com/800x450?text=ARL+News"
                           }
                           alt={post.title}
-                          className="h-52 w-full object-cover object-center transition-transform group-hover:scale-105 md:h-52 md:w-64"
+                          className="h-full w-full object-cover object-center transition-transform group-hover:scale-105"
                         />
                       </div>
                       {/* Category badge on image */}
-                      <div className="flex flex-1 flex-col justify-between px-5 py-4">
+                      <div className="flex flex-1 flex-col justify-between p-4 md:px-5 md:py-4">
                         <Chip
                           size="sm"
                           variant="flat"
                           color={"warning"}
-                          // style={{ backgroundColor: post.category.color }}
                           className="font-medium text-white"
                         >
                           {post.category.name}
                         </Chip>
                         <div>
-                          <h3 className="mt-3 line-clamp-2 text-base font-semibold text-gray-900 sm:text-lg">
+                          <h3 className="mt-2 line-clamp-2 text-base font-semibold text-gray-900 sm:text-lg md:mt-3">
                             {post.title}
                           </h3>
                           <p className="mt-1 line-clamp-2 text-sm text-gray-600">
                             {post.excerpt || "Click to read more..."}
                           </p>
                         </div>
-                        <div className="mt-3 flex items-center gap-2">
+                        <div className="mt-auto flex items-center gap-2 pt-2 md:pt-3">
                           <Button
+                            size="sm"
                             color="warning"
-                            as={Link}
-                            href={`/news/${post.slug}`}
+                            endContent={<ArrowRight size={14} />}
                           >
                             Read More
                           </Button>
