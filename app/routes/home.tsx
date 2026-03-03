@@ -39,6 +39,11 @@ import {
   Calendar,
   Clock,
   MapPin,
+  Sun,
+  Moon,
+  Sunrise,
+  Sunset,
+  HardHat,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
@@ -269,6 +274,194 @@ function getInitials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+// Helper to get the greeting period key for the current hour
+function getGreetingPeriod(hour: number): string {
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 21) return "evening";
+  return "night";
+}
+
+// Greeting theme per time period — each is visually distinct
+const greetingThemes = {
+  morning: {
+    text: "Good Morning",
+    icon: Sunrise,
+    bg: "bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-50",
+    iconBg: "bg-amber-500",
+    titleColor: "text-amber-900",
+    dateColor: "text-amber-700/70",
+    chipBg: "bg-amber-500/10",
+    chipText: "text-amber-800",
+    borderColor: "border-amber-300",
+    accent: "bg-amber-400",
+  },
+  afternoon: {
+    text: "Good Afternoon",
+    icon: Sun,
+    bg: "bg-gradient-to-r from-sky-100 via-blue-50 to-cyan-50",
+    iconBg: "bg-sky-500",
+    titleColor: "text-sky-900",
+    dateColor: "text-sky-700/70",
+    chipBg: "bg-sky-500/10",
+    chipText: "text-sky-800",
+    borderColor: "border-sky-300",
+    accent: "bg-sky-400",
+  },
+  evening: {
+    text: "Good Evening",
+    icon: Sunset,
+    bg: "bg-gradient-to-r from-violet-100 via-purple-50 to-fuchsia-50",
+    iconBg: "bg-violet-600",
+    titleColor: "text-violet-900",
+    dateColor: "text-violet-700/70",
+    chipBg: "bg-violet-500/10",
+    chipText: "text-violet-800",
+    borderColor: "border-violet-300",
+    accent: "bg-violet-500",
+  },
+  night: {
+    text: "Good Night",
+    icon: Moon,
+    bg: "bg-gradient-to-r from-slate-800 via-gray-900 to-slate-900",
+    iconBg: "bg-indigo-500",
+    titleColor: "text-white",
+    dateColor: "text-slate-400",
+    chipBg: "bg-white/10",
+    chipText: "text-slate-200",
+    borderColor: "border-slate-700",
+    accent: "bg-indigo-400",
+  },
+} as const;
+
+// Greeting Banner Component - Shows for 20s then hides, reappears on greeting period change
+function GreetingBanner() {
+  const [now, setNow] = useState(new Date());
+  const [visible, setVisible] = useState(true);
+  const [prevPeriod, setPrevPeriod] = useState(() =>
+    getGreetingPeriod(new Date().getHours())
+  );
+
+  // Update time every minute to detect greeting period changes
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Auto-hide after 20 seconds
+  useEffect(() => {
+    if (!visible) return;
+    const hideTimer = setTimeout(() => setVisible(false), 20_000);
+    return () => clearTimeout(hideTimer);
+  }, [visible]);
+
+  // Re-show when greeting period changes (morning→afternoon, etc.)
+  const currentPeriod = getGreetingPeriod(now.getHours());
+  useEffect(() => {
+    if (currentPeriod !== prevPeriod) {
+      setPrevPeriod(currentPeriod);
+      setVisible(true);
+    }
+  }, [currentPeriod, prevPeriod]);
+
+  const hour = now.getHours();
+  const period = getGreetingPeriod(hour) as keyof typeof greetingThemes;
+  const theme = greetingThemes[period];
+  const Icon = theme.icon;
+
+  const safetyMessages = [
+    "Safety first, always. Have a productive day!",
+    "Think safe, work safe, be safe.",
+    "Your safety is our priority. Let's make today incident-free!",
+    "A safe workplace is a happy workplace.",
+    "Stay alert, stay alive. Safety starts with you!",
+    "Every job is urgent, but no job is worth a life.",
+    "Take 5 for safety before you start any task.",
+    "Report hazards, prevent incidents. We're all responsible.",
+    "Protect yourself, protect your team. Go home safe today!",
+    "Zero harm is our goal. Let's achieve it together!",
+  ];
+
+  const dayOfYear = Math.floor(
+    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000
+  );
+  const message = safetyMessages[dayOfYear % safetyMessages.length];
+
+  const formattedDate = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const formattedTime = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const isNight = period === "night";
+
+  return (
+    <Card
+      className={`relative overflow-hidden border ${theme.borderColor} ${theme.bg} shadow-sm transition-all duration-700 ease-in-out ${
+        visible
+          ? "mb-4 max-h-48 opacity-100 sm:mb-6"
+          : "mb-0 max-h-0 border-0 opacity-0"
+      }`}
+    >
+      {/* Accent bar on the left */}
+      <div
+        className={`absolute top-0 left-0 h-full w-1.5 ${theme.accent} rounded-l-xl`}
+      />
+
+      <CardBody className="py-3 pr-4 pl-5 sm:py-4 sm:pr-6 sm:pl-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Left: Icon + Greeting + Date */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${theme.iconBg} shadow-md sm:h-12 sm:w-12`}
+            >
+              <Icon size={22} className="text-white sm:hidden" />
+              <Icon size={24} className="hidden text-white sm:block" />
+            </div>
+            <div>
+              <h2
+                className={`text-base font-bold sm:text-xl ${theme.titleColor}`}
+              >
+                {theme.text}, welcome to ARL Intranet
+              </h2>
+              <div
+                className={`mt-0.5 flex items-center gap-1.5 text-xs sm:gap-2 sm:text-sm ${theme.dateColor}`}
+              >
+                <Calendar size={13} />
+                <span>{formattedDate}</span>
+                <span className={isNight ? "text-slate-600" : "text-gray-300"}>
+                  |
+                </span>
+                <Clock size={13} />
+                <span>{formattedTime}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Safety message chip */}
+          <Chip
+            startContent={
+              <HardHat size={14} className={`ml-1 ${theme.chipText}`} />
+            }
+            variant="flat"
+            className={`${theme.chipBg} ${theme.chipText} h-auto max-w-xs px-3 py-1.5 sm:max-w-sm`}
+          >
+            <span className="text-xs leading-snug font-medium whitespace-normal sm:text-sm">
+              {message}
+            </span>
+          </Chip>
+        </div>
+      </CardBody>
+    </Card>
+  );
 }
 
 // IT Tips Slideshow Component - Shows ONE big readable tip at a time
@@ -751,6 +944,9 @@ export default function Home() {
     <MainLayout showRightSidebar user={portalUser}>
       {/* Alert Toast Notifications - Auto-dismissing popups */}
       <AlertToast alerts={activeAlerts} autoHideDuration={8000} />
+
+      {/* Time-based Greeting Banner */}
+      <GreetingBanner />
 
       {/* Featured Banner Carousel - Safety Videos, PDFs, Tips, and News */}
       {carouselItems.length > 0 && currentItem && (
