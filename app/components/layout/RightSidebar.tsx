@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { AppIcon } from "~/components/ui";
 import type { SerializedToolboxTalk } from "~/lib/services/toolbox-talk.server";
 import type { SerializedSafetyTip, SerializedSafetyVideo } from "~/lib/services/safety.server";
-import type { SerializedMenu, MealType } from "~/lib/utils/menu-constants";
+import type { SerializedMenu } from "~/lib/utils/menu-constants";
 import { dietaryInfo, mealTimeInfo } from "~/lib/utils/menu-constants";
 
 interface FeaturedPost {
@@ -77,16 +77,7 @@ export function RightSidebar() {
   const todayMenu = menuFetcher.data?.menu || null;
   const featuredPosts = featuredNewsFetcher.data?.posts || [];
 
-  // Get current meal based on time
-  const getCurrentMealType = (): MealType => {
-    const currentHour = new Date().getHours();
-    if (currentHour >= 15) return "dinner";
-    if (currentHour >= 11) return "lunch";
-    return "breakfast";
-  };
-
-  const currentMealType = getCurrentMealType();
-  const currentMeal = todayMenu?.meals.find((m) => m.type === currentMealType);
+  const currentMeal = todayMenu?.meals.find((m) => m.type === "lunch");
 
   // Format video duration
   const formatDuration = (seconds: number): string => {
@@ -537,7 +528,7 @@ export function RightSidebar() {
               </div>
             </div>
             <Chip size="sm" color="warning" variant="flat" className="text-xs">
-              {mealTimeInfo[currentMealType].label}
+              {mealTimeInfo.lunch.label}
             </Chip>
           </div>
         </CardHeader>
@@ -575,8 +566,8 @@ export function RightSidebar() {
               )}
               <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-2">
                 <span>
-                  {currentMeal.startTime || mealTimeInfo[currentMealType].defaultStart} -{" "}
-                  {currentMeal.endTime || mealTimeInfo[currentMealType].defaultEnd}
+                  {currentMeal.startTime || mealTimeInfo.lunch.defaultStart} -{" "}
+                  {currentMeal.endTime || mealTimeInfo.lunch.defaultEnd}
                 </span>
               </div>
               <Button

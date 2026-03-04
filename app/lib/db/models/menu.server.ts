@@ -11,7 +11,7 @@ import type { Document, Model, Types } from "mongoose";
 export type DietaryType = "vegetarian" | "vegan" | "halal" | "gluten-free" | "dairy-free" | "nut-free" | "spicy";
 
 // Meal types
-export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export type MealType = "lunch";
 
 // Menu item interface
 export interface IMenuItem {
@@ -65,7 +65,7 @@ const MenuItemSchema = new Schema<IMenuItem>({
 const MealSchema = new Schema<IMeal>({
   type: {
     type: String,
-    enum: ["breakfast", "lunch", "dinner", "snack"],
+    enum: ["lunch"],
     required: true,
   },
   items: [MenuItemSchema],

@@ -29,10 +29,7 @@ import {
   Trash2,
   Edit,
   Star,
-  Coffee,
   Sun,
-  Moon,
-  Cookie,
   FileText,
   Save,
 } from "lucide-react";
@@ -116,10 +113,7 @@ interface LoaderData {
 }
 
 const mealIcons: Record<MealType, React.ElementType> = {
-  breakfast: Coffee,
   lunch: Sun,
-  dinner: Moon,
-  snack: Cookie,
 };
 
 const dietaryOptions = Object.entries(dietaryInfo).map(([key, info]) => ({
@@ -180,7 +174,7 @@ function TemplateEditor({
     onClose();
   };
 
-  const availableMealTypes = (["breakfast", "lunch", "dinner", "snack"] as MealType[]).filter(
+  const availableMealTypes = (["lunch"] as MealType[]).filter(
     (type) => !meals.some((m) => m.type === type)
   );
 

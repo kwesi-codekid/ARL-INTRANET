@@ -19,7 +19,7 @@ import {
   Divider,
   Checkbox,
 } from "@heroui/react";
-import { ArrowLeft, Save, Plus, Trash2, Coffee, Sun, Moon, Cookie } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Sun } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router";
 import {
@@ -135,10 +135,7 @@ interface LoaderData {
 }
 
 const mealIcons: Record<MealType, React.ElementType> = {
-  breakfast: Coffee,
   lunch: Sun,
-  dinner: Moon,
-  snack: Cookie,
 };
 
 const dietaryOptions = Object.entries(dietaryInfo).map(([key, info]) => ({
@@ -341,7 +338,7 @@ export default function AdminCreateMenuPage() {
     }
   };
 
-  const availableMealTypes = (["breakfast", "lunch", "dinner", "snack"] as MealType[]).filter(
+  const availableMealTypes = (["lunch"] as MealType[]).filter(
     (type) => !meals.some((m) => m.type === type)
   );
 
@@ -411,38 +408,20 @@ export default function AdminCreateMenuPage() {
               {meals.length === 0 ? (
                 <Card className="shadow-sm">
                   <CardBody className="py-12 text-center">
-                    <Coffee size={48} className="mx-auto mb-4 text-gray-300" />
+                    <Sun size={48} className="mx-auto mb-4 text-gray-300" />
                     <p className="text-gray-500 mb-4">No meals added yet</p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {(["breakfast", "lunch", "dinner"] as MealType[]).map((type) => (
-                        <Button
-                          key={type}
-                          variant="flat"
-                          color="primary"
-                          onPress={() => addMeal(type)}
-                          startContent={
-                            type === "breakfast" ? (
-                              <Coffee size={16} />
-                            ) : type === "lunch" ? (
-                              <Sun size={16} />
-                            ) : (
-                              <Moon size={16} />
-                            )
-                          }
-                        >
-                          Add {mealTimeInfo[type].label}
-                        </Button>
-                      ))}
-                    </div>
+                    <Button
+                      variant="flat"
+                      color="primary"
+                      onPress={() => addMeal("lunch")}
+                      startContent={<Sun size={16} />}
+                    >
+                      Add Lunch
+                    </Button>
                   </CardBody>
                 </Card>
               ) : (
-                meals
-                  .sort((a, b) => {
-                    const order: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
-                    return order.indexOf(a.type) - order.indexOf(b.type);
-                  })
-                  .map((meal, index) => (
+                meals.map((meal, index) => (
                     <MealBuilder
                       key={meal.type}
                       meal={meal}

@@ -18,7 +18,7 @@ import {
   Divider,
   Checkbox,
 } from "@heroui/react";
-import { ArrowLeft, Save, Plus, Trash2, Coffee, Sun, Moon, Cookie } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Sun } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router";
 import {
@@ -90,10 +90,7 @@ interface LoaderData {
 }
 
 const mealIcons: Record<MealType, React.ElementType> = {
-  breakfast: Coffee,
   lunch: Sun,
-  dinner: Moon,
-  snack: Cookie,
 };
 
 const dietaryOptions = Object.entries(dietaryInfo).map(([key, info]) => ({
@@ -287,7 +284,7 @@ export default function AdminEditMenuPage() {
     setMeals(meals.filter((_, i) => i !== index));
   };
 
-  const availableMealTypes = (["breakfast", "lunch", "dinner", "snack"] as MealType[]).filter(
+  const availableMealTypes = (["lunch"] as MealType[]).filter(
     (type) => !meals.some((m) => m.type === type)
   );
 
@@ -359,12 +356,7 @@ export default function AdminEditMenuPage() {
                 )}
               </div>
 
-              {meals
-                .sort((a, b) => {
-                  const order: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
-                  return order.indexOf(a.type) - order.indexOf(b.type);
-                })
-                .map((meal, index) => (
+              {meals.map((meal, index) => (
                   <MealBuilder
                     key={meal.type}
                     meal={meal}

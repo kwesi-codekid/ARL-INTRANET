@@ -288,13 +288,13 @@ export default function AdminMenusPage() {
                 {menu ? (
                   <div className="space-y-3">
                     {/* Meal Summary */}
-                    {(["breakfast", "lunch", "dinner"] as MealType[]).map((mealType) => {
-                      const meal = menu.meals.find((m) => m.type === mealType);
+                    {(() => {
+                      const meal = menu.meals.find((m) => m.type === "lunch");
                       const itemCount = meal?.items.filter((i) => i.isAvailable).length || 0;
 
                       return (
-                        <div key={mealType} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">{mealTimeInfo[mealType].label}</span>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">{mealTimeInfo.lunch.label}</span>
                           <Chip
                             size="sm"
                             variant="flat"
@@ -304,7 +304,7 @@ export default function AdminMenusPage() {
                           </Chip>
                         </div>
                       );
-                    })}
+                    })()}
 
                     <Divider />
 

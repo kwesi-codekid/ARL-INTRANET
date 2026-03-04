@@ -4,7 +4,7 @@
  */
 
 export type DietaryType = "vegetarian" | "vegan" | "halal" | "gluten-free" | "dairy-free" | "nut-free" | "spicy";
-export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export type MealType = "lunch";
 
 // Dietary info
 export const dietaryInfo: Record<DietaryType, { label: string; icon: string; color: string }> = {
@@ -19,10 +19,7 @@ export const dietaryInfo: Record<DietaryType, { label: string; icon: string; col
 
 // Meal time info
 export const mealTimeInfo: Record<MealType, { label: string; defaultStart: string; defaultEnd: string }> = {
-  breakfast: { label: "Breakfast", defaultStart: "06:00", defaultEnd: "09:00" },
   lunch: { label: "Lunch", defaultStart: "12:00", defaultEnd: "14:00" },
-  dinner: { label: "Dinner", defaultStart: "18:00", defaultEnd: "20:00" },
-  snack: { label: "Snack", defaultStart: "15:00", defaultEnd: "16:00" },
 };
 
 // Serialized types for client

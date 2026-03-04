@@ -4,36 +4,17 @@
  */
 
 import { Card, CardBody, CardHeader, Chip, Divider, Button } from "@heroui/react";
-import { UtensilsCrossed, Coffee, Sun, Moon, ArrowRight } from "lucide-react";
+import { UtensilsCrossed, Sun, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
-import type { SerializedMenu, MealType } from "~/lib/utils/menu-constants";
+import type { SerializedMenu } from "~/lib/utils/menu-constants";
 import { dietaryInfo, mealTimeInfo } from "~/lib/utils/menu-constants";
 
 interface CanteenMenuWidgetProps {
   menu: SerializedMenu | null;
 }
 
-const mealIcons: Record<MealType, React.ElementType> = {
-  breakfast: Coffee,
-  lunch: Sun,
-  dinner: Moon,
-  snack: Coffee,
-};
-
 export function CanteenMenuWidget({ menu }: CanteenMenuWidgetProps) {
-  // Get current meal based on time
-  const now = new Date();
-  const currentHour = now.getHours();
-
-  let currentMealType: MealType = "breakfast";
-  if (currentHour >= 15) {
-    currentMealType = "dinner";
-  } else if (currentHour >= 11) {
-    currentMealType = "lunch";
-  }
-
-  const currentMeal = menu?.meals.find((m) => m.type === currentMealType);
-  const Icon = mealIcons[currentMealType];
+  const currentMeal = menu?.meals.find((m) => m.type === "lunch");
 
   return (
     <Card className="shadow-sm h-full">
@@ -43,7 +24,7 @@ export function CanteenMenuWidget({ menu }: CanteenMenuWidgetProps) {
           <h3 className="font-semibold text-gray-900">Today's Menu</h3>
         </div>
         <Chip size="sm" color="primary" variant="flat">
-          {mealTimeInfo[currentMealType].label}
+          {mealTimeInfo.lunch.label}
         </Chip>
       </CardHeader>
       <Divider />
@@ -79,8 +60,8 @@ export function CanteenMenuWidget({ menu }: CanteenMenuWidgetProps) {
             {/* Time Info */}
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>
-                Serving: {currentMeal.startTime || mealTimeInfo[currentMealType].defaultStart} -{" "}
-                {currentMeal.endTime || mealTimeInfo[currentMealType].defaultEnd}
+                Serving: {currentMeal.startTime || mealTimeInfo.lunch.defaultStart} -{" "}
+                {currentMeal.endTime || mealTimeInfo.lunch.defaultEnd}
               </span>
             </div>
           </div>

@@ -20,10 +20,7 @@ import {
 } from "@heroui/react";
 import {
   UtensilsCrossed,
-  Coffee,
   Sun,
-  Moon,
-  Cookie,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -73,17 +70,11 @@ interface LoaderData {
 }
 
 const mealIcons: Record<MealType, React.ElementType> = {
-  breakfast: Coffee,
   lunch: Sun,
-  dinner: Moon,
-  snack: Cookie,
 };
 
 const mealColors: Record<MealType, string> = {
-  breakfast: "bg-amber-100 text-amber-700",
   lunch: "bg-blue-100 text-blue-700",
-  dinner: "bg-purple-100 text-purple-700",
-  snack: "bg-green-100 text-green-700",
 };
 
 function DietaryBadge({ dietary }: { dietary: DietaryType }) {
@@ -157,10 +148,7 @@ function TodayView({ menu }: { menu: SerializedMenu | null }) {
     );
   }
 
-  const mealOrder: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
-  const sortedMeals = [...menu.meals].sort(
-    (a, b) => mealOrder.indexOf(a.type) - mealOrder.indexOf(b.type)
-  );
+  const sortedMeals = menu.meals.filter((m) => m.type === "lunch");
 
   return (
     <div className="space-y-4">
@@ -301,17 +289,16 @@ function WeekView({
               <CardBody className="pt-2">
                 {menu ? (
                   <div className="space-y-2">
-                    {(["breakfast", "lunch", "dinner"] as MealType[]).map((mealType) => {
-                      const meal = menu.meals.find((m) => m.type === mealType);
+                    {(() => {
+                      const meal = menu.meals.find((m) => m.type === "lunch");
                       const availableItems = meal?.items.filter((i) => i.isAvailable) || [];
-                      const Icon = mealIcons[mealType];
 
                       return (
-                        <div key={mealType} className="flex items-start gap-2">
-                          <Icon size={14} className="text-gray-400 mt-0.5" />
+                        <div className="flex items-start gap-2">
+                          <Sun size={14} className="text-gray-400 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium text-gray-700">
-                              {mealTimeInfo[mealType].label}
+                              {mealTimeInfo.lunch.label}
                             </p>
                             {availableItems.length > 0 ? (
                               <p className="text-xs text-gray-500 truncate">
@@ -323,7 +310,7 @@ function WeekView({
                           </div>
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-400 text-center py-4">No menu</p>
