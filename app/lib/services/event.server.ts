@@ -140,12 +140,18 @@ export async function getEvents(
   }
 
   if (filters.upcoming) {
-    query.date = { $gte: new Date() };
+    // Use start of today so events remain visible until the day ends
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    query.date = { $gte: startOfToday };
     query.status = "published";
   }
 
   if (filters.past) {
-    query.date = { $lt: new Date() };
+    // Past events are those before today
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    query.date = { $lt: startOfToday };
     query.status = { $in: ["published", "completed"] };
   }
 
@@ -189,9 +195,13 @@ export async function getEvents(
 export async function getUpcomingEvents(limit = 5): Promise<IEvent[]> {
   await connectDB();
 
+  // Use start of today so events remain visible until the day ends
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
   return Event.find({
     status: "published",
-    date: { $gte: new Date() },
+    date: { $gte: startOfToday },
   })
     .sort({ date: 1 })
     .limit(limit)
@@ -201,9 +211,13 @@ export async function getUpcomingEvents(limit = 5): Promise<IEvent[]> {
 export async function getPastEvents(limit = 10): Promise<IEvent[]> {
   await connectDB();
 
+  // Past events are those before today
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
   return Event.find({
     status: { $in: ["published", "completed"] },
-    date: { $lt: new Date() },
+    date: { $lt: startOfToday },
   })
     .sort({ date: -1 })
     .limit(limit)
