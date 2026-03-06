@@ -142,9 +142,10 @@ export default function EventDetailPage() {
             <Card className="shadow-sm">
               <CardBody className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About This Event</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line text-base">
-                  {event.description}
-                </p>
+                <div
+                  className="prose prose-base max-w-none text-gray-600 prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800"
+                  dangerouslySetInnerHTML={{ __html: event.description }}
+                />
 
                 {event.content && (
                   <div

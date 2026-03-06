@@ -27,7 +27,7 @@ import {
   Minus,
   Pilcrow,
 } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface RichTextEditorProps {
   name: string;
@@ -48,6 +48,8 @@ export function RichTextEditor({
   isRequired = false,
   minHeight = "200px",
 }: RichTextEditorProps) {
+  const [htmlContent, setHtmlContent] = useState(initialContent);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -73,7 +75,9 @@ export function RichTextEditor({
     content: initialContent,
     immediatelyRender: false, // Fix SSR hydration mismatch
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      const html = editor.getHTML();
+      setHtmlContent(html);
+      onChange?.(html);
     },
     editorProps: {
       attributes: {
@@ -288,7 +292,7 @@ export function RichTextEditor({
       </div>
 
       {/* Hidden input for form submission */}
-      <input type="hidden" name={name} value={editor.getHTML()} />
+      <input type="hidden" name={name} value={htmlContent} />
     </div>
   );
 }

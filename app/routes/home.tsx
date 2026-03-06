@@ -4,6 +4,7 @@ import type {
 } from "~/lib/services/safety.server";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   CardBody,
@@ -44,6 +45,8 @@ import {
   Sunrise,
   Sunset,
   HardHat,
+  PartyPopper,
+  X,
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
@@ -74,7 +77,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     await import("~/lib/services/executive-message.server");
   const { getCompanyImages } =
     await import("~/lib/services/company-info.server");
-  const { getUpcomingEvents, serializeEvent } =
+  const { getUpcomingEvents, getTodayEvents, serializeEvent } =
     await import("~/lib/services/event.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { News } = await import("~/lib/db/models/news.server");
@@ -92,6 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     executiveMessages,
     companyImages,
     upcomingEvents,
+    todayEvents,
   ] = await Promise.all([
     News.find({ status: "published" })
       .sort({ publishedAt: -1, createdAt: -1 })
@@ -122,6 +126,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getCompanyImages(),
     // Fetch upcoming events for highlights
     getUpcomingEvents(2),
+    // Fetch today's events for toast notifications
+    getTodayEvents(),
   ]);
 
   // Serialize news helper
@@ -183,6 +189,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })),
     companyImages,
     upcomingEvents: upcomingEvents.map(serializeEvent),
+    todayEvents: todayEvents.map(serializeEvent),
   });
 }
 
@@ -225,6 +232,19 @@ interface LoaderData {
   }>;
   companyImages: CompanyImages;
   upcomingEvents: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    date: string;
+    endDate?: string;
+    time?: string;
+    location: string;
+    category?: string;
+    isFeatured: boolean;
+    featuredImage?: string;
+  }>;
+  todayEvents: Array<{
     id: string;
     title: string;
     slug: string;
@@ -761,6 +781,114 @@ function ExecutiveMessagesCard({
   );
 }
 
+// Today's Event Toast - Gold-themed notification for events happening today
+function TodayEventToast({
+  events,
+}: {
+  events: LoaderData["todayEvents"];
+}) {
+  const [visibleEvents, setVisibleEvents] = useState<
+    LoaderData["todayEvents"]
+  >([]);
+
+  useEffect(() => {
+    const todayKey = `dismissedTodayEvents-${new Date().toISOString().slice(0, 10)}`;
+    const dismissed = localStorage.getItem(todayKey);
+    const dismissedIds: string[] = dismissed ? JSON.parse(dismissed) : [];
+    const filtered = events.filter((e) => !dismissedIds.includes(e.id));
+    setVisibleEvents(filtered);
+  }, [events]);
+
+  // Auto-dismiss after 10 seconds
+  useEffect(() => {
+    if (visibleEvents.length === 0) return;
+    const timer = setTimeout(() => {
+      dismissAll();
+    }, 10_000);
+    return () => clearTimeout(timer);
+  }, [visibleEvents]);
+
+  const dismissAll = () => {
+    const todayKey = `dismissedTodayEvents-${new Date().toISOString().slice(0, 10)}`;
+    const allIds = events.map((e) => e.id);
+    localStorage.setItem(todayKey, JSON.stringify(allIds));
+    setVisibleEvents([]);
+  };
+
+  const dismissOne = (id: string) => {
+    const todayKey = `dismissedTodayEvents-${new Date().toISOString().slice(0, 10)}`;
+    const dismissed = localStorage.getItem(todayKey);
+    const dismissedIds: string[] = dismissed ? JSON.parse(dismissed) : [];
+    dismissedIds.push(id);
+    localStorage.setItem(todayKey, JSON.stringify(dismissedIds));
+    setVisibleEvents((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  if (visibleEvents.length === 0) return null;
+
+  return (
+    <div className="fixed top-4 right-4 z-[49] space-y-3 max-w-sm w-full pointer-events-none">
+      <AnimatePresence>
+        {visibleEvents.slice(0, 3).map((event, index) => (
+          <motion.div
+            key={event.id}
+            initial={{ opacity: 0, x: 100, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 100, scale: 0.9 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className="border border-amber-400 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg shadow-lg overflow-hidden pointer-events-auto"
+          >
+            <div className="flex items-start gap-3 p-3">
+              <div className="bg-amber-500 p-2 rounded-full flex-shrink-0">
+                <PartyPopper size={18} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-amber-900 text-sm">
+                  {event.title}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5 text-xs text-amber-700/80">
+                  {event.time && (
+                    <span className="flex items-center gap-0.5">
+                      <Clock size={11} />
+                      {event.time}
+                    </span>
+                  )}
+                  {event.location && (
+                    <span className="flex items-center gap-0.5">
+                      <MapPin size={11} />
+                      {event.location}
+                    </span>
+                  )}
+                </div>
+                <Link
+                  to={`/events/${event.slug}`}
+                  className="text-xs text-amber-700 hover:text-amber-900 underline mt-1 inline-block"
+                >
+                  View details
+                </Link>
+              </div>
+              <button
+                onClick={() => dismissOne(event.id)}
+                className="text-amber-500 hover:text-amber-800 p-1 flex-shrink-0"
+                aria-label="Dismiss"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {/* Progress bar for auto-dismiss */}
+            <motion.div
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 10, ease: "linear" }}
+              className="h-1 bg-amber-400/40"
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Home() {
   const {
     recentNews,
@@ -771,6 +899,7 @@ export default function Home() {
     executiveMessages,
     companyImages,
     upcomingEvents,
+    todayEvents,
   } = useLoaderData<LoaderData>();
   const { portalUser } = useOutletContext<PublicOutletContext>();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -944,6 +1073,9 @@ export default function Home() {
     <MainLayout showRightSidebar user={portalUser}>
       {/* Alert Toast Notifications - Auto-dismissing popups */}
       <AlertToast alerts={activeAlerts} autoHideDuration={8000} />
+
+      {/* Today's Event Toast Notifications */}
+      {todayEvents.length > 0 && <TodayEventToast events={todayEvents} />}
 
       {/* Time-based Greeting Banner */}
       <GreetingBanner />
@@ -1395,7 +1527,7 @@ export default function Home() {
                               {event.title}
                             </h3>
                             <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                              {event.description}
+                              {event.description?.replace(/<[^>]*>/g, "")}
                             </p>
                             <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
                               {event.time && (

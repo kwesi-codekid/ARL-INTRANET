@@ -9,7 +9,7 @@ import {
   CardBody,
   CardHeader,
   Input,
-  Textarea,
+
   Button,
   Select,
   SelectItem,
@@ -21,6 +21,7 @@ import {
 import { ArrowLeft, Save, ImagePlus, X, Calendar, MapPin, Clock, Users, Mail, Phone, Link as LinkIcon, Trash2 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
+import { RichTextEditor } from "~/components/admin";
 
 function generateSlug(title: string): string {
   return title
@@ -279,24 +280,21 @@ export default function AdminEventsEditPage() {
                   startContent={<Calendar size={16} className="text-gray-400" />}
                 />
 
-                <Textarea
+                <RichTextEditor
                   name="description"
                   label="Description"
                   placeholder="Brief description of the event"
-                  defaultValue={event.description}
+                  initialContent={event.description}
                   isRequired
-                  maxLength={500}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
+                  minHeight="150px"
                 />
 
-                <Textarea
+                <RichTextEditor
                   name="content"
                   label="Full Content (Optional)"
-                  placeholder="Detailed event information... (HTML supported)"
-                  defaultValue={event.content || ""}
-                  minRows={6}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
-                  description="You can use HTML tags for formatting"
+                  placeholder="Detailed event information..."
+                  initialContent={event.content || ""}
+                  minHeight="200px"
                 />
               </CardBody>
             </Card>

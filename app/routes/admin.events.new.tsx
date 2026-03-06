@@ -9,7 +9,7 @@ import {
   CardBody,
   CardHeader,
   Input,
-  Textarea,
+
   Button,
   Select,
   SelectItem,
@@ -205,13 +205,12 @@ export default function AdminEventsNewPage() {
                   startContent={<Calendar size={16} className="text-gray-400" />}
                 />
 
-                <Textarea
+                <RichTextEditor
                   name="description"
                   label="Description"
                   placeholder="Brief description of the event"
                   isRequired
-                  maxLength={500}
-                  classNames={{ inputWrapper: "bg-gray-50" }}
+                  minHeight="150px"
                 />
 
                 <RichTextEditor

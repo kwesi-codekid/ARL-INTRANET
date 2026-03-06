@@ -378,9 +378,10 @@ function EventCalendarView({ events }: { events: SerializedEvent[] }) {
                   )}
 
                   {selectedEvent.description && (
-                    <p className="pt-2 text-sm leading-relaxed text-gray-600">
-                      {selectedEvent.description}
-                    </p>
+                    <div
+                      className="pt-2 prose prose-sm max-w-none text-gray-600 prose-p:leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: selectedEvent.description }}
+                    />
                   )}
                 </div>
               </ModalBody>
@@ -496,7 +497,7 @@ function EventCard({
               </h3>
 
               <p className="mt-1 line-clamp-2 text-sm text-gray-600">
-                {event.description}
+                {event.description?.replace(/<[^>]*>/g, "")}
               </p>
 
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
