@@ -65,11 +65,11 @@ export function SafetyTipWidget({ tip }: SafetyTipWidgetProps) {
       <CardBody className="pt-0 space-y-3">
         {tip.featuredImage && (
           <Link to={`/safety-tips/${tip.slug}`} className="block">
-            <div className="relative h-32 w-full overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative h-32 w-full overflow-hidden rounded-lg bg-gray-900">
               <img
                 src={tip.featuredImage}
                 alt={tip.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain sm:object-cover"
               />
             </div>
           </Link>

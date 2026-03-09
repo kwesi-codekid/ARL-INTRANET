@@ -72,12 +72,12 @@ export function SafetyVideoWidget({ video }: SafetyVideoWidgetProps) {
       <CardBody className="pt-0 space-y-3">
         {/* Video Thumbnail */}
         <Link to={`/safety-videos?play=${video.id}`} className="block">
-          <div className="relative h-36 w-full overflow-hidden rounded-lg bg-gray-100">
+          <div className="relative h-36 w-full overflow-hidden rounded-lg bg-gray-900">
             {video.thumbnail ? (
               <img
                 src={video.thumbnail}
                 alt={video.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain sm:object-cover"
               />
             ) : (
               <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">

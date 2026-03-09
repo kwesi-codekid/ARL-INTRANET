@@ -244,7 +244,7 @@ export function RightSidebar() {
                         <img
                           src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
                           alt={weeklyTalk.title}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain sm:object-cover"
                         />
                         {(weeklyTalk.featuredMedia.type === "video" || weeklyTalk.featuredMedia.type === "audio") && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -346,11 +346,11 @@ export function RightSidebar() {
             <div className="space-y-3">
               {safetyTip.featuredImage && (
                 <Link to={`/safety-tips/${safetyTip.slug}`} className="block">
-                  <div className="relative h-24 w-full overflow-hidden rounded-lg">
+                  <div className="relative h-24 w-full overflow-hidden rounded-lg bg-gray-900">
                     <img
                       src={safetyTip.featuredImage}
                       alt={safetyTip.title}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain sm:object-cover"
                     />
                   </div>
                 </Link>
@@ -437,12 +437,12 @@ export function RightSidebar() {
           ) : safetyVideo ? (
             <div className="space-y-3">
               <Link to={`/safety-videos?play=${safetyVideo.id}`} className="block">
-                <div className="relative h-28 w-full overflow-hidden rounded-lg bg-gray-100">
+                <div className="relative h-28 w-full overflow-hidden rounded-lg bg-gray-900">
                   {safetyVideo.thumbnail ? (
                     <img
                       src={safetyVideo.thumbnail}
                       alt={safetyVideo.title}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain sm:object-cover"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">

@@ -23,7 +23,7 @@ interface ResponsiveImageProps {
   preset?: MediaPreset;
   className?: string;
   containerClassName?: string;
-  objectFit?: "cover" | "contain" | "fill" | "none";
+  objectFit?: "cover" | "contain" | "fill" | "none" | "responsive";
   priority?: boolean;
   fallback?: React.ReactNode;
   onClick?: () => void;
@@ -39,7 +39,7 @@ export function ResponsiveImage({
   preset = "thumbnail",
   className = "",
   containerClassName = "",
-  objectFit = "cover",
+  objectFit = "responsive",
   priority = false,
   fallback,
   onClick,
@@ -53,13 +53,14 @@ export function ResponsiveImage({
 
   const isCloudinary = isCloudinaryUrl(src);
   const aspectClass = getAspectRatioClass(preset);
-  const objectFitClass = objectFit === "cover" ? "object-cover" :
+  const objectFitClass = objectFit === "responsive" ? "object-contain sm:object-cover" :
+                         objectFit === "cover" ? "object-cover" :
                          objectFit === "contain" ? "object-contain" :
                          objectFit === "fill" ? "object-fill" : "";
 
   return (
     <div
-      className={`relative overflow-hidden ${aspectClass} ${containerClassName}`}
+      className={`relative overflow-hidden ${aspectClass} ${objectFit === "responsive" ? "bg-gray-900" : ""} ${containerClassName}`}
       onClick={onClick}
     >
       {/* Loading placeholder */}
@@ -186,7 +187,7 @@ interface SlideshowImageProps {
   alt: string;
   preset?: MediaPreset;
   className?: string;
-  objectFit?: "cover" | "contain";
+  objectFit?: "cover" | "contain" | "responsive";
   showGradient?: boolean;
   gradientPosition?: "top" | "bottom" | "both";
 }
@@ -200,13 +201,14 @@ export function SlideshowImage({
   alt,
   preset = "hero",
   className = "",
-  objectFit = "cover",
+  objectFit = "responsive",
   showGradient = true,
   gradientPosition = "bottom",
 }: SlideshowImageProps) {
   const [loaded, setLoaded] = useState(false);
   const isCloudinary = isCloudinaryUrl(src);
-  const objectFitClass = objectFit === "cover" ? "object-cover" : "object-contain";
+  const objectFitClass = objectFit === "responsive" ? "object-contain sm:object-cover" :
+                         objectFit === "cover" ? "object-cover" : "object-contain";
 
   return (
     <div className="absolute inset-0 w-full h-full">

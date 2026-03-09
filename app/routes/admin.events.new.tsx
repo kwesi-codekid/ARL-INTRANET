@@ -312,7 +312,7 @@ export default function AdminEventsNewPage() {
                     <Image
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-48 object-contain sm:object-cover rounded-lg bg-gray-900"
                     />
                     <Button
                       isIconOnly

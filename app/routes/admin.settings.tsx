@@ -607,7 +607,7 @@ export default function AdminSettingsPage() {
                       <img
                         src={visionPreview || companyImages.visionImage}
                         alt="Vision"
-                        className="w-full h-40 object-cover rounded-lg border bg-gray-100"
+                        className="w-full h-40 object-contain sm:object-cover rounded-lg border bg-gray-900"
                       />
                     </div>
                     <div className="flex flex-col justify-center">
@@ -645,7 +645,7 @@ export default function AdminSettingsPage() {
                       <img
                         src={missionPreview || companyImages.missionImage}
                         alt="Mission"
-                        className="w-full h-40 object-cover rounded-lg border bg-gray-100"
+                        className="w-full h-40 object-contain sm:object-cover rounded-lg border bg-gray-900"
                       />
                     </div>
                     <div className="flex flex-col justify-center">
@@ -683,7 +683,7 @@ export default function AdminSettingsPage() {
                       <img
                         src={valuesPreview || companyImages.valuesImage}
                         alt="Values"
-                        className="w-full h-40 object-cover rounded-lg border bg-gray-100"
+                        className="w-full h-40 object-contain sm:object-cover rounded-lg border bg-gray-900"
                       />
                     </div>
                     <div className="flex flex-col justify-center">
@@ -740,7 +740,7 @@ export default function AdminSettingsPage() {
                   <img
                     src={visionPreview || companyImages.visionImage}
                     alt="Vision Preview"
-                    className="w-full aspect-video object-cover rounded-lg border"
+                    className="w-full aspect-video object-contain sm:object-cover rounded-lg border bg-gray-900"
                   />
                   <p className="mt-2 text-sm font-medium text-gray-700">Vision</p>
                 </div>
@@ -748,7 +748,7 @@ export default function AdminSettingsPage() {
                   <img
                     src={missionPreview || companyImages.missionImage}
                     alt="Mission Preview"
-                    className="w-full aspect-video object-cover rounded-lg border"
+                    className="w-full aspect-video object-contain sm:object-cover rounded-lg border bg-gray-900"
                   />
                   <p className="mt-2 text-sm font-medium text-gray-700">Mission</p>
                 </div>
@@ -756,7 +756,7 @@ export default function AdminSettingsPage() {
                   <img
                     src={valuesPreview || companyImages.valuesImage}
                     alt="Values Preview"
-                    className="w-full aspect-video object-cover rounded-lg border"
+                    className="w-full aspect-video object-contain sm:object-cover rounded-lg border bg-gray-900"
                   />
                   <p className="mt-2 text-sm font-medium text-gray-700">Values</p>
                 </div>

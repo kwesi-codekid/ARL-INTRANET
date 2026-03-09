@@ -105,7 +105,7 @@ export function MobileSidebarContent() {
                       <img
                         src={weeklyTalk.featuredMedia.thumbnail || weeklyTalk.featuredMedia.url}
                         alt={weeklyTalk.title}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain sm:object-cover"
                       />
                     )}
                   </div>

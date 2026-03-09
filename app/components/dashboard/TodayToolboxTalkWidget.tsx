@@ -80,11 +80,11 @@ export function TodayToolboxTalkWidget({ talk, weekRange }: TodayToolboxTalkWidg
         {/* Thumbnail/Media Preview - Only show if there's an actual image */}
         {thumbnail && (
           <Link to={`/toolbox-talk/${talk.slug}`} className="block">
-            <div className="relative h-40 w-full overflow-hidden rounded-lg">
+            <div className="relative h-40 w-full overflow-hidden rounded-lg bg-gray-900">
               <img
                 src={thumbnail}
                 alt={talk.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain sm:object-cover"
               />
 
               {/* Play overlay for video/audio */}

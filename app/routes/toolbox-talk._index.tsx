@@ -225,7 +225,7 @@ export default function ToolboxTalkPage() {
                         <img
                           src={todaysTalk.featuredMedia.thumbnail || "/images/video-placeholder.jpg"}
                           alt={todaysTalk.title}
-                          className="w-full h-full object-cover opacity-75"
+                          className="w-full h-full object-contain sm:object-cover opacity-75"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
                           <PlayCircle className="text-white" size={64} />
@@ -239,7 +239,7 @@ export default function ToolboxTalkPage() {
                       <img
                         src={todaysTalk.featuredMedia.url}
                         alt={todaysTalk.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain sm:object-cover"
                       />
                     )}
                   </div>
@@ -310,7 +310,7 @@ export default function ToolboxTalkPage() {
                   <Link key={talk.id} to={`/toolbox-talk/${talk.slug}`}>
                     <Card className="h-full overflow-hidden shadow-sm transition-shadow hover:shadow-md">
                       {/* Media Thumbnail */}
-                      <div className="relative h-40 bg-gray-100">
+                      <div className="relative h-40 bg-gray-900">
                         {talk.featuredMedia ? (
                           <>
                             <img
@@ -320,7 +320,7 @@ export default function ToolboxTalkPage() {
                                 "/images/talk-placeholder.jpg"
                               }
                               alt={talk.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain sm:object-cover"
                             />
                             {talk.featuredMedia.type !== "image" && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
