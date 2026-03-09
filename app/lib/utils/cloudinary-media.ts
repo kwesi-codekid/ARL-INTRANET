@@ -17,51 +17,51 @@ export const BREAKPOINTS = {
 export const MEDIA_PRESETS = {
   // Hero slideshow - full width banners
   hero: {
-    mobile: { width: 640, height: 400 },
-    tablet: { width: 1024, height: 500 },
-    desktop: { width: 1536, height: 600 },
+    mobile: { width: 768, height: 480 },
+    tablet: { width: 1280, height: 625 },
+    desktop: { width: 1920, height: 750 },
   },
   // Company values slideshow - wide aspect ratio
   companyValues: {
-    mobile: { width: 640, height: 360 }, // 16:9
-    tablet: { width: 1024, height: 438 }, // ~21:9
-    desktop: { width: 1536, height: 658 }, // ~21:9
+    mobile: { width: 768, height: 432 }, // 16:9
+    tablet: { width: 1280, height: 548 }, // ~21:9
+    desktop: { width: 1920, height: 822 }, // ~21:9
   },
   // Thumbnail cards (news, PSI talks, etc.)
   thumbnail: {
-    mobile: { width: 320, height: 180 },
-    tablet: { width: 400, height: 225 },
-    desktop: { width: 480, height: 270 },
+    mobile: { width: 480, height: 270 },
+    tablet: { width: 640, height: 360 },
+    desktop: { width: 800, height: 450 },
   },
   // Gallery grid thumbnails - square
   galleryThumb: {
-    mobile: { width: 200, height: 200 },
-    tablet: { width: 250, height: 250 },
-    desktop: { width: 300, height: 300 },
+    mobile: { width: 300, height: 300 },
+    tablet: { width: 400, height: 400 },
+    desktop: { width: 500, height: 500 },
   },
   // Gallery album covers - 4:3 aspect
   albumCover: {
-    mobile: { width: 320, height: 240 },
-    tablet: { width: 400, height: 300 },
-    desktop: { width: 480, height: 360 },
+    mobile: { width: 480, height: 360 },
+    tablet: { width: 640, height: 480 },
+    desktop: { width: 800, height: 600 },
   },
   // Lightbox / full screen view
   lightbox: {
-    mobile: { width: 640, height: 480 },
-    tablet: { width: 1024, height: 768 },
-    desktop: { width: 1920, height: 1080 },
+    mobile: { width: 768, height: 576 },
+    tablet: { width: 1280, height: 960 },
+    desktop: { width: 1920, height: 1440 },
   },
   // Executive/profile photos
   profile: {
-    mobile: { width: 192, height: 192 },
-    tablet: { width: 224, height: 224 },
-    desktop: { width: 256, height: 256 },
+    mobile: { width: 256, height: 256 },
+    tablet: { width: 320, height: 320 },
+    desktop: { width: 400, height: 400 },
   },
   // News featured image
   newsFeatured: {
-    mobile: { width: 640, height: 360 },
-    tablet: { width: 800, height: 450 },
-    desktop: { width: 1200, height: 675 },
+    mobile: { width: 768, height: 432 },
+    tablet: { width: 1024, height: 576 },
+    desktop: { width: 1600, height: 900 },
   },
 } as const;
 
@@ -101,7 +101,7 @@ export function transformCloudinaryUrl(
   const {
     width,
     height,
-    quality = "auto",
+    quality = 90,
     format = "auto",
     crop = "fill",
     gravity = "auto",
@@ -152,7 +152,7 @@ export function getResponsiveUrl(
     ...presetConfig,
     crop: "fill",
     gravity: "auto",
-    quality: "auto",
+    quality: 90,
     format: "auto",
     ...options,
   });
@@ -226,7 +226,7 @@ export function getVideoThumbnail(
     .replace(/\.[^/.]+$/, ".jpg"); // Change extension to .jpg
 
   return transformCloudinaryUrl(thumbnailUrl, {
-    quality: "auto",
+    quality: 90,
     format: "auto",
     ...options,
   });

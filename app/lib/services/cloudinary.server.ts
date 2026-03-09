@@ -216,7 +216,7 @@ export function getOptimizedImageUrl(
     return url;
   }
 
-  const { width, height, quality = 80, format = "auto" } = options;
+  const { width, height, quality = 90, format = "auto" } = options;
 
   const transformations: string[] = [];
   if (width) transformations.push(`w_${width}`);
