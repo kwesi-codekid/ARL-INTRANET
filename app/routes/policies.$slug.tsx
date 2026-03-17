@@ -166,8 +166,10 @@ export default function PolicyDetailPage() {
                 </Button>
                 <Button
                   as="a"
-                  href={policy.pdfUrl}
+                  href={`/api/download?url=${encodeURIComponent(policy.pdfUrl)}&name=${encodeURIComponent(policy.pdfFileName || "document.pdf")}`}
                   download={policy.pdfFileName || "document.pdf"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   size="sm"
                   color="primary"
                   className="flex-1 sm:flex-none"

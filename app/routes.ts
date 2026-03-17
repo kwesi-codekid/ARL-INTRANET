@@ -70,6 +70,7 @@ export default [
   route("api/user/me", "routes/api.user.me.ts"),
   route("api/toolbox-talk-weekly", "routes/api.toolbox-talk-weekly.tsx"),
   route("api/upload", "routes/api.upload.tsx"),
+  route("api/download", "routes/api.download.tsx"),
   route("api/csv-template", "routes/api.csv-template.tsx"),
   route("api/alerts", "routes/api.alerts.tsx"),
   route("api/menu", "routes/api.menu.tsx"),

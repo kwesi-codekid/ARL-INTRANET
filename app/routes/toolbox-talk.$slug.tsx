@@ -73,8 +73,10 @@ function PDFViewer({ pdfUrl, title, fileName }: PDFViewerProps) {
           {/* Download button */}
           <Button
             as="a"
-            href={pdfUrl}
+            href={`/api/download?url=${encodeURIComponent(pdfUrl)}&name=${encodeURIComponent(fileName || "document.pdf")}`}
             download={fileName || "document.pdf"}
+            target="_blank"
+            rel="noopener noreferrer"
             size="sm"
             color="primary"
             className="flex-1 sm:flex-none"
