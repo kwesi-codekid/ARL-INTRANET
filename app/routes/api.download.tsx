@@ -10,6 +10,34 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { LoaderFunctionArgs } from "react-router";
 
+/**
+ * Resolve a local /uploads/ path to the actual file on disk.
+ * In dev: public/uploads/...
+ * In production: build/client/uploads/...
+ */
+function resolveLocalFile(fileUrl: string): string | null {
+  const cwd = process.cwd();
+  const candidates = [
+    path.join(cwd, "public", fileUrl),
+    path.join(cwd, "build", "client", fileUrl),
+  ];
+
+  for (const filePath of candidates) {
+    const realPath = path.resolve(filePath);
+    // Prevent path traversal
+    const allowedDev = path.resolve(cwd, "public", "uploads");
+    const allowedProd = path.resolve(cwd, "build", "client", "uploads");
+    if (!realPath.startsWith(allowedDev) && !realPath.startsWith(allowedProd)) {
+      continue;
+    }
+    if (fs.existsSync(realPath)) {
+      return realPath;
+    }
+  }
+
+  return null;
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const reqUrl = new URL(request.url);
   const fileUrl = reqUrl.searchParams.get("url");
@@ -31,16 +59,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     let contentType = "application/octet-stream";
 
     if (isLocalUpload) {
-      // Read directly from the public directory
-      const filePath = path.join(process.cwd(), "public", fileUrl);
-      const realPath = path.resolve(filePath);
-
-      // Prevent path traversal
-      if (!realPath.startsWith(path.resolve(process.cwd(), "public", "uploads"))) {
-        return new Response("Invalid file path", { status: 403 });
-      }
-
-      if (!fs.existsSync(realPath)) {
+      const realPath = resolveLocalFile(fileUrl);
+      if (!realPath) {
         return new Response("File not found", { status: 404 });
       }
 
