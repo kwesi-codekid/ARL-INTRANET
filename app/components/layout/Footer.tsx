@@ -7,7 +7,7 @@ const quickLinks = [
   { label: "Safety", href: "/safety" },
   { label: "Directory", href: "/directory" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Apps", href: "/apps" },
+  { label: "Apps", href: "https://apps.adamusgh.com/", external: true },
 ];
 
 const socialLinks = [
@@ -55,12 +55,23 @@ export function Footer() {
             <ul className="mt-4 space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-gray-400 transition-colors hover:text-primary-500"
-                  >
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-400 transition-colors hover:text-primary-500"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-sm text-gray-400 transition-colors hover:text-primary-500"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

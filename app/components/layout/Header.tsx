@@ -52,7 +52,7 @@ const navItems = [
   { label: "Directory", href: "/directory" },
   { label: "Events", href: "/events" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Apps", href: "/apps" },
+  { label: "Apps", href: "https://apps.adamusgh.com/", external: true },
   { label: "Suggestions", href: "/suggestions" },
 ];
 
@@ -194,19 +194,30 @@ export function Header({ user }: HeaderProps) {
         <div className="hidden gap-1 sm:flex">
           {navItems.map((item) => (
             <NavbarItem key={item.href}>
-              <NavLink
-                to={item.href}
-                end={item.href === "/"}
-                className={({ isActive }) =>
-                  `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
+              {item.external ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg px-3 py-2 text-sm font-medium transition-colors text-white/80 hover:bg-white/10 hover:text-white"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <NavLink
+                  to={item.href}
+                  end={item.href === "/"}
+                  className={({ isActive }) =>
+                    `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              )}
             </NavbarItem>
           ))}
         </div>
@@ -282,20 +293,32 @@ export function Header({ user }: HeaderProps) {
         {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>
-            <NavLink
-              to={item.href}
-              end={item.href === "/"}
-              className={({ isActive }) =>
-                `block w-full rounded-lg px-3 py-2 text-lg ${
-                  isActive
-                    ? "bg-white/20 font-semibold text-white"
-                    : "text-white/80"
-                }`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {item.label}
-            </NavLink>
+            {item.external ? (
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-lg px-3 py-2 text-lg text-white/80"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <NavLink
+                to={item.href}
+                end={item.href === "/"}
+                className={({ isActive }) =>
+                  `block w-full rounded-lg px-3 py-2 text-lg ${
+                    isActive
+                      ? "bg-white/20 font-semibold text-white"
+                      : "text-white/80"
+                  }`
+                }
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </NavLink>
+            )}
           </NavbarMenuItem>
         ))}
 

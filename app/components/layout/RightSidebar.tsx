@@ -191,13 +191,15 @@ export function RightSidebar() {
           ) : (
             <p className="text-center text-xs text-gray-500">No apps available</p>
           )}
-          <Link
-            to="/apps"
+          <a
+            href="https://apps.adamusgh.com/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500 hover:text-primary-600"
           >
             <span>View all apps</span>
             <ExternalLink size={12} />
-          </Link>
+          </a>
         </CardBody>
       </Card>
 

@@ -23,7 +23,7 @@ const menuItems = [
   { label: "Directory", href: "/directory", icon: Users },
   { label: "Events", href: "/events", icon: Calendar },
   { label: "Gallery", href: "/gallery", icon: Images },
-  { label: "Apps", href: "/apps", icon: AppWindow },
+  { label: "Apps", href: "https://apps.adamusgh.com/", icon: AppWindow, external: true },
 ];
 
 const quickAccess = [
@@ -84,21 +84,34 @@ export function LeftSidebar() {
           </div>
           <nav className="space-y-1">
             {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  isActive(item.href)
-                    ? "bg-primary-50 font-medium text-primary-700"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon
-                  size={18}
-                  className={isActive(item.href) ? "text-primary-500" : "text-gray-400"}
-                />
-                {item.label}
-              </Link>
+              item.external ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors text-gray-600 hover:bg-gray-50"
+                >
+                  <item.icon size={18} className="text-gray-400" />
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    isActive(item.href)
+                      ? "bg-primary-50 font-medium text-primary-700"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <item.icon
+                    size={18}
+                    className={isActive(item.href) ? "text-primary-500" : "text-gray-400"}
+                  />
+                  {item.label}
+                </Link>
+              )
             ))}
           </nav>
 
