@@ -22,9 +22,13 @@ import type { CompanyImages } from "~/components/dashboard";
 const ITEMS_PER_PAGE = 9;
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
   const { getCompanyImages } = await import("~/lib/services/company-info.server");
   const { getPublishedPolicies, getPolicyCategories, serializePolicy, serializePolicyCategory } = await import("~/lib/services/policy.server");
   const { connectDB } = await import("~/lib/db/connection.server");
+
+  // Require user authentication to access policies
+  await requireUserAuth(request);
 
   await connectDB();
 

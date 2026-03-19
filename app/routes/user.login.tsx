@@ -14,15 +14,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { getCurrentUser } = await import("~/lib/services/user-auth.server");
   const { getUser: getAdminUser } = await import("~/lib/services/session.server");
 
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get("redirectTo") || "/";
+
   const user = await getCurrentUser(request);
   if (user) {
-    return redirect("/");
+    return redirect(redirectTo);
   }
 
   // Redirect admins who are already logged in to public home
   const adminUser = await getAdminUser(request);
   if (adminUser) {
-    return redirect("/");
+    return redirect(redirectTo);
   }
 
   return Response.json({});
@@ -162,7 +165,9 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       const { createUserSession } = await import("~/lib/services/session.server");
-      return createUserSession(adminUser, "/");
+      const url = new URL(request.url);
+      const redirectTo = url.searchParams.get("redirectTo") || "/";
+      return createUserSession(adminUser, redirectTo);
     }
 
     return Response.json({ error: "User not found or inactive", step: "otp", identifier: phone });
