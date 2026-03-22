@@ -30,6 +30,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
+import { getTodayMenu, getWeekMenus, serializeMenu } from "~/lib/services/menu.server";
+import { connectDB } from "~/lib/db/connection.server";
 import {
   dietaryInfo,
   mealTimeInfo,
@@ -40,9 +42,6 @@ import {
 } from "~/lib/utils/menu-constants";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getTodayMenu, getWeekMenus, serializeMenu } = await import("~/lib/services/menu.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const url = new URL(request.url);

@@ -52,6 +52,10 @@ import {
 
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { createContact, deleteContact, getContactLetters, getContactStats, getContacts, getDepartments, importContactsFromCSV, updateContact } from "~/lib/services/contact.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { logActivity } from "~/lib/services/activity-log.server";
 // Type definitions
 interface ContactStats {
   total: number;
@@ -82,10 +86,6 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getContacts, getDepartments, getContactStats, getContactLetters } = await import("~/lib/services/contact.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -126,11 +126,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { createContact, updateContact, deleteContact, importContactsFromCSV } = await import("~/lib/services/contact.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 

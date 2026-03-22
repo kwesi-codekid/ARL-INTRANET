@@ -4,11 +4,25 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import {
+  refreshUserToken,
+  requestUserPhoneOTP,
+  requestUserEmailOTP,
+  authenticateByPhoneOTP,
+  authenticateByEmailOTP,
+  createUserTokens,
+  logoutUser,
+  getClientIP,
+  getUserAgent,
+  getCurrentUser,
+} from "~/lib/services/user-auth.server";
+import { logActivity } from "~/lib/services/activity-log.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { isValidGhanaPhone } from "~/lib/services/sms.server";
+import { isValidEmail } from "~/lib/services/email.server";
 
 // GET - Refresh token
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { refreshUserToken } = await import("~/lib/services/user-auth.server");
-
   const result = await refreshUserToken(request);
 
   if (!result.success) {
@@ -26,21 +40,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // POST - Login, verify OTP, logout
 export async function action({ request }: ActionFunctionArgs) {
-  const {
-    requestUserPhoneOTP,
-    requestUserEmailOTP,
-    authenticateByPhoneOTP,
-    authenticateByEmailOTP,
-    createUserTokens,
-    logoutUser,
-    getClientIP,
-    getUserAgent,
-  } = await import("~/lib/services/user-auth.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
-  const { isValidEmail } = await import("~/lib/services/email.server");
-
   await connectDB();
 
   const formData = await request.formData();
@@ -203,8 +202,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Logout
   if (intent === "logout") {
-    const { getCurrentUser } = await import("~/lib/services/user-auth.server");
-
     const user = await getCurrentUser(request);
     if (user) {
       await logActivity({

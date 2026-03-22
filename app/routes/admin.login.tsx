@@ -15,15 +15,14 @@ import { Form, useActionData, useNavigation, redirect } from "react-router";
 
 
 
+import { requestOTP, verifyOTP } from "~/lib/services/otp.server";
+import { authenticateByPhone, userExistsByPhone } from "~/lib/services/auth.server";
+import { createUserSession, getFlashMessages, getUser, getUserSession } from "~/lib/services/session.server";
+import { isValidGhanaPhone } from "~/lib/services/sms.server";
+import { logActivity } from "~/lib/services/activity-log.server";
+import { connectDB } from "~/lib/db/connection.server";
 // Loader - redirect if already logged in
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requestOTP, verifyOTP } = await import("~/lib/services/otp.server");
-  const { authenticateByPhone, userExistsByPhone } = await import("~/lib/services/auth.server");
-  const { getUserSession, createUserSession, getFlashMessages, getUser } = await import("~/lib/services/session.server");
-  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   const existingUser = await getUser(request);
 
   if (existingUser) {
@@ -37,13 +36,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Action - handle form submissions
 export async function action({ request }: ActionFunctionArgs) {
-  const { requestOTP, verifyOTP } = await import("~/lib/services/otp.server");
-  const { authenticateByPhone, userExistsByPhone } = await import("~/lib/services/auth.server");
-  const { getUserSession, createUserSession, getFlashMessages } = await import("~/lib/services/session.server");
-  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const formData = await request.formData();

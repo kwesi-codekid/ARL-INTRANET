@@ -8,12 +8,19 @@ import { Input, Button, Divider, InputOtp } from "@heroui/react";
 import { Phone, KeyRound, ArrowRight, RefreshCw, Users } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useActionData, useNavigation, redirect } from "react-router";
+import { getCurrentUser, requestUserPhoneOTP, createUserTokens, getClientIP, getUserAgent } from "~/lib/services/user-auth.server";
+import { getUser as getAdminUser } from "~/lib/services/session.server";
+import { logActivity } from "~/lib/services/activity-log.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { isValidGhanaPhone, formatGhanaPhone } from "~/lib/services/sms.server";
+import { userExistsByPhone as adminExistsByPhone } from "~/lib/services/auth.server";
+import { requestOTP, verifyOTP } from "~/lib/services/otp.server";
+import { User } from "~/lib/db/models/user.server";
+import { authenticateByPhone } from "~/lib/services/auth.server";
+import { createUserSession } from "~/lib/services/session.server";
 
 // Loader - redirect if already logged in
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getCurrentUser } = await import("~/lib/services/user-auth.server");
-  const { getUser: getAdminUser } = await import("~/lib/services/session.server");
-
   const url = new URL(request.url);
   const redirectTo = url.searchParams.get("redirectTo") || "/";
 
@@ -33,16 +40,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Action - handle form submissions
 export async function action({ request }: ActionFunctionArgs) {
-  const {
-    requestUserPhoneOTP,
-    createUserTokens,
-    getClientIP,
-    getUserAgent,
-  } = await import("~/lib/services/user-auth.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { isValidGhanaPhone } = await import("~/lib/services/sms.server");
-
   await connectDB();
 
   const formData = await request.formData();
@@ -67,14 +64,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!result.success) {
       // Check if this phone belongs to an admin user
-      const { userExistsByPhone: adminExistsByPhone } = await import(
-        "~/lib/services/auth.server"
-      );
       const isAdmin = await adminExistsByPhone(phone);
 
       if (isAdmin) {
         // Send OTP directly for admin user
-        const { requestOTP } = await import("~/lib/services/otp.server");
         const otpResult = await requestOTP(phone);
 
         if (!otpResult.success) {
@@ -114,15 +107,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Verify OTP first (before checking which collection the user belongs to)
-    const { verifyOTP } = await import("~/lib/services/otp.server");
     const otpResult = await verifyOTP(phone, otp);
     if (!otpResult.success) {
       return Response.json({ error: otpResult.message, step: "otp", identifier: phone });
     }
 
     // Try regular user collection first
-    const { formatGhanaPhone } = await import("~/lib/services/sms.server");
-    const { User } = await import("~/lib/db/models/user.server");
     const formattedPhone = formatGhanaPhone(phone);
 
     const user = await User.findOneAndUpdate(
@@ -152,7 +142,6 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Try admin user collection
-    const { authenticateByPhone } = await import("~/lib/services/auth.server");
     const adminUser = await authenticateByPhone(phone);
 
     if (adminUser) {
@@ -164,7 +153,6 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
       });
 
-      const { createUserSession } = await import("~/lib/services/session.server");
       const url = new URL(request.url);
       const redirectTo = url.searchParams.get("redirectTo") || "/";
       return createUserSession(adminUser, redirectTo);

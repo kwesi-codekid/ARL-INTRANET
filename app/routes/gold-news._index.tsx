@@ -30,10 +30,9 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, useNavigation, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
+import { getGoldNews, getNewsStats } from "~/lib/services/gold-news.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getGoldNews, getNewsStats } = await import("~/lib/services/gold-news.server");
-
   const url = new URL(request.url);
   const region = url.searchParams.get("region") as "ghana" | "world" | null;
   const search = url.searchParams.get("search") || undefined;

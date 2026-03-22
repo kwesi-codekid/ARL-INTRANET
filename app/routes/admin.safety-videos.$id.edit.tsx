@@ -20,17 +20,16 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, Link, redirect, useNavigation } from "react-router";
 import type { SerializedSafetyCategory, SerializedSafetyVideo } from "~/lib/services/safety.server";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { getSafetyCategories, getSafetyVideoById, serializeSafetyCategory, serializeSafetyVideo, updateSafetyVideo } from "~/lib/services/safety.server";
+import { uploadFile } from "~/lib/services/upload.server";
+import { connectDB } from "~/lib/db/connection.server";
 interface LoaderData {
   video: SerializedSafetyVideo;
   categories: SerializedSafetyCategory[];
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getSafetyCategories, getSafetyVideoById, updateSafetyVideo, serializeSafetyCategory, serializeSafetyVideo } = await import("~/lib/services/safety.server");
-  const { uploadFile } = await import("~/lib/services/upload.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -48,11 +47,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getSafetyCategories, getSafetyVideoById, updateSafetyVideo, serializeSafetyCategory, serializeSafetyVideo } = await import("~/lib/services/safety.server");
-  const { uploadFile } = await import("~/lib/services/upload.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 

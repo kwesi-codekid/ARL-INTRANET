@@ -1,10 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
+import { saveSubscription, removeSubscription } from "~/lib/services/push-notification.server";
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { saveSubscription, removeSubscription } = await import(
-    "~/lib/services/push-notification.server"
-  );
-
   const body = await request.json();
   const { intent } = body;
 

@@ -17,15 +17,14 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
-
-
+import { requireUserAuth } from "~/lib/services/user-auth.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { News, NewsCategory } from "~/lib/db/models/news.server";
 
 const ITEMS_PER_PAGE = 9;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { News, NewsCategory } = await import("~/lib/db/models/news.server");
-
+  await requireUserAuth(request);
   await connectDB();
 
   const url = new URL(request.url);

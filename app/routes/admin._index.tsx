@@ -22,21 +22,20 @@ import { ContentDistributionChart } from "~/components/admin/charts";
 import { ActivityTimelineChart } from "~/components/admin/charts";
 import { ContentStatusChart } from "~/components/admin/charts";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { News } from "~/lib/db/models/news.server";
+import { Contact } from "~/lib/db/models/contact.server";
+import { AppLink } from "~/lib/db/models/app-link.server";
+import { Alert } from "~/lib/db/models/alert.server";
+import { Event } from "~/lib/db/models/event.server";
+import { Album } from "~/lib/db/models/gallery.server";
+import { ToolboxTalk } from "~/lib/db/models/toolbox-talk.server";
+import { ActivityLog } from "~/lib/db/models/activity-log.server";
+import { SafetyTip } from "~/lib/db/models/safety-tip.server";
+import { SafetyVideo } from "~/lib/db/models/safety-video.server";
+import { User } from "~/lib/db/models/user.server";
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { News } = await import("~/lib/db/models/news.server");
-  const { Contact } = await import("~/lib/db/models/contact.server");
-  const { AppLink } = await import("~/lib/db/models/app-link.server");
-  const { Alert } = await import("~/lib/db/models/alert.server");
-  const { Event } = await import("~/lib/db/models/event.server");
-  const { Album } = await import("~/lib/db/models/gallery.server");
-  const { ToolboxTalk } = await import("~/lib/db/models/toolbox-talk.server");
-  const { ActivityLog } = await import("~/lib/db/models/activity-log.server");
-  const { SafetyTip } = await import("~/lib/db/models/safety-tip.server");
-  const { SafetyVideo } = await import("~/lib/db/models/safety-video.server");
-  const { User } = await import("~/lib/db/models/user.server");
-
   const user = await requireAuth(request);
   await connectDB();
 

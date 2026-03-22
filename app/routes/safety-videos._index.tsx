@@ -26,11 +26,10 @@ import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import { VideoPlayer } from "~/components/ui";
 import type { SerializedSafetyVideo, SerializedSafetyCategory } from "~/lib/services/safety.server";
+import { getSafetyVideos, getSafetyCategories, serializeSafetyVideo, serializeSafetyCategory } from "~/lib/services/safety.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getSafetyVideos, getSafetyCategories, serializeSafetyVideo, serializeSafetyCategory } = await import("~/lib/services/safety.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const url = new URL(request.url);

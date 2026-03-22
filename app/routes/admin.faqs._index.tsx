@@ -24,11 +24,10 @@ import { Plus, Edit2, Trash2, HelpCircle, Search } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { createFAQ, deleteFAQ, getFAQCategories, getFAQs, updateFAQ } from "~/lib/services/chat.server";
+import { connectDB } from "~/lib/db/connection.server";
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getFAQs, getFAQCategories, createFAQ, updateFAQ, deleteFAQ } = await import("~/lib/services/chat.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -52,10 +51,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getFAQs, getFAQCategories, createFAQ, updateFAQ, deleteFAQ } = await import("~/lib/services/chat.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 

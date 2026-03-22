@@ -4,11 +4,10 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
+import { connectDB } from "~/lib/db/connection.server";
+import { News } from "~/lib/db/models/news.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { News } = await import("~/lib/db/models/news.server");
-
   await connectDB();
 
   const url = new URL(request.url);

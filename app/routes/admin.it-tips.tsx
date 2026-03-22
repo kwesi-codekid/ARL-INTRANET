@@ -41,6 +41,9 @@ import {
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { createITTip, deleteITTip, getAllITTips, getITTipCategories, toggleITTipActive, toggleITTipPinned, updateITTip } from "~/lib/services/it-tip.server";
+import { connectDB } from "~/lib/db/connection.server";
 interface ITTip {
   id: string;
   title: string;
@@ -65,10 +68,6 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { getAllITTips, createITTip, updateITTip, deleteITTip, toggleITTipActive, toggleITTipPinned, getITTipCategories } = await import("~/lib/services/it-tip.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -92,10 +91,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { getAllITTips, createITTip, updateITTip, deleteITTip, toggleITTipActive, toggleITTipPinned, getITTipCategories } = await import("~/lib/services/it-tip.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

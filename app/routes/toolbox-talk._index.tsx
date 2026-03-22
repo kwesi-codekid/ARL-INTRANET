@@ -20,8 +20,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
-
-
+import { getTodaysToolboxTalk, getToolboxTalks, getArchiveMonths, serializeToolboxTalk } from "~/lib/services/toolbox-talk.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -46,9 +46,6 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getTodaysToolboxTalk, getToolboxTalks, getArchiveMonths, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const url = new URL(request.url);

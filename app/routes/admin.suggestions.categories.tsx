@@ -23,6 +23,10 @@ import { ArrowLeft, Plus, Edit2, Trash2, FolderOpen } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form, Link, useSubmit } from "react-router";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { createCategory, deleteCategory, getAllCategories, updateCategory } from "~/lib/services/suggestion.server";
+import { Suggestion } from "~/lib/db/models/suggestion.server";
 type LoaderData = {
   categories: Array<{
     id: string;
@@ -43,11 +47,6 @@ type ActionData =
   };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { getAllCategories } = await import("~/lib/services/suggestion.server");
-  const { Suggestion } = await import("~/lib/db/models/suggestion.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -76,12 +75,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { createCategory, updateCategory, deleteCategory } = await import(
-    "~/lib/services/suggestion.server"
-  );
-
   await requireAuth(request);
   await connectDB();
 

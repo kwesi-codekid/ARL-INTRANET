@@ -35,6 +35,9 @@ import {
 } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, Form, useSubmit, useNavigation } from "react-router";
+import { requireAuth } from "~/lib/services/session.server";
+import { createMenuTemplate, deleteMenuTemplate, getMenuTemplates, serializeMenuTemplate, updateMenuTemplate } from "~/lib/services/menu.server";
+import { connectDB } from "~/lib/db/connection.server";
 import {
   dietaryInfo,
   mealTimeInfo,
@@ -46,10 +49,6 @@ import {
 } from "~/lib/utils/menu-constants";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getMenuTemplates, createMenuTemplate, updateMenuTemplate, deleteMenuTemplate, serializeMenuTemplate } = await import("~/lib/services/menu.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -61,10 +60,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getMenuTemplates, createMenuTemplate, updateMenuTemplate, deleteMenuTemplate, serializeMenuTemplate } = await import("~/lib/services/menu.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   const user = await requireAuth(request);
   await connectDB();
 

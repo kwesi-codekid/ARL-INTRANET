@@ -18,15 +18,14 @@ import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import { CompanyValuesSlideshow } from "~/components/dashboard";
 import type { CompanyImages } from "~/components/dashboard";
+import { requireUserAuth } from "~/lib/services/user-auth.server";
+import { getCompanyImages } from "~/lib/services/company-info.server";
+import { getPublishedPolicies, getPolicyCategories, serializePolicy, serializePolicyCategory } from "~/lib/services/policy.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 const ITEMS_PER_PAGE = 9;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
-  const { getCompanyImages } = await import("~/lib/services/company-info.server");
-  const { getPublishedPolicies, getPolicyCategories, serializePolicy, serializePolicyCategory } = await import("~/lib/services/policy.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   // Require user authentication to access policies
   await requireUserAuth(request);
 

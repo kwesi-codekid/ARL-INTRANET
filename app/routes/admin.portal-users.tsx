@@ -25,12 +25,13 @@ import { UserPlus, Search, Edit, Users, Building2, MapPin } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Form, useNavigation, Link, useSearchParams } from "react-router";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { deleteUser, getUserStats, listUsers, toggleUserStatus } from "~/lib/services/user.server";
+import { Department } from "~/lib/db/models/contact.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { logActivity } from "~/lib/services/activity-log.server";
+import { User } from "~/lib/db/models/user.server";
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { listUsers, getUserStats } = await import("~/lib/services/user.server");
-  const { Department } = await import("~/lib/db/models/contact.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -82,11 +83,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { toggleUserStatus, deleteUser } = await import("~/lib/services/user.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();
@@ -113,7 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    const { User } = await import("~/lib/db/models/user.server");
+
     const user = await User.findById(userId);
 
     if (user) {

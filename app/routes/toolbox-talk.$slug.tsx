@@ -32,6 +32,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
+import { getToolboxTalkBySlug, incrementViews, getPastToolboxTalks, getAdjacentToolboxTalks, serializeToolboxTalk } from "~/lib/services/toolbox-talk.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 // PDF Viewer Component - uses Google Docs Viewer for reliable cross-browser PDF display
 interface PDFViewerProps {
@@ -122,9 +124,6 @@ interface LoaderData {
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  const { getToolboxTalkBySlug, incrementViews, getPastToolboxTalks, getAdjacentToolboxTalks, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const { slug } = params;

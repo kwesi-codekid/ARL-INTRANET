@@ -34,6 +34,10 @@ import {
   FolderOpen,
 } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { deletePolicy, getPolicies, getPolicyCategories, getPolicyStats, serializePolicy, serializePolicyCategory, togglePolicyFeatured, togglePolicyStatus } from "~/lib/services/policy.server";
+import { logActivity } from "~/lib/services/activity-log.server";
+import { connectDB } from "~/lib/db/connection.server";
 import {
   useLoaderData,
   useSearchParams,
@@ -90,11 +94,6 @@ interface LoaderData {
 const ITEMS_PER_PAGE = 10;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { getPolicies, getPolicyCategories, getPolicyStats, deletePolicy, togglePolicyStatus, togglePolicyFeatured, serializePolicy, serializePolicyCategory } = await import("~/lib/services/policy.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -147,11 +146,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { getPolicies, getPolicyCategories, getPolicyStats, deletePolicy, togglePolicyStatus, togglePolicyFeatured, serializePolicy, serializePolicyCategory } = await import("~/lib/services/policy.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

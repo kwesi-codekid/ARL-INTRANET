@@ -34,6 +34,11 @@ import {
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form } from "react-router";
 
+import { getSessionData, requireSuperAdmin } from "~/lib/services/session.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { clearSettingsCache, getSettingsForAdmin, initializeSettings, updateSettings } from "~/lib/services/settings.server";
+import { getCompanyImages, updateCompanyImages } from "~/lib/services/company-info.server";
+import { uploadFile } from "~/lib/services/upload.server";
 interface CompanyImages {
   visionImage: string;
   missionImage: string;
@@ -57,13 +62,6 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireSuperAdmin } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { getSettingsForAdmin, initializeSettings } = await import(
-    "~/lib/services/settings.server"
-  );
-  const { getCompanyImages } = await import("~/lib/services/company-info.server");
-
   await requireSuperAdmin(request);
   await connectDB();
 
@@ -79,14 +77,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireSuperAdmin, getSessionData } = await import(
-    "~/lib/services/session.server"
-  );
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { updateSettings, clearSettingsCache } = await import(
-    "~/lib/services/settings.server"
-  );
-
   const user = await requireSuperAdmin(request);
   await connectDB();
 
@@ -150,8 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     if (intent === "update-company-images") {
-      const { updateCompanyImages } = await import("~/lib/services/company-info.server");
-      const { uploadFile } = await import("~/lib/services/upload.server");
+
 
       const visionFile = formData.get("visionImage") as File | null;
       const missionFile = formData.get("missionImage") as File | null;

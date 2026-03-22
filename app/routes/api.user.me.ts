@@ -4,11 +4,10 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
+import { getCurrentUser } from "~/lib/services/user-auth.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { getCurrentUser } = await import("~/lib/services/user-auth.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await connectDB();
 
   const user = await getCurrentUser(request);

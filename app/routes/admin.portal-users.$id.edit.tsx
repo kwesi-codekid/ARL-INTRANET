@@ -18,12 +18,12 @@ import { Edit, ArrowLeft, Phone, Mail, Building2, Briefcase, MapPin, Shield, Cal
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Form, useNavigation, Link, redirect } from "react-router";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { getUserById, updateUser } from "~/lib/services/user.server";
+import { Department } from "~/lib/db/models/contact.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { logActivity } from "~/lib/services/activity-log.server";
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getUserById } = await import("~/lib/services/user.server");
-  const { Department } = await import("~/lib/db/models/contact.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -69,11 +69,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { updateUser } = await import("~/lib/services/user.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

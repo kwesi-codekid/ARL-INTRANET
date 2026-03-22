@@ -22,6 +22,11 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form, Link, redirect } from "react-router";
 import { RichTextEditor } from "~/components/admin";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { News, NewsCategory } from "~/lib/db/models/news.server";
+import { uploadImage, uploadVideo } from "~/lib/services/upload.server";
+import { sendPushNotificationToAll } from "~/lib/services/push-notification.server";
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -30,10 +35,6 @@ function generateSlug(title: string): string {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { NewsCategory } = await import("~/lib/db/models/news.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -50,11 +51,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { News } = await import("~/lib/db/models/news.server");
-  const { uploadImage, uploadVideo } = await import("~/lib/services/upload.server");
-
   const user = await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();
@@ -134,7 +130,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (status === "published") {
-    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+
     sendPushNotificationToAll({
       title: "New Article: " + title,
       body: excerpt || content.substring(0, 120),

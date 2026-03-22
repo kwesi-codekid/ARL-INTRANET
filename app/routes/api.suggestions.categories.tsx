@@ -4,11 +4,10 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
+import { connectDB } from "~/lib/db/connection.server";
+import { getActiveCategories } from "~/lib/services/suggestion.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { getActiveCategories } = await import("~/lib/services/suggestion.server");
-
   await connectDB();
 
   const categories = await getActiveCategories();

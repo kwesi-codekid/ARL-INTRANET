@@ -47,6 +47,9 @@ import { useLoaderData, useSearchParams, Link } from "react-router";
 
 import { ToolboxTalkCalendar } from "~/components/admin";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { archiveToolboxTalk, deleteToolboxTalk, getToolboxTalkStats, getToolboxTalks, serializeToolboxTalk, toggleToolboxTalkStatus } from "~/lib/services/toolbox-talk.server";
+import { connectDB } from "~/lib/db/connection.server";
 const ITEMS_PER_PAGE = 10;
 
 interface LoaderData {
@@ -70,10 +73,6 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getToolboxTalks, getToolboxTalkStats, deleteToolboxTalk, toggleToolboxTalkStatus, archiveToolboxTalk, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -119,10 +118,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getToolboxTalks, getToolboxTalkStats, deleteToolboxTalk, toggleToolboxTalkStatus, archiveToolboxTalk, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 

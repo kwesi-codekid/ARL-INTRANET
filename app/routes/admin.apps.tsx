@@ -43,6 +43,10 @@ import { AppIcon, iconMap } from "~/components/ui";
 
 import type { IAppLink } from "~/lib/db/models/app-link.server";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { createAppLink, deleteAppLink, getAppLinkStats, getAppLinks, reorderAppLinks, updateAppLink } from "~/lib/services/app-link.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { logActivity } from "~/lib/services/activity-log.server";
 // Type definitions for loader and action data
 interface AppLinkStats {
   total: number;
@@ -95,10 +99,6 @@ const availableIcons = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { getAppLinks, getAppLinkStats } = await import("~/lib/services/app-link.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -127,11 +127,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { createAppLink, updateAppLink, deleteAppLink, reorderAppLinks } = await import("~/lib/services/app-link.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 

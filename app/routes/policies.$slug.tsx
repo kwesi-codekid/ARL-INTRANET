@@ -19,13 +19,11 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
+import { requireUserAuth } from "~/lib/services/user-auth.server";
+import { getPolicyBySlug, incrementPolicyViews, serializePolicy } from "~/lib/services/policy.server";
+import { connectDB } from "~/lib/db/connection.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
-  const { getPolicyBySlug, incrementPolicyViews, serializePolicy } =
-    await import("~/lib/services/policy.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   // Require user authentication to access policy details
   await requireUserAuth(request);
 

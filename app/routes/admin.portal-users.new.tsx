@@ -17,11 +17,12 @@ import { UserPlus, ArrowLeft, Phone, Mail, Building2, Briefcase, MapPin, Shield 
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Form, useNavigation, Link, redirect } from "react-router";
 
+import { getSessionData, requireAuth } from "~/lib/services/session.server";
+import { Department } from "~/lib/db/models/contact.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { createUser } from "~/lib/services/user.server";
+import { logActivity } from "~/lib/services/activity-log.server";
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { Department } = await import("~/lib/db/models/contact.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   await requireAuth(request);
   await connectDB();
 
@@ -37,11 +38,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
-  const { createUser } = await import("~/lib/services/user.server");
-  const { logActivity } = await import("~/lib/services/activity-log.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
   const currentUser = await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();

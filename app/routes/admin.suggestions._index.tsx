@@ -38,6 +38,9 @@ import {
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link } from "react-router";
 
+import { requireAuth } from "~/lib/services/session.server";
+import { connectDB } from "~/lib/db/connection.server";
+import { addAdminNote, deleteSuggestion, getAllCategories, getSuggestionStats, getSuggestions, updateSuggestionStatus } from "~/lib/services/suggestion.server";
 // Type definitions
 interface SuggestionCategory {
   id: string;
@@ -83,12 +86,6 @@ interface ActionData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { getSuggestions, getSuggestionStats, getAllCategories } = await import(
-    "~/lib/services/suggestion.server"
-  );
-
   await requireAuth(request);
   await connectDB();
 
@@ -133,12 +130,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-  const { updateSuggestionStatus, addAdminNote, deleteSuggestion } = await import(
-    "~/lib/services/suggestion.server"
-  );
-
   const user = await requireAuth(request);
   await connectDB();
 

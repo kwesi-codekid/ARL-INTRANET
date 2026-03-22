@@ -28,11 +28,12 @@ import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlbum, SerializedPhoto } from "~/lib/services/gallery.server";
+import { requireUserAuth } from "~/lib/services/user-auth.server";
+import { getAlbumBySlug, getPhotosByAlbum, serializeAlbum, serializePhoto } from "~/lib/services/gallery.server";
+import { connectDB } from "~/lib/db/connection.server";
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  const { getAlbumBySlug, getPhotosByAlbum, serializeAlbum, serializePhoto } = await import("~/lib/services/gallery.server");
-  const { connectDB } = await import("~/lib/db/connection.server");
-
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  await requireUserAuth(request);
   await connectDB();
 
   const album = await getAlbumBySlug(params.slug!);
