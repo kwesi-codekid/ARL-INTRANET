@@ -23,10 +23,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
 import { RichTextEditor } from "~/components/admin";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Event } from "~/lib/db/models/event.server";
-import { uploadImage } from "~/lib/services/upload.server";
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -48,6 +44,10 @@ const EVENT_CATEGORIES = [
 ];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Event } = await import("~/lib/db/models/event.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -84,6 +84,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Event } = await import("~/lib/db/models/event.server");
+  const { uploadImage } = await import("~/lib/services/upload.server");
+
   await requireAuth(request);
   await connectDB();
 

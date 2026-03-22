@@ -28,9 +28,6 @@ import {
 } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { getAllCategories } from "~/lib/services/suggestion.server";
-import { getSuggestionCategoryBreakdown, getSuggestionReportStats, getSuggestionStatusBreakdown, getSuggestionTimeline } from "~/lib/services/suggestion-report.server";
 import {
   SuggestionCategoryChart,
   SuggestionStatusChart,
@@ -79,6 +76,17 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAllCategories } = await import(
+    "~/lib/services/suggestion.server"
+  );
+  const {
+    getSuggestionReportStats,
+    getSuggestionCategoryBreakdown,
+    getSuggestionStatusBreakdown,
+    getSuggestionTimeline,
+  } = await import("~/lib/services/suggestion-report.server");
+
   await requireAuth(request);
 
   const url = new URL(request.url);

@@ -39,9 +39,6 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams, Link, Form, useSubmit } from "react-router";
 import type { SerializedSafetyTip, SerializedSafetyCategory } from "~/lib/services/safety.server";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { deleteSafetyTip, getSafetyCategories, getSafetyStats, getSafetyTips, serializeSafetyCategory, serializeSafetyTip, updateSafetyTip } from "~/lib/services/safety.server";
-import { connectDB } from "~/lib/db/connection.server";
 const ITEMS_PER_PAGE = 10;
 
 interface LoaderData {
@@ -66,6 +63,10 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyTips, getSafetyCategories, getSafetyStats, deleteSafetyTip, updateSafetyTip, serializeSafetyTip, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -104,6 +105,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyTips, getSafetyCategories, getSafetyStats, deleteSafetyTip, updateSafetyTip, serializeSafetyTip, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

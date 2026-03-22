@@ -27,13 +27,13 @@ import {
 } from "react-router";
 import { RichTextEditor } from "~/components/admin";
 
-import { getSessionData, requireAuth } from "~/lib/services/session.server";
-import { createPolicy, getPolicyCategories } from "~/lib/services/policy.server";
-import { uploadPdf } from "~/lib/services/upload.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { sendPushNotificationToAll } from "~/lib/services/push-notification.server";
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, createPolicy } = await import("~/lib/services/policy.server");
+  const { uploadPdf } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -48,6 +48,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { getPolicyCategories, createPolicy } = await import("~/lib/services/policy.server");
+  const { uploadPdf } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();
@@ -105,7 +111,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (status === "published") {
-
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
     sendPushNotificationToAll({
       title: "New Policy: " + title,
       body: excerpt || "A new company policy has been published.",

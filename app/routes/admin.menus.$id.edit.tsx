@@ -21,10 +21,6 @@ import {
 import { ArrowLeft, Save, Plus, Trash2, Sun } from "lucide-react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router";
-import { requireAuth } from "~/lib/services/session.server";
-import { serializeMenu, updateMenu } from "~/lib/services/menu.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Menu } from "~/lib/db/models/menu.server";
 import {
   dietaryInfo,
   mealTimeInfo,
@@ -36,6 +32,11 @@ import {
 } from "~/lib/utils/menu-constants";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { updateMenu, serializeMenu } = await import("~/lib/services/menu.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Menu } = await import("~/lib/db/models/menu.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -55,6 +56,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { updateMenu, serializeMenu } = await import("~/lib/services/menu.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Menu } = await import("~/lib/db/models/menu.server");
+
   await requireAuth(request);
   await connectDB();
 

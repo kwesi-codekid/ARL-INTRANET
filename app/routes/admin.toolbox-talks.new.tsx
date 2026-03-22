@@ -20,16 +20,17 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useActionData, useNavigation, Form, Link, redirect } from "react-router";
 import { FileUpload } from "~/components/admin";
 
-import { getSessionData, requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { createToolboxTalk, generateUniqueSlug, getDateFromWeek } from "~/lib/services/toolbox-talk.server";
-import { sendPushNotificationToAll } from "~/lib/services/push-notification.server";
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
   await requireAuth(request);
   return Response.json({});
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { generateUniqueSlug, createToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+
   await requireAuth(request);
   const sessionData = await getSessionData(request);
   await connectDB();
@@ -55,7 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Create a scheduledDate from week/month/year (first day of that week)
-
+  const { getDateFromWeek } = await import("~/lib/services/toolbox-talk.server");
   const scheduledDate = getDateFromWeek(week, month, year);
 
   // Generate unique slug
@@ -93,7 +94,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (status === "published") {
-
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
     sendPushNotificationToAll({
       title: "New PSI Talk: " + title,
       body: title,

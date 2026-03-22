@@ -23,10 +23,6 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Form, Link, redirect } from "react-router";
 import { RichTextEditor } from "~/components/admin";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { News, NewsCategory } from "~/lib/db/models/news.server";
-import { uploadImage } from "~/lib/services/upload.server";
 // Types for loader data
 interface ArticleData {
   id: string;
@@ -56,6 +52,10 @@ interface LoaderData {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News, NewsCategory } = await import("~/lib/db/models/news.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -98,6 +98,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News } = await import("~/lib/db/models/news.server");
+  const { uploadImage } = await import("~/lib/services/upload.server");
+
   await requireAuth(request);
   await connectDB();
 

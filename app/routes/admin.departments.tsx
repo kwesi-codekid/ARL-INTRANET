@@ -36,11 +36,6 @@ import { Plus, Edit, Trash2, Building2, Users } from "lucide-react";
 
 import type { IDepartment } from "~/lib/db/models/contact.server";
 
-import { getSessionData, requireAuth } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import { createDepartment, deleteDepartment, getDepartmentStats, getDepartments, updateDepartment } from "~/lib/services/contact.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { Contact } from "~/lib/db/models/contact.server";
 // Type definitions
 interface DepartmentWithCount extends IDepartment {
   contactCount: number;
@@ -71,6 +66,12 @@ const CATEGORIES = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentStats } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Contact } = await import("~/lib/db/models/contact.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -101,6 +102,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentStats } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { Contact } = await import("~/lib/db/models/contact.server");
+
   await requireAuth(request);
   await connectDB();
 

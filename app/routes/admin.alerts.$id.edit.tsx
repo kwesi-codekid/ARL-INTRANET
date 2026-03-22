@@ -22,10 +22,11 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, Link, redirect, useNavigation, useLoaderData } from "react-router";
 import type { SerializedAlert } from "~/lib/services/alert.server";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { getAlertById, serializeAlert, updateAlert } from "~/lib/services/alert.server";
-import { connectDB } from "~/lib/db/connection.server";
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAlertById, updateAlert, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -38,6 +39,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getAlertById, updateAlert, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

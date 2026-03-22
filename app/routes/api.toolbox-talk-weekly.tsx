@@ -4,10 +4,13 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
-import { connectDB } from "~/lib/db/connection.server";
-import { getThisWeeksToolboxTalk, getWeekDateRange, serializeToolboxTalk } from "~/lib/services/toolbox-talk.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getThisWeeksToolboxTalk, getWeekDateRange, serializeToolboxTalk } = await import(
+    "~/lib/services/toolbox-talk.server"
+  );
+
   await connectDB();
 
   const weeksTalk = await getThisWeeksToolboxTalk();

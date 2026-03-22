@@ -35,12 +35,13 @@ import { useLoaderData, useActionData, Form, useNavigation } from "react-router"
 
 
 
-import { getSessionData, requireSuperAdmin } from "~/lib/services/session.server";
-import { formatGhanaPhone, isValidGhanaPhone } from "~/lib/services/sms.server";
-import { logActivity } from "~/lib/services/activity-log.server";
-import { AdminUser } from "~/lib/db/models/admin-user.server";
-import { connectDB } from "~/lib/db/connection.server";
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireSuperAdmin, getSessionData } = await import("~/lib/services/session.server");
+  const { formatGhanaPhone, isValidGhanaPhone } = await import("~/lib/services/sms.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { AdminUser } = await import("~/lib/db/models/admin-user.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireSuperAdmin(request);
   await connectDB();
 
@@ -60,6 +61,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireSuperAdmin, getSessionData } = await import("~/lib/services/session.server");
+  const { formatGhanaPhone, isValidGhanaPhone } = await import("~/lib/services/sms.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { AdminUser } = await import("~/lib/db/models/admin-user.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   const currentUser = await requireSuperAdmin(request);
   const sessionData = await getSessionData(request);
   await connectDB();

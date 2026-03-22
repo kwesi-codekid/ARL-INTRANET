@@ -16,9 +16,6 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
-import { requireUserAuth } from "~/lib/services/user-auth.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { News } from "~/lib/db/models/news.server";
 
 // Types for loader data
 interface ArticleData {
@@ -54,6 +51,10 @@ interface LoaderData {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News } = await import("~/lib/db/models/news.server");
+
   await requireUserAuth(request);
   await connectDB();
 

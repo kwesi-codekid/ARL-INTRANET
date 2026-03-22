@@ -5,12 +5,13 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { connectDB } from "~/lib/db/connection.server";
-import { logoutUser, getCurrentUser } from "~/lib/services/user-auth.server";
-import { getUser as getAdminUser, logout as adminLogout } from "~/lib/services/session.server";
-import { logActivity } from "~/lib/services/activity-log.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { logoutUser, getCurrentUser } = await import("~/lib/services/user-auth.server");
+  const { getUser: getAdminUser, logout: adminLogout } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+
   await connectDB();
 
   // Check if this is a portal user (JWT auth)

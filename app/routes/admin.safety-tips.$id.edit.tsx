@@ -20,16 +20,17 @@ import { useLoaderData, Form, Link, redirect, useNavigation } from "react-router
 import { RichTextEditor } from "~/components/admin";
 import type { SerializedSafetyCategory, SerializedSafetyTip } from "~/lib/services/safety.server";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { getSafetyCategories, getSafetyTipById, serializeSafetyCategory, serializeSafetyTip, updateSafetyTip } from "~/lib/services/safety.server";
-import { uploadDocument, uploadFile } from "~/lib/services/upload.server";
-import { connectDB } from "~/lib/db/connection.server";
 interface LoaderData {
   tip: SerializedSafetyTip;
   categories: SerializedSafetyCategory[];
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyCategories, getSafetyTipById, updateSafetyTip, serializeSafetyCategory, serializeSafetyTip } = await import("~/lib/services/safety.server");
+  const { uploadFile, uploadDocument } = await import("~/lib/services/upload.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -47,6 +48,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { getSafetyCategories, getSafetyTipById, updateSafetyTip, serializeSafetyCategory, serializeSafetyTip } = await import("~/lib/services/safety.server");
+  const { uploadFile, uploadDocument } = await import("~/lib/services/upload.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await requireAuth(request);
   await connectDB();
 

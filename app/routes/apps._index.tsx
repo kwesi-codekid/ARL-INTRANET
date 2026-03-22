@@ -20,8 +20,6 @@ import {
 import { useState } from "react";
 import { MainLayout } from "~/components/layout";
 import { AppIcon } from "~/components/ui";
-import { getAllActiveAppLinks, searchAppLinks, incrementClicks } from "~/lib/services/app-link.server";
-import { connectDB } from "~/lib/db/connection.server";
 
 import type { IAppLink } from "~/lib/db/models/app-link.server";
 
@@ -31,6 +29,9 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getAllActiveAppLinks, searchAppLinks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);
@@ -50,6 +51,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { incrementClicks } = await import("~/lib/services/app-link.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const formData = await request.formData();

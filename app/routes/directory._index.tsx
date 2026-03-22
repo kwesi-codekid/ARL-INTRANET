@@ -43,13 +43,14 @@ import {
 } from "lucide-react";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
-import { requireUserAuth } from "~/lib/services/user-auth.server";
-import { getContacts, getDepartments, getContactLetters } from "~/lib/services/contact.server";
-import { connectDB } from "~/lib/db/connection.server";
 
 import type { IContact, IDepartment, ContactLocation } from "~/lib/db/models/contact.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireUserAuth } = await import("~/lib/services/user-auth.server");
+  const { getContacts, getDepartments, getContactLetters } = await import("~/lib/services/contact.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   // Require user authentication to access directory
   await requireUserAuth(request);
 

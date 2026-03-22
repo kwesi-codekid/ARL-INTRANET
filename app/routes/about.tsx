@@ -9,8 +9,6 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
-import { getCompanyInfo, serializeCompanyInfo } from "~/lib/services/company-info.server";
-import { connectDB } from "~/lib/db/connection.server";
 
 interface CoreValue {
   title: string;
@@ -43,6 +41,9 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getCompanyInfo, serializeCompanyInfo } = await import("~/lib/services/company-info.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const companyInfo = await getCompanyInfo();

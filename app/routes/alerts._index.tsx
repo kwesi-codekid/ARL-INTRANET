@@ -26,10 +26,11 @@ import { useLoaderData, Link, useSearchParams, useOutletContext } from "react-ro
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedAlert, AlertSeverity } from "~/lib/services/alert.server";
-import { getAlerts, getAlertHistory, serializeAlert } from "~/lib/services/alert.server";
-import { connectDB } from "~/lib/db/connection.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { getAlerts, getAlertHistory, serializeAlert } = await import("~/lib/services/alert.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const url = new URL(request.url);

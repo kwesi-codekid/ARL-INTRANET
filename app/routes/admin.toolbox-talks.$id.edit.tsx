@@ -20,9 +20,6 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, useSearchParams, Form, Link, redirect } from "react-router";
 import { FileUpload } from "~/components/admin";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { deleteToolboxTalk, getDateFromWeek, getToolboxTalkById, serializeToolboxTalk, updateToolboxTalk } from "~/lib/services/toolbox-talk.server";
 interface EditLoaderData {
   talk: {
     id: string;
@@ -41,6 +38,10 @@ interface EditLoaderData {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getToolboxTalkById, serializeToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -74,6 +75,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { updateToolboxTalk, deleteToolboxTalk } = await import("~/lib/services/toolbox-talk.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -108,7 +113,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Create a scheduledDate from week/month/year
-
+  const { getDateFromWeek } = await import("~/lib/services/toolbox-talk.server");
   const scheduledDate = getDateFromWeek(week, month, year);
 
   // Parse tags

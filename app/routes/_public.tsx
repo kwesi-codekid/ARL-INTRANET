@@ -8,10 +8,6 @@ import type { LoaderFunctionArgs } from "react-router";
 import { Outlet, useLoaderData } from "react-router";
 import { MaintenancePage } from "~/components/ui";
 import type { PortalUser } from "~/components/layout";
-import { connectDB } from "~/lib/db/connection.server";
-import { isMaintenanceMode, getMaintenanceMessage } from "~/lib/services/settings.server";
-import { getUser } from "~/lib/services/session.server";
-import { getCurrentUser } from "~/lib/services/user-auth.server";
 
 interface LoaderData {
   isMaintenanceMode: boolean;
@@ -25,6 +21,13 @@ export interface PublicOutletContext {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { isMaintenanceMode, getMaintenanceMessage } = await import(
+    "~/lib/services/settings.server"
+  );
+  const { getUser } = await import("~/lib/services/session.server");
+  const { getCurrentUser } = await import("~/lib/services/user-auth.server");
+
   await connectDB();
 
   // Check maintenance mode

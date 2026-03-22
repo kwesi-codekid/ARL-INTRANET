@@ -17,10 +17,11 @@ import { useLoaderData, Link, useOutletContext } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import type { SerializedSafetyTip } from "~/lib/services/safety.server";
-import { getSafetyTipBySlug, getSafetyTips, incrementTipViews, serializeSafetyTip } from "~/lib/services/safety.server";
-import { connectDB } from "~/lib/db/connection.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  const { getSafetyTipBySlug, getSafetyTips, incrementTipViews, serializeSafetyTip } = await import("~/lib/services/safety.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+
   await connectDB();
 
   const { slug } = params;

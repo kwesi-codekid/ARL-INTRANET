@@ -24,8 +24,6 @@ import { useLoaderData, useSearchParams } from "react-router";
 
 
 
-import { requireSuperAdmin } from "~/lib/services/session.server";
-import { getActivityLogs, getActivityStats } from "~/lib/services/activity-log.server";
 // Type definitions
 interface ActivityLog {
   _id: string;
@@ -55,6 +53,9 @@ interface LoaderData {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireSuperAdmin } = await import("~/lib/services/session.server");
+  const { getActivityLogs, getActivityStats } = await import("~/lib/services/activity-log.server");
+
   await requireSuperAdmin(request);
 
   const url = new URL(request.url);

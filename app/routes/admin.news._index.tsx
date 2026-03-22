@@ -30,12 +30,13 @@ import { useLoaderData, useSearchParams, Link, Form, useNavigation } from "react
 
 
 
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { News } from "~/lib/db/models/news.server";
 const ITEMS_PER_PAGE = 10;
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News } = await import("~/lib/db/models/news.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -102,6 +103,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { News } = await import("~/lib/db/models/news.server");
+
   await requireAuth(request);
   await connectDB();
 

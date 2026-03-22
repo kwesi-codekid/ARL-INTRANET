@@ -21,16 +21,15 @@ import { useLoaderData, Form, Link, redirect, useNavigation } from "react-router
 import { RichTextEditor } from "~/components/admin";
 import type { SerializedSafetyCategory } from "~/lib/services/safety.server";
 
-import { requireAuth } from "~/lib/services/session.server";
-import { connectDB } from "~/lib/db/connection.server";
-import { createSafetyTip, generateUniqueTipSlug, getSafetyCategories, serializeSafetyCategory } from "~/lib/services/safety.server";
-import { uploadDocument, uploadFile } from "~/lib/services/upload.server";
-import { sendPushNotificationToAll } from "~/lib/services/push-notification.server";
 interface LoaderData {
   categories: SerializedSafetyCategory[];
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { getSafetyCategories, serializeSafetyCategory } = await import("~/lib/services/safety.server");
+
   await requireAuth(request);
   await connectDB();
 
@@ -42,6 +41,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { createSafetyTip, generateUniqueTipSlug } = await import("~/lib/services/safety.server");
+  const { uploadFile } = await import("~/lib/services/upload.server");
+
   const user = await requireAuth(request);
   await connectDB();
 
@@ -69,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const documentFile = formData.get("document") as File;
   if (documentFile && documentFile.size > 0) {
     // Save PDF to safety-documents folder
-
+    const { uploadDocument } = await import("~/lib/services/upload.server");
     const docResult = await uploadDocument(documentFile, "safety-documents");
     documentUrl = docResult.url;
   }
@@ -92,7 +96,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (status === "published") {
-
+    const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
     sendPushNotificationToAll({
       title: "Safety Tip: " + title,
       body: summary || title,
