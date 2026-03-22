@@ -16,9 +16,9 @@ interface SMSConfig {
 }
 
 const config: SMSConfig = {
-  apiKey: process.env.SMS_API_KEY || "",
-  senderId: process.env.SMS_SENDER_ID || "ARL",
-  baseUrl: process.env.SMS_BASE_URL || "https://api.smsonlinegh.com/v5/message/sms/send",
+  apiKey: process.env.SMS_API_KEY as string,
+  senderId: process.env.SMS_SENDER_ID as string,
+  baseUrl: process.env.SMS_BASE_URL as string,
 };
 
 /**
@@ -44,31 +44,44 @@ export async function sendSMS(
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `key ${config.apiKey}`,
-        Host: "api.smsonlinegh.com",
+        Authorization: `Bearer ${config.apiKey}`,
+        // Host: "api.smsonlinegh.com",
       },
       body: JSON.stringify({
-        sender: config.senderId,
-        type: 0, // Plain text
-        destinations: [phoneNumber],
-        text: message,
+        from: "Adamus",
+        to: phoneNumber,
+        message: message,
+        refId: `arl_intranet_ref_${Date.now()}`,
       }),
+      // body: JSON.stringify({
+      //   sender: config.senderId,
+      //   type: 0, // Plain text
+      //   destinations: [phoneNumber],
+      //   text: message,
+      // }),
     });
 
     const data = await response.json();
 
-    // Check for rejected sender
-    const destination = data?.data?.destinations?.[0];
-    if (destination?.status?.label === "DS_REJECTED_SENDER_UNREGISTERED") {
-      console.error("SMS rejected: Unregistered sender", config.senderId);
+    if (data?.status === "FAILED") {
+      console.error("SMS failed");
       return {
         success: false,
-        message: "Failed to send SMS: Unregistered sender",
+        message: "Failed to send SMS",
       };
     }
+    // Check for rejected sender
+    // const destination = data?.data?.destinations?.[0];
+    // if (destination?.status?.label === "DS_REJECTED_SENDER_UNREGISTERED") {
+    //   console.error("SMS rejected: Unregistered sender", config.senderId);
+    //   return {
+    //     success: false,
+    //     message: "Failed to send SMS: Unregistered sender",
+    //   };
+    // }
 
-    if (response.ok) {
-      console.log("SMS delivery:", destination);
+    if (response.ok && data?.status === "SUCCESS") {
+      console.log("SMS delivery:", data);
       return {
         success: true,
         message: "SMS sent successfully",
@@ -92,7 +105,10 @@ export async function sendSMS(
 /**
  * Send OTP SMS
  */
-export async function sendOTP(phoneNumber: string, otp: string): Promise<SMSResponse> {
+export async function sendOTP(
+  phoneNumber: string,
+  otp: string
+): Promise<SMSResponse> {
   const message = `Your ARL Intranet verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
   return sendSMS(phoneNumber, message);
 }
