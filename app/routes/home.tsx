@@ -1321,7 +1321,7 @@ export default function Home() {
                       : undefined
                   }
                   alt={currentItem.data.title}
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full bg-gray-900 bg-center object-fill xl:min-w-5xl"
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/90 to-transparent" />
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/60 to-transparent" />

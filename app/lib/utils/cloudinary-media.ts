@@ -103,8 +103,8 @@ export function transformCloudinaryUrl(
     height,
     quality = 90,
     format = "auto",
-    crop = "fill",
-    gravity = "auto",
+    crop = "fit",
+    gravity,
     aspectRatio,
     dpr = "auto",
   } = options;
@@ -150,8 +150,7 @@ export function getResponsiveUrl(
 
   return transformCloudinaryUrl(url, {
     ...presetConfig,
-    crop: "fill",
-    gravity: "auto",
+    crop: "fit",
     quality: 90,
     format: "auto",
     ...options,
