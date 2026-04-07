@@ -827,7 +827,7 @@ function TodayEventToast({
   if (visibleEvents.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[49] space-y-3 max-w-sm w-full pointer-events-none">
+    <div className="fixed top-32 right-4 z-[60] space-y-3 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
         {visibleEvents.slice(0, 3).map((event, index) => (
           <motion.div
