@@ -33,6 +33,8 @@ import {
   Lightbulb,
   Video,
   Calendar,
+  ChevronDown,
+  Laptop,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigation } from "react-router";
@@ -44,11 +46,42 @@ interface HeaderProps {
   user?: PortalUser | null;
 }
 
-const navItems = [
+interface NavChild {
+  label: string;
+  href: string;
+  description?: string;
+  icon?: "shield" | "laptop";
+}
+
+interface NavItem {
+  label: string;
+  href: string;
+  external?: boolean;
+  children?: NavChild[];
+}
+
+const navItems: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Policies", href: "/policies" },
   { label: "News", href: "/news" },
-  { label: "Safety", href: "/safety" },
+  {
+    label: "Training Hub",
+    href: "/safety",
+    children: [
+      {
+        label: "Safety Hub",
+        href: "/safety",
+        description: "Safety tips, videos, and PSI talks",
+        icon: "shield",
+      },
+      {
+        label: "IT Hub",
+        href: "/safety-videos?type=training",
+        description: "Internal software & system training",
+        icon: "laptop",
+      },
+    ],
+  },
   { label: "Directory", href: "/directory" },
   { label: "Events", href: "/events" },
   { label: "Gallery", href: "/gallery" },
@@ -203,6 +236,46 @@ export function Header({ user }: HeaderProps) {
                 >
                   {item.label}
                 </a>
+              ) : item.children ? (
+                <Dropdown placement="bottom-start" offset={8}>
+                  <DropdownTrigger>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-white/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    >
+                      {item.label}
+                      <ChevronDown size={14} />
+                    </button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    aria-label={`${item.label} menu`}
+                    variant="flat"
+                    itemClasses={{ base: "gap-3 data-[hover=true]:bg-default-100" }}
+                    className="w-80 p-2"
+                  >
+                    {item.children.map((child) => {
+                      const ChildIcon = child.icon === "laptop" ? Laptop : Shield;
+                      const iconBg = child.icon === "laptop" ? "bg-amber-100" : "bg-blue-100";
+                      const iconColor = child.icon === "laptop" ? "text-amber-600" : "text-blue-600";
+                      return (
+                        <DropdownItem
+                          key={child.href}
+                          as={Link}
+                          // @ts-expect-error — HeroUI DropdownItem forwards `to` via `as`
+                          to={child.href}
+                          description={child.description}
+                          startContent={
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBg}`}>
+                              <ChildIcon size={20} className={iconColor} />
+                            </div>
+                          }
+                        >
+                          <span className="font-semibold">{child.label}</span>
+                        </DropdownItem>
+                      );
+                    })}
+                  </DropdownMenu>
+                </Dropdown>
               ) : (
                 <NavLink
                   to={item.href}
@@ -303,6 +376,38 @@ export function Header({ user }: HeaderProps) {
               >
                 {item.label}
               </a>
+            ) : item.children ? (
+              <div className="space-y-1">
+                <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-white/50">
+                  {item.label}
+                </p>
+                {item.children.map((child) => {
+                  const ChildIcon = child.icon === "laptop" ? Laptop : Shield;
+                  const iconColor = child.icon === "laptop" ? "text-amber-400" : "text-blue-400";
+                  return (
+                    <NavLink
+                      key={child.href}
+                      to={child.href}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 rounded-lg px-3 py-2.5 ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "text-white/80 hover:bg-white/10"
+                        }`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <ChildIcon size={20} className={iconColor} />
+                      <div className="flex flex-col">
+                        <span className="text-base font-medium">{child.label}</span>
+                        {child.description && (
+                          <span className="text-xs text-white/50">{child.description}</span>
+                        )}
+                      </div>
+                    </NavLink>
+                  );
+                })}
+              </div>
             ) : (
               <NavLink
                 to={item.href}
@@ -355,6 +460,16 @@ export function Header({ user }: HeaderProps) {
             >
               <Video size={18} className="text-blue-400" />
               <span>Safety Videos</span>
+            </Link>
+          </NavbarMenuItem>
+          <NavbarMenuItem>
+            <Link
+              to="/safety-videos?type=training"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Laptop size={18} className="text-amber-400" />
+              <span>Training Videos</span>
             </Link>
           </NavbarMenuItem>
           <NavbarMenuItem>

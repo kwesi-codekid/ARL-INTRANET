@@ -11,6 +11,7 @@ export interface ISafetyCategory extends Document {
   color?: string;
   order: number;
   isActive: boolean;
+  scope: "safety" | "training" | "both";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +51,12 @@ const SafetyCategorySchema = new Schema<ISafetyCategory>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    scope: {
+      type: String,
+      enum: ["safety", "training", "both"],
+      default: "safety",
+      index: true,
     },
   },
   {

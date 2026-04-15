@@ -69,7 +69,15 @@
       "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" add app/routes/admin.tsx)",
       "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" commit -m \"$\\(cat <<''EOF''\nstyle\\(admin\\): change sidebar text color from white to black\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C \"C:\\\\Users\\\\Dell\\\\intranet\" push)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_evaluate",
+      "Bash(git stash *)",
+      "mcp__playwright__playwright_get_visible_text",
+      "mcp__playwright__playwright_console_logs",
+      "mcp__playwright__playwright_close",
+      "Bash(kill %1)"
     ]
   }
 }

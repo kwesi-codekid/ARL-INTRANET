@@ -54,17 +54,21 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
-  const category = formData.get("category") as string;
+  const category = (formData.get("category") as string) || "";
   const status = formData.get("status") as "draft" | "published";
   const isFeatured = formData.get("isFeatured") === "true";
   const showInSlideshow = formData.get("showInSlideshow") === "true";
   const duration = parseInt(formData.get("duration") as string) || 0;
+  const videoTypeRaw = formData.get("videoType") as string;
+  const videoType: "safety" | "training" = videoTypeRaw === "training" ? "training" : "safety";
+
+  const uploadFolder = videoType === "training" ? "training-videos" : "safety-videos";
 
   // Handle video upload
   let videoUrl = "";
   const videoFile = formData.get("videoFile") as File;
   if (videoFile && videoFile.size > 0) {
-    const uploadResult = await uploadFile(videoFile, "safety-videos");
+    const uploadResult = await uploadFile(videoFile, uploadFolder);
     videoUrl = uploadResult.url;
   } else {
     // Use external URL if no file uploaded
@@ -75,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
   let thumbnail = "";
   const thumbnailFile = formData.get("thumbnail") as File;
   if (thumbnailFile && thumbnailFile.size > 0) {
-    const uploadResult = await uploadFile(thumbnailFile, "safety-videos/thumbnails");
+    const uploadResult = await uploadFile(thumbnailFile, `${uploadFolder}/thumbnails`);
     thumbnail = uploadResult.url;
   }
 
@@ -88,8 +92,9 @@ export async function action({ request }: ActionFunctionArgs) {
     videoUrl,
     thumbnail,
     duration,
-    category,
+    ...(category ? { category } : {}),
     author: user._id.toString(),
+    videoType,
     status,
     isFeatured,
     showInSlideshow,
@@ -97,10 +102,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (status === "published") {
     const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
+    const notifPrefix = videoType === "training" ? "Training Video: " : "Safety Video: ";
     sendPushNotificationToAll({
-      title: "Safety Video: " + title,
+      title: notifPrefix + title,
       body: description.substring(0, 120),
-      url: "/safety-videos",
+      url: videoType === "training" ? "/safety-videos?type=training" : "/safety-videos",
     });
   }
 
@@ -114,6 +120,10 @@ export default function AdminCreateSafetyVideoPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [showInSlideshow, setShowInSlideshow] = useState(false);
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
+  const [videoType, setVideoType] = useState<"safety" | "training">("safety");
+  const filteredCategories = categories.filter(
+    (c) => c.scope === videoType || c.scope === "both"
+  );
 
   return (
     <div className="space-y-6">
@@ -123,8 +133,8 @@ export default function AdminCreateSafetyVideoPage() {
           <ArrowLeft size={20} />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add Safety Video</h1>
-          <p className="text-gray-500">Upload a new safety training video</p>
+          <h1 className="text-2xl font-bold text-gray-900">Add Video</h1>
+          <p className="text-gray-500">Upload a new safety or training video</p>
         </div>
       </div>
 
@@ -284,16 +294,27 @@ export default function AdminCreateSafetyVideoPage() {
 
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Category</h2>
+                <h2 className="font-semibold">Classification</h2>
               </CardHeader>
-              <CardBody>
+              <CardBody className="space-y-4">
+                <Select
+                  label="Video Type"
+                  name="videoType"
+                  isRequired
+                  selectedKeys={[videoType]}
+                  onChange={(e) => setVideoType(e.target.value as "safety" | "training")}
+                  description="Safety videos appear by default; Training videos live under the Training tab"
+                >
+                  <SelectItem key="safety">Safety</SelectItem>
+                  <SelectItem key="training">Training</SelectItem>
+                </Select>
                 <Select
                   label="Category"
                   name="category"
-                  isRequired
-                  placeholder="Select a category"
+                  isRequired={videoType !== "training"}
+                  placeholder={videoType === "training" ? "Optional" : "Select a category"}
                 >
-                  {categories.map((cat) => (
+                  {filteredCategories.map((cat) => (
                     <SelectItem key={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </Select>

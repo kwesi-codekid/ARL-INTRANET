@@ -20,10 +20,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "20", 10);
   const featured = url.searchParams.get("featured") === "true";
+  const typeParam = url.searchParams.get("type");
+  const videoType: "safety" | "training" = typeParam === "training" ? "training" : "safety";
 
   // Return featured video for homepage widget
   if (featured) {
-    const video = await getFeaturedSafetyVideo();
+    const video = await getFeaturedSafetyVideo(videoType);
     return Response.json({
       video: video ? serializeSafetyVideo(video) : null,
     });
@@ -36,6 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     page,
     limit,
     status: "published",
+    videoType,
   });
 
   return Response.json({

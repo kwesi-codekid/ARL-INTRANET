@@ -19,6 +19,7 @@ export interface SafetyCategoryInput {
   color?: string;
   order?: number;
   isActive?: boolean;
+  scope?: "safety" | "training" | "both";
 }
 
 export async function createSafetyCategory(data: SafetyCategoryInput): Promise<ISafetyCategory> {
@@ -39,8 +40,13 @@ export async function deleteSafetyCategory(id: string): Promise<boolean> {
   return !!result;
 }
 
-export async function getSafetyCategories(activeOnly = true): Promise<ISafetyCategory[]> {
-  const filter = activeOnly ? { isActive: true } : {};
+export async function getSafetyCategories(
+  activeOnly = true,
+  scope?: "safety" | "training"
+): Promise<ISafetyCategory[]> {
+  const filter: Record<string, unknown> = {};
+  if (activeOnly) filter.isActive = true;
+  if (scope) filter.scope = { $in: [scope, "both"] };
   return SafetyCategory.find(filter).sort({ order: 1, name: 1 });
 }
 
@@ -207,8 +213,9 @@ export interface SafetyVideoInput {
   videoUrl: string;
   thumbnail?: string;
   duration?: number;
-  category: string;
+  category?: string;
   author: string;
+  videoType?: "safety" | "training";
   status?: "draft" | "published" | "archived";
   isFeatured?: boolean;
   showInSlideshow?: boolean;
@@ -248,6 +255,7 @@ export interface GetSafetyVideosOptions {
   search?: string;
   isFeatured?: boolean;
   showInSlideshow?: boolean;
+  videoType?: "safety" | "training";
   page?: number;
   limit?: number;
   includeAll?: boolean;
@@ -283,6 +291,10 @@ export async function getSafetyVideos(options: GetSafetyVideosOptions = {}): Pro
     filter.showInSlideshow = options.showInSlideshow;
   }
 
+  if (options.videoType) {
+    filter.videoType = options.videoType;
+  }
+
   if (options.search) {
     filter.$or = [
       { title: { $regex: options.search, $options: "i" } },
@@ -308,8 +320,10 @@ export async function getSafetyVideos(options: GetSafetyVideosOptions = {}): Pro
 }
 
 // Get featured video for homepage widget
-export async function getFeaturedSafetyVideo(): Promise<ISafetyVideo | null> {
-  return SafetyVideo.findOne({ status: "published", isFeatured: true })
+export async function getFeaturedSafetyVideo(
+  videoType: "safety" | "training" = "safety"
+): Promise<ISafetyVideo | null> {
+  return SafetyVideo.findOne({ status: "published", isFeatured: true, videoType })
     .populate(["category", "author"])
     .sort({ createdAt: -1 });
 }
@@ -427,6 +441,7 @@ export interface SerializedSafetyCategory {
   color: string;
   order: number;
   isActive: boolean;
+  scope: "safety" | "training" | "both";
 }
 
 export function serializeSafetyCategory(category: ISafetyCategory): SerializedSafetyCategory {
@@ -439,6 +454,7 @@ export function serializeSafetyCategory(category: ISafetyCategory): SerializedSa
     color: category.color || "#10B981",
     order: category.order,
     isActive: category.isActive,
+    scope: category.scope || "safety",
   };
 }
 
@@ -489,6 +505,7 @@ export interface SerializedSafetyVideo {
   thumbnail: string;
   duration: number;
   category: SerializedSafetyCategory | null;
+  videoType: "safety" | "training";
   status: string;
   isFeatured: boolean;
   showInSlideshow: boolean;
@@ -507,6 +524,7 @@ export function serializeSafetyVideo(video: ISafetyVideo): SerializedSafetyVideo
     thumbnail: video.thumbnail || "",
     duration: video.duration || 0,
     category: video.category ? serializeSafetyCategory(video.category as unknown as ISafetyCategory) : null,
+    videoType: video.videoType || "safety",
     status: video.status,
     isFeatured: video.isFeatured,
     showInSlideshow: video.showInSlideshow || false,
@@ -522,7 +540,7 @@ export async function getSlideshowItems(): Promise<{
   tips: ISafetyTip[];
 }> {
   const [videos, tips] = await Promise.all([
-    SafetyVideo.find({ status: "published", showInSlideshow: true })
+    SafetyVideo.find({ status: "published", showInSlideshow: true, videoType: "safety" })
       .populate(["category", "author"])
       .sort({ createdAt: -1 })
       .limit(10),

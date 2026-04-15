@@ -60,17 +60,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
-  const category = formData.get("category") as string;
+  const category = (formData.get("category") as string) || "";
   const status = formData.get("status") as "draft" | "published";
   const isFeatured = formData.get("isFeatured") === "true";
   const showInSlideshow = formData.get("showInSlideshow") === "true";
   const duration = parseInt(formData.get("duration") as string) || 0;
+  const videoTypeRaw = formData.get("videoType") as string;
+  const videoType: "safety" | "training" = videoTypeRaw === "training" ? "training" : "safety";
+  const uploadFolder = videoType === "training" ? "training-videos" : "safety-videos";
 
   // Handle video upload (if new file provided)
   let videoUrl: string | undefined;
   const videoFile = formData.get("videoFile") as File;
   if (videoFile && videoFile.size > 0) {
-    const uploadResult = await uploadFile(videoFile, "safety-videos");
+    const uploadResult = await uploadFile(videoFile, uploadFolder);
     videoUrl = uploadResult.url;
   } else {
     // Use external URL if provided
@@ -84,14 +87,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   let thumbnail: string | undefined;
   const thumbnailFile = formData.get("thumbnail") as File;
   if (thumbnailFile && thumbnailFile.size > 0) {
-    const uploadResult = await uploadFile(thumbnailFile, "safety-videos/thumbnails");
+    const uploadResult = await uploadFile(thumbnailFile, `${uploadFolder}/thumbnails`);
     thumbnail = uploadResult.url;
   }
 
   const updateData: Record<string, unknown> = {
     title,
     description,
-    category,
+    category: category || null,
+    videoType,
     status,
     isFeatured,
     showInSlideshow,
@@ -120,6 +124,10 @@ export default function AdminEditSafetyVideoPage() {
   const [isFeatured, setIsFeatured] = useState(video.isFeatured);
   const [showInSlideshow, setShowInSlideshow] = useState(video.showInSlideshow);
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">("url");
+  const [videoType, setVideoType] = useState<"safety" | "training">(video.videoType || "safety");
+  const filteredCategories = categories.filter(
+    (c) => c.scope === videoType || c.scope === "both"
+  );
 
   return (
     <div className="space-y-6">
@@ -129,7 +137,7 @@ export default function AdminEditSafetyVideoPage() {
           <ArrowLeft size={20} />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Safety Video</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Video</h1>
           <p className="text-gray-500">Update video details</p>
         </div>
       </div>
@@ -313,17 +321,27 @@ export default function AdminEditSafetyVideoPage() {
 
             <Card className="shadow-sm">
               <CardHeader>
-                <h2 className="font-semibold">Category</h2>
+                <h2 className="font-semibold">Classification</h2>
               </CardHeader>
-              <CardBody>
+              <CardBody className="space-y-4">
+                <Select
+                  label="Video Type"
+                  name="videoType"
+                  isRequired
+                  selectedKeys={[videoType]}
+                  onChange={(e) => setVideoType(e.target.value as "safety" | "training")}
+                >
+                  <SelectItem key="safety">Safety</SelectItem>
+                  <SelectItem key="training">Training</SelectItem>
+                </Select>
                 <Select
                   label="Category"
                   name="category"
-                  isRequired
+                  isRequired={videoType !== "training"}
                   defaultSelectedKeys={video.category ? [video.category.id] : []}
-                  placeholder="Select a category"
+                  placeholder={videoType === "training" ? "Optional" : "Select a category"}
                 >
-                  {categories.map((cat) => (
+                  {filteredCategories.map((cat) => (
                     <SelectItem key={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </Select>

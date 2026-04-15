@@ -59,6 +59,7 @@ interface LoaderData {
   };
   currentStatus: string;
   currentCategory: string;
+  currentType: string;
   searchQuery: string;
 }
 
@@ -75,6 +76,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const status = url.searchParams.get("status") || "all";
   const category = url.searchParams.get("category") || "";
   const search = url.searchParams.get("search") || "";
+  const typeParam = url.searchParams.get("type") || "all";
+  const videoType =
+    typeParam === "training" ? "training" : typeParam === "safety" ? "safety" : undefined;
 
   const [result, categories, stats] = await Promise.all([
     getSafetyVideos({
@@ -82,6 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       includeAll: status === "all",
       category: category || undefined,
       search: search || undefined,
+      videoType,
       page,
       limit: ITEMS_PER_PAGE,
     }),
@@ -100,6 +105,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
     currentStatus: status,
     currentCategory: category,
+    currentType: typeParam,
     searchQuery: search,
   });
 }
@@ -138,7 +144,7 @@ function formatDuration(seconds: number): string {
 }
 
 export default function AdminSafetyVideosPage() {
-  const { videos, categories, stats, pagination, currentStatus, currentCategory, searchQuery } =
+  const { videos, categories, stats, pagination, currentStatus, currentCategory, currentType, searchQuery } =
     useLoaderData<LoaderData>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchQuery);
@@ -178,6 +184,17 @@ export default function AdminSafetyVideosPage() {
     setSearchParams(params);
   };
 
+  const handleTypeChange = (type: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (type !== "all") {
+      params.set("type", type);
+    } else {
+      params.delete("type");
+    }
+    params.set("page", "1");
+    setSearchParams(params);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "published":
@@ -196,8 +213,8 @@ export default function AdminSafetyVideosPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Safety Videos</h1>
-          <p className="text-gray-500">Manage safety training videos</p>
+          <h1 className="text-2xl font-bold text-gray-900">Safety & Training Videos</h1>
+          <p className="text-gray-500">Manage safety and internal software training videos</p>
         </div>
         <Button
           as={Link}
@@ -276,6 +293,16 @@ export default function AdminSafetyVideosPage() {
           </form>
           <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
             <Select
+              placeholder="Type"
+              selectedKeys={[currentType]}
+              onChange={(e) => handleTypeChange(e.target.value)}
+              className="w-full xs:flex-1 sm:w-36 sm:flex-none"
+            >
+              <SelectItem key="all">All Types</SelectItem>
+              <SelectItem key="safety">Safety</SelectItem>
+              <SelectItem key="training">Training</SelectItem>
+            </Select>
+            <Select
               placeholder="Status"
               selectedKeys={[currentStatus]}
               onChange={(e) => handleStatusChange(e.target.value)}
@@ -307,6 +334,7 @@ export default function AdminSafetyVideosPage() {
           <Table aria-label="Safety videos table" removeWrapper className="min-w-[600px]">
             <TableHeader>
               <TableColumn>VIDEO</TableColumn>
+              <TableColumn>TYPE</TableColumn>
               <TableColumn>CATEGORY</TableColumn>
               <TableColumn>DURATION</TableColumn>
               <TableColumn>STATUS</TableColumn>
@@ -337,6 +365,15 @@ export default function AdminSafetyVideosPage() {
                         </p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      color={video.videoType === "training" ? "warning" : "primary"}
+                    >
+                      {video.videoType === "training" ? "Training" : "Safety"}
+                    </Chip>
                   </TableCell>
                   <TableCell>
                     {video.category && (

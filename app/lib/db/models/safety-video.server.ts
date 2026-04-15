@@ -10,8 +10,9 @@ export interface ISafetyVideo extends Document {
   videoUrl: string;
   thumbnail?: string;
   duration?: number; // in seconds
-  category: Types.ObjectId;
+  category?: Types.ObjectId;
   author: Types.ObjectId;
+  videoType: "safety" | "training";
   status: "draft" | "published" | "archived";
   isFeatured: boolean;
   showInSlideshow: boolean; // Admin controls if this appears in homepage slideshow
@@ -55,13 +56,21 @@ const SafetyVideoSchema = new Schema<ISafetyVideo>(
     category: {
       type: Schema.Types.ObjectId,
       ref: "SafetyCategory",
-      required: true,
+      required: function (this: ISafetyVideo) {
+        return this.videoType !== "training";
+      },
       index: true,
     },
     author: {
       type: Schema.Types.ObjectId,
       ref: "AdminUser",
       required: true,
+    },
+    videoType: {
+      type: String,
+      enum: ["safety", "training"],
+      default: "safety",
+      index: true,
     },
     status: {
       type: String,
@@ -92,6 +101,7 @@ const SafetyVideoSchema = new Schema<ISafetyVideo>(
 // Indexes for common queries
 SafetyVideoSchema.index({ status: 1, createdAt: -1 });
 SafetyVideoSchema.index({ category: 1, status: 1 });
+SafetyVideoSchema.index({ videoType: 1, status: 1, createdAt: -1 });
 SafetyVideoSchema.index({ title: "text", description: "text" });
 
 export const SafetyVideo: Model<ISafetyVideo> =

@@ -37,8 +37,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const categorySlug = url.searchParams.get("category") || undefined;
   const search = url.searchParams.get("search") || undefined;
   const page = parseInt(url.searchParams.get("page") || "1", 10);
+  const typeParam = url.searchParams.get("type");
+  const videoType: "safety" | "training" = typeParam === "training" ? "training" : "safety";
 
-  const categories = await getSafetyCategories(true);
+  const categories = await getSafetyCategories(true, videoType);
   const selectedCategory = categorySlug
     ? categories.find((c) => c.slug === categorySlug)
     : undefined;
@@ -49,6 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     page,
     limit: 12,
     status: "published",
+    videoType,
   });
 
   return Response.json({
@@ -59,6 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     categories: categories.map(serializeSafetyCategory),
     selectedCategory: categorySlug || "all",
     searchQuery: search || "",
+    videoType,
   });
 }
 
@@ -70,6 +74,7 @@ interface LoaderData {
   categories: SerializedSafetyCategory[];
   selectedCategory: string;
   searchQuery: string;
+  videoType: "safety" | "training";
 }
 
 function formatDuration(seconds: number): string {
@@ -80,8 +85,9 @@ function formatDuration(seconds: number): string {
 }
 
 export default function SafetyVideosPage() {
-  const { videos, total, page, totalPages, categories, selectedCategory, searchQuery } =
+  const { videos, total, page, totalPages, categories, selectedCategory, searchQuery, videoType } =
     useLoaderData<LoaderData>();
+  const isTraining = videoType === "training";
   const { portalUser } = useOutletContext<PublicOutletContext>();
   const [search, setSearch] = useState(searchQuery);
   const [selectedVideo, setSelectedVideo] = useState<SerializedSafetyVideo | null>(null);
@@ -96,17 +102,24 @@ export default function SafetyVideosPage() {
     <MainLayout user={portalUser}>
       <div className="overflow-x-hidden">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 flex-shrink-0">
-            <Video size={24} className="text-blue-600" />
+          <div className={`flex h-12 w-12 items-center justify-center rounded-full flex-shrink-0 ${isTraining ? "bg-amber-100" : "bg-blue-100"}`}>
+            <Video size={24} className={isTraining ? "text-amber-600" : "text-blue-600"} />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900">Safety Videos</h1>
-            <p className="text-gray-500 truncate">Watch and learn important safety procedures</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isTraining ? "Training Videos" : "Safety Videos"}
+            </h1>
+            <p className="text-gray-500 truncate">
+              {isTraining
+                ? "Learn how to use internal systems and software"
+                : "Watch and learn important safety procedures"}
+            </p>
           </div>
         </div>
       </div>
+
 
       {/* Search and Filter - Task: 1.2.2.3.5 */}
       <Card className="mb-6 shadow-sm">
@@ -125,6 +138,7 @@ export default function SafetyVideosPage() {
             {selectedCategory !== "all" && (
               <input type="hidden" name="category" value={selectedCategory} />
             )}
+            {isTraining && <input type="hidden" name="type" value="training" />}
           </form>
           <div className="text-sm text-gray-500">{total} videos available</div>
         </CardBody>
@@ -138,6 +152,7 @@ export default function SafetyVideosPage() {
             const params = new URLSearchParams();
             if (key !== "all") params.set("category", key.toString());
             if (search) params.set("search", search);
+            if (isTraining) params.set("type", "training");
             window.location.href = `/safety-videos?${params.toString()}`;
           }}
           variant="underlined"
@@ -259,6 +274,7 @@ export default function SafetyVideosPage() {
               const params = new URLSearchParams();
               if (selectedCategory !== "all") params.set("category", selectedCategory);
               if (search) params.set("search", search);
+              if (isTraining) params.set("type", "training");
               params.set("page", newPage.toString());
               window.location.href = `/safety-videos?${params.toString()}`;
             }}

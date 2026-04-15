@@ -28,12 +28,13 @@ export async function sendSMS(
   phoneNumber: string,
   message: string
 ): Promise<SMSResponse> {
-  if (!config.apiKey) {
-    console.warn("SMS_API_KEY not set, logging to console instead");
+  if (!config.apiKey || !config.baseUrl) {
+    const reason = !config.apiKey ? "no SMS_API_KEY" : "no SMS_BASE_URL";
+    console.warn(`SMS bypassed (${reason}), logging to console instead`);
     console.log(`SMS to ${phoneNumber}: ${message}`);
     return {
       success: true,
-      message: "SMS logged to console (no API key)",
+      message: `SMS logged to console (${reason})`,
       messageId: `dev-${Date.now()}`,
     };
   }

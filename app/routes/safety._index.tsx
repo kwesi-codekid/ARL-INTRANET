@@ -51,10 +51,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const [tipCount, videoCount, alertCount, recentTips, allVideos, activeAlerts, hazardApp] = await Promise.all([
     SafetyTip.countDocuments({ status: "published" }),
-    SafetyVideo.countDocuments({ status: "published" }),
+    SafetyVideo.countDocuments({ status: "published", videoType: "safety" }),
     Alert.countDocuments({ isActive: true, type: "safety" }),
     SafetyTip.find({ status: "published" }).sort({ publishedAt: -1 }).limit(8).lean(),
-    SafetyVideo.find({ status: "published" }).sort({ isFeatured: -1, publishedAt: -1 }).limit(20).lean(),
+    SafetyVideo.find({ status: "published", videoType: "safety" }).sort({ isFeatured: -1, publishedAt: -1 }).limit(20).lean(),
     Alert.find({ isActive: true, type: "safety" }).sort({ createdAt: -1 }).limit(3).lean(),
     AppLink.findOne({ name: { $regex: /hazard/i }, isActive: true }).lean(),
   ]);

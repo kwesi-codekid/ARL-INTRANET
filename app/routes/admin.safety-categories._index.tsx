@@ -25,6 +25,8 @@ import {
   useDisclosure,
   Textarea,
   Switch,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { Plus, Edit, Trash2, Tag } from "lucide-react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
@@ -61,6 +63,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  const parseScope = (v: FormDataEntryValue | null): "safety" | "training" | "both" => {
+    const s = (v as string) || "safety";
+    return s === "training" || s === "both" ? s : "safety";
+  };
+
   if (intent === "create") {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
@@ -68,6 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const icon = formData.get("icon") as string;
     const order = parseInt(formData.get("order") as string) || 0;
     const isActive = formData.get("isActive") === "true";
+    const scope = parseScope(formData.get("scope"));
 
     const slug = await generateUniqueCategorySlug(name);
     await createSafetyCategory({
@@ -78,6 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
       icon,
       order,
       isActive,
+      scope,
     });
   } else if (intent === "update") {
     const id = formData.get("id") as string;
@@ -87,6 +96,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const icon = formData.get("icon") as string;
     const order = parseInt(formData.get("order") as string) || 0;
     const isActive = formData.get("isActive") === "true";
+    const scope = parseScope(formData.get("scope"));
 
     await updateSafetyCategory(id, {
       name,
@@ -95,6 +105,7 @@ export async function action({ request }: ActionFunctionArgs) {
       icon,
       order,
       isActive,
+      scope,
     });
   } else if (intent === "delete") {
     const id = formData.get("id") as string;
@@ -134,8 +145,8 @@ export default function AdminSafetyCategoriesPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Safety Categories</h1>
-          <p className="text-gray-500">Manage categories for safety tips and videos</p>
+          <h1 className="text-2xl font-bold text-gray-900">Safety & Training Categories</h1>
+          <p className="text-gray-500">Manage categories for safety tips, safety videos, and training videos</p>
         </div>
         <Button color="success" startContent={<Plus size={18} />} onPress={handleAdd} className="w-full sm:w-auto">
           Add Category
@@ -148,6 +159,7 @@ export default function AdminSafetyCategoriesPage() {
           <Table aria-label="Safety categories table" removeWrapper className="min-w-[500px]">
             <TableHeader>
               <TableColumn>CATEGORY</TableColumn>
+              <TableColumn>SCOPE</TableColumn>
               <TableColumn>DESCRIPTION</TableColumn>
               <TableColumn>ORDER</TableColumn>
               <TableColumn>STATUS</TableColumn>
@@ -169,6 +181,25 @@ export default function AdminSafetyCategoriesPage() {
                         <p className="text-xs text-gray-500">{category.slug}</p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      color={
+                        category.scope === "training"
+                          ? "warning"
+                          : category.scope === "both"
+                          ? "secondary"
+                          : "primary"
+                      }
+                    >
+                      {category.scope === "training"
+                        ? "Training"
+                        : category.scope === "both"
+                        ? "Both"
+                        : "Safety"}
+                    </Chip>
                   </TableCell>
                   <TableCell>
                     <p className="text-sm text-gray-600 line-clamp-2">
@@ -280,6 +311,18 @@ export default function AdminSafetyCategoriesPage() {
                   placeholder="e.g., shield"
                 />
               </div>
+
+              <Select
+                label="Scope"
+                name="scope"
+                defaultSelectedKeys={[editCategory?.scope || "safety"]}
+                description="Which content uses this category"
+                isRequired
+              >
+                <SelectItem key="safety">Safety (tips & safety videos)</SelectItem>
+                <SelectItem key="training">Training (training videos)</SelectItem>
+                <SelectItem key="both">Both</SelectItem>
+              </Select>
 
               <Input
                 label="Order"
