@@ -64,6 +64,10 @@ const navItems: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Policies", href: "/policies" },
   { label: "News", href: "/news" },
+  { label: "Directory", href: "/directory" },
+  { label: "Events", href: "/events" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Apps", href: "https://apps.adamusgh.com/", external: true },
   {
     label: "Training Hub",
     href: "/safety",
@@ -82,10 +86,6 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  { label: "Directory", href: "/directory" },
-  { label: "Events", href: "/events" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Apps", href: "https://apps.adamusgh.com/", external: true },
   { label: "Suggestions", href: "/suggestions" },
 ];
 
@@ -232,7 +232,7 @@ export function Header({ user }: HeaderProps) {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg px-3 py-2 text-sm font-medium transition-colors text-white/80 hover:bg-white/10 hover:text-white"
+                  className="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium leading-none transition-colors text-white/80 hover:bg-white/10 hover:text-white"
                 >
                   {item.label}
                 </a>
@@ -241,7 +241,7 @@ export function Header({ user }: HeaderProps) {
                   <DropdownTrigger>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-white/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium leading-none transition-colors text-white/80 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                     >
                       {item.label}
                       <ChevronDown size={14} />
@@ -281,7 +281,7 @@ export function Header({ user }: HeaderProps) {
                   to={item.href}
                   end={item.href === "/"}
                   className={({ isActive }) =>
-                    `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    `inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium leading-none transition-colors ${
                       isActive
                         ? "bg-white/20 text-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
