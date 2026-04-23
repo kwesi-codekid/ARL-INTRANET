@@ -25,6 +25,7 @@ export interface INews extends Document {
   status: "draft" | "published" | "archived";
   isFeatured: boolean;
   isPinned: boolean;
+  carouselOrder: number;
   publishedAt?: Date;
   scheduledAt?: Date;
   views: number;
@@ -125,6 +126,10 @@ const NewsSchema = new Schema<INews>(
     isPinned: {
       type: Boolean,
       default: false,
+    },
+    carouselOrder: {
+      type: Number,
+      default: 0,
     },
     publishedAt: {
       type: Date,

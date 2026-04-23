@@ -86,6 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const { updateSettings, clearSettingsCache } = await import(
     "~/lib/services/settings.server"
   );
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   const user = await requireSuperAdmin(request);
   await connectDB();
@@ -105,6 +106,13 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         sessionData?.userId
       );
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "settings",
+        details: { setting: "update-general" },
+        request,
+      });
       return Response.json({ success: true, message: "General settings saved successfully" });
     }
 
@@ -117,6 +125,13 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         sessionData?.userId
       );
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "settings",
+        details: { setting: "update-notifications" },
+        request,
+      });
       return Response.json({ success: true, message: "Notification settings saved successfully" });
     }
 
@@ -130,6 +145,13 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         sessionData?.userId
       );
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "settings",
+        details: { setting: "update-security" },
+        request,
+      });
       return Response.json({ success: true, message: "Security settings saved successfully" });
     }
 
@@ -141,11 +163,25 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         sessionData?.userId
       );
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "settings",
+        details: { setting: "update-system" },
+        request,
+      });
       return Response.json({ success: true, message: "System settings saved successfully" });
     }
 
     if (intent === "clear-cache") {
       clearSettingsCache();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "settings",
+        details: { setting: "clear-cache" },
+        request,
+      });
       return Response.json({ success: true, message: "Cache cleared successfully" });
     }
 
@@ -185,6 +221,13 @@ export async function action({ request }: ActionFunctionArgs) {
         await updateCompanyImages({
           ...imageUpdates,
           updatedBy: sessionData?.userId,
+        });
+        await logActivity({
+          userId: sessionData?.userId,
+          action: "update",
+          resource: "settings",
+          details: { setting: "update-company-images", images: Object.keys(imageUpdates) },
+          request,
         });
         return Response.json({ success: true, message: "Company images updated successfully" });
       }

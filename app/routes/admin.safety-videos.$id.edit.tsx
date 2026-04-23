@@ -114,6 +114,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   await updateSafetyVideo(params.id!, updateData);
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "safety_video",
+    resourceId: params.id!.toString(),
+    details: { title },
+    request,
+  });
+
   return redirect("/admin/safety-videos");
 }
 

@@ -28,6 +28,7 @@ export interface IEvent extends Document {
   maxAttendees?: number;
   status: "draft" | "published" | "cancelled" | "completed";
   isFeatured: boolean;
+  views: number;
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -122,6 +123,10 @@ const EventSchema = new Schema<IEvent>(
       type: Boolean,
       default: false,
       index: true,
+    },
+    views: {
+      type: Number,
+      default: 0,
     },
     createdBy: {
       type: Schema.Types.ObjectId,

@@ -41,6 +41,7 @@ import {
   // Bot, // Commented out - AI chatbot disabled for now
   HelpCircle,
   FileText,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -63,6 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 const sidebarItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Carousel", href: "/admin/carousel", icon: SlidersHorizontal },
   { label: "Policies", href: "/admin/policies", icon: FileText },
   { label: "News", href: "/admin/news", icon: Newspaper },
   { label: "Events", href: "/admin/events", icon: Calendar },

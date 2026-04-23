@@ -299,6 +299,7 @@ export function serializeEvent(event: IEvent) {
     maxAttendees: event.maxAttendees,
     status: event.status,
     isFeatured: event.isFeatured,
+    views: event.views || 0,
     createdBy: event.createdBy,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
@@ -306,3 +307,7 @@ export function serializeEvent(event: IEvent) {
 }
 
 export type SerializedEvent = ReturnType<typeof serializeEvent>;
+
+export async function incrementEventViews(id: string): Promise<void> {
+  await Event.findByIdAndUpdate(id, { $inc: { views: 1 } });
+}

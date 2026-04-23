@@ -122,6 +122,16 @@ export async function action({ request }: ActionFunctionArgs) {
     createdBy: sessionData?.userId,
   });
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "create",
+    resource: "album",
+    resourceId: album._id.toString(),
+    details: { title },
+    request,
+  });
+
   if (status === "published") {
     const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
     sendPushNotificationToAll({

@@ -152,6 +152,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       news.publishedAt?.toISOString() || news.createdAt.toISOString(),
     isPinned: news.isPinned,
     isFeatured: news.isFeatured || false,
+    carouselOrder: news.carouselOrder || 0,
   });
 
   // Merge featured news into recent news, avoiding duplicates
@@ -205,6 +206,7 @@ interface LoaderData {
     publishedAt: string;
     isPinned: boolean;
     isFeatured: boolean;
+    carouselOrder: number;
   }>;
   activeAlerts: Array<{
     id: string;
@@ -910,34 +912,49 @@ export default function Home() {
   const companySlides = buildSlides(companyImages);
 
   // Build carousel items array - only items marked for slideshow by admin
-  const carouselItems: CarouselItem[] = [
-    // Add company values slides (Mission, Vision, Values) first
+  // Items with carouselOrder > 0 are sorted by order (ascending), rest come after
+  const unorderedItems: (CarouselItem & { _order: number })[] = [
+    // Add company values slides (Mission, Vision, Values)
     ...companySlides.map(
-      (slide): CarouselItem => ({ type: "company", data: slide })
+      (slide) => ({ type: "company" as const, data: slide, _order: 0 })
     ),
     // Add safety videos marked for slideshow
     ...safetyVideos
       .filter((v) => v.videoUrl) // Must have video URL
-      .map((video): CarouselItem => ({ type: "video", data: video })),
+      .map((video) => ({ type: "video" as const, data: video, _order: video.carouselOrder || 0 })),
     // Add PDF documents (safety tips with documentUrl)
     ...safetyTips
       .filter((t) => t.documentUrl)
-      .map((tip): CarouselItem => ({ type: "pdf", data: tip })),
+      .map((tip) => ({ type: "pdf" as const, data: tip, _order: tip.carouselOrder || 0 })),
     // Add safety tips with images (no PDF)
     ...safetyTips
       .filter((t) => t.featuredImage && !t.documentUrl)
-      .map((tip): CarouselItem => ({ type: "tip", data: tip })),
+      .map((tip) => ({ type: "tip" as const, data: tip, _order: tip.carouselOrder || 0 })),
     // Add featured news items with images (what admin marks as featured)
     ...recentNews
       .filter((n) => n.isFeatured && n.featuredImage)
       .slice(0, 5)
-      .map((news): CarouselItem => ({ type: "news", data: news })),
+      .map((news) => ({ type: "news" as const, data: news, _order: news.carouselOrder || 0 })),
     // Also add pinned news items with images (if not already featured)
     ...recentNews
       .filter((n) => n.isPinned && n.featuredImage && !n.isFeatured)
       .slice(0, 3)
-      .map((news): CarouselItem => ({ type: "news", data: news })),
+      .map((news) => ({ type: "news" as const, data: news, _order: news.carouselOrder || 0 })),
   ];
+
+  // Sort: items with carouselOrder > 0 come first (ascending), then the rest by original order
+  const carouselItems: CarouselItem[] = unorderedItems
+    .sort((a, b) => {
+      // Both have order: sort ascending
+      if (a._order > 0 && b._order > 0) return a._order - b._order;
+      // Only a has order: a comes first
+      if (a._order > 0) return -1;
+      // Only b has order: b comes first
+      if (b._order > 0) return 1;
+      // Neither has order: keep original order
+      return 0;
+    })
+    .map(({ _order, ...item }) => item as CarouselItem);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [execSlide, setExecSlide] = useState(0);

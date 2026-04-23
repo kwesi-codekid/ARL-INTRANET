@@ -54,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const startDate = formData.get("startDate") as string;
   const endDate = formData.get("endDate") as string;
 
-  await createAlert({
+  const result = await createAlert({
     title,
     message,
     severity,
@@ -67,6 +67,18 @@ export async function action({ request }: ActionFunctionArgs) {
     startDate: startDate ? new Date(startDate) : undefined,
     endDate: endDate ? new Date(endDate) : undefined,
     author: user._id.toString(),
+  });
+
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "create",
+    resource: "alert",
+    resourceId: result._id.toString(),
+    details: { title },
+    request,
   });
 
   if (isActive) {

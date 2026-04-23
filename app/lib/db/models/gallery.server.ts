@@ -19,6 +19,7 @@ export interface IAlbum extends Document {
   isFeatured: boolean;
   externalGalleryUrl?: string; // Link to external gallery (Google Drive, OneDrive, etc.)
   isExternalGallery: boolean; // If true, photos are hosted externally
+  views: number;
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -92,6 +93,10 @@ const AlbumSchema = new Schema<IAlbum>(
     isExternalGallery: {
       type: Boolean,
       default: false,
+    },
+    views: {
+      type: Number,
+      default: 0,
     },
     createdBy: {
       type: Schema.Types.ObjectId,

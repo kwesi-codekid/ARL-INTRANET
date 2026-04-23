@@ -74,6 +74,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
     endDate: endDate ? new Date(endDate) : undefined,
   });
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "alert",
+    resourceId: params.id!,
+    details: { title },
+    request,
+  });
+
   return redirect("/admin/alerts");
 }
 

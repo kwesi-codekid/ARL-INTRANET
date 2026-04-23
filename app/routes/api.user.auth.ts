@@ -116,6 +116,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await authenticateByPhoneOTP(phone, otp, clientIP);
 
     if (!result.success || !result.user) {
+      await logActivity({
+        action: "login_failed",
+        resource: "user_session",
+        details: { method: "phone_otp", phone, reason: result.message },
+        request,
+      });
       return Response.json(
         { error: result.message },
         { status: 401 }
@@ -166,6 +172,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await authenticateByEmailOTP(email, otp, clientIP);
 
     if (!result.success || !result.user) {
+      await logActivity({
+        action: "login_failed",
+        resource: "user_session",
+        details: { method: "email_otp", email, reason: result.message },
+        request,
+      });
       return Response.json(
         { error: result.message },
         { status: 401 }

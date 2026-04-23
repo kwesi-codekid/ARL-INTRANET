@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ARL Intranet (ARL Intranet) - Internal intranet portal for Adamus Resources Limited, a mining company in Ghana. This is a full-stack React Router v7 application with SSR, replacing an existing WordPress-based intranet.
+ARL Intranet - Internal intranet portal for Adamus Resources Limited, a mining company in Ghana. Full-stack React Router v7 application with SSR, replacing an existing WordPress-based intranet.
 
 ## Commands
 
@@ -30,10 +30,6 @@ npm run db:seed          # Seed the database with initial data
 npx playwright test                              # Run all E2E tests
 npx playwright test --ui                         # Run tests in UI mode
 npx playwright test tests/admin-login.spec.ts   # Run single test file
-
-# Docker
-docker build -t arl-intranet .
-docker run -p 3000:3000 arl-intranet
 ```
 
 ## Tech Stack
@@ -44,14 +40,17 @@ docker run -p 3000:3000 arl-intranet
 - **Styling:** TailwindCSS v4 with custom brand theme
 - **Build:** Vite v7
 - **Database:** MongoDB with Mongoose v9
-- **Auth:** OTP-based authentication with cookie sessions
+- **Auth:** Two-track auth system (see below)
+- **Rich Text:** TipTap editor
+- **File Storage:** Cloudinary
+- **Date/Time:** Luxon
 
 ## Architecture
 
 ```
 app/
 ├── components/
-│   ├── admin/           # Admin-specific components
+│   ├── admin/           # Admin-specific components (RichTextEditor, forms)
 │   ├── alerts/          # Alert banner and popup components
 │   ├── dashboard/       # Homepage dashboard widgets
 │   ├── layout/          # MainLayout, Header, Footer, Sidebars
@@ -72,36 +71,87 @@ app/
 
 ## Key Patterns
 
-**Imports:** Use path alias `~/` for app directory (e.g., `import { Header } from "~/components/layout"`)
+### Imports & Exports
 
-**Component exports:** Named exports with index.ts barrel files
+- **Path alias:** `~/` maps to the `app/` directory (e.g., `import { Header } from "~/components/layout"`)
+- **Named exports** with `index.ts` barrel files for components
 
-**Server-only files:** Files ending in `.server.ts` are server-only and not bundled to the client. All database models and services use this convention.
+### Server-Only Files & Dynamic Imports (Critical)
 
-**Database access:** Services must call `connectDB()` before any database operations:
+Files ending in `.server.ts` are server-only. **All `.server.ts` imports in route files must use dynamic `import()` inside loaders/actions**, not static imports at the top of the file. Static imports of `.server.ts` files in route modules will break the build.
+
 ```typescript
-import { connectDB } from "~/lib/db/connection.server";
+// CORRECT - dynamic import inside loader/action
+export async function loader({ request }: Route.LoaderArgs) {
+  const { requireAuth } = await import("~/lib/services/session.server");
+  const { connectDB } = await import("~/lib/db/connection.server");
+  const { NewsModel } = await import("~/lib/db/models/news.server");
+  await connectDB();
+  // ...
+}
+
+// WRONG - static import at module level
+import { requireAuth } from "~/lib/services/session.server"; // breaks build
+```
+
+### Database Access
+
+Services must call `connectDB()` before any database operations:
+```typescript
+const { connectDB } = await import("~/lib/db/connection.server");
 await connectDB();
 ```
 
-**Route protection:** Use session helpers in loaders/actions:
-- `requireAuth(request)` - Redirects to login if not authenticated
-- `requireSuperAdmin(request)` - Requires superadmin role
-- `getUser(request)` - Returns user or null (no redirect)
+### Two-Track Authentication System
 
-**Route configuration:** Routes are defined centrally in `app/routes.ts` using React Router's route config API, not file-based routing.
+**Admin auth** (cookie session via `session.server.ts`):
+- Cookie: `__arl_session`, TTL: 7 days
+- `requireAuth(request)` — redirects to `/admin/login` if not authenticated
+- `requireSuperAdmin(request)` — requires superadmin role
+- `getUser(request)` — returns user or null (no redirect)
+- `getSessionData(request)` — lightweight session info without DB lookup
 
-**Brand colors:** Primary gold (#d2ab67 / #c7a262), secondary dark (#1a1a1a), safety colors defined in app.css. Based on Nguvu Mining brand guidelines.
+**Portal user auth** (JWT-based via `user-auth.server.ts`):
+- Cookies: `__arl_user_access` + `__arl_user_refresh`
+- OTP-based login (phone SMS or email)
+- `getCurrentUser(request)` — returns portal user or null
+
+### Route Protection via Layout Gates
+
+- **`routes/admin.tsx`** — layout loader calls `requireAuth()` for all admin routes (except `/admin/login` and `/admin/logout`)
+- **`routes/_public.tsx`** — wraps public routes with maintenance mode check, provides `portalUser` context to children via `useOutletContext<PublicOutletContext>()`
+
+### Route Configuration
+
+Routes are defined centrally in `app/routes.ts` using React Router's route config API, not file-based routing. Public routes are nested under the `_public.tsx` layout; admin routes under `admin.tsx`.
+
+### Form Handling
+
+- Use React Router `<Form>` component
+- Actions process submissions via `request.formData()`
+- Track submission state with `useNavigation()` (`navigation.state === "submitting"`)
+- File uploads via FormData: `formData.get("fieldName") as File`
+
+### File Uploads (Cloudinary)
+
+- Upload service: `~/lib/services/upload.server.ts`
+- Methods: `uploadImage(file, subdir)`, `uploadVideo(file, subdir)`
+- Limits: images 5MB, videos 100MB, PDFs 20MB, documents 50MB
+- Responsive image helpers in `~/lib/utils/cloudinary-media.ts`: `getResponsiveUrl()`, `generateSrcSet()`, `generateSizes()`
+
+### Brand Colors
+
+Primary gold (#d2ab67 / #c7a262), secondary dark (#1a1a1a), safety colors defined in `app.css`. Based on Nguvu Mining brand guidelines.
 
 ## Environment Variables
 
 Copy `.env.example` to `.env`. Key variables:
-- `MONGODB_URI` - MongoDB connection string
-- `SESSION_SECRET` - Secret for cookie sessions
-- `SMS_API_KEY`, `SMS_USERNAME` - For OTP SMS delivery
+- `MONGODB_URI` — MongoDB connection string
+- `SESSION_SECRET` — Secret for cookie sessions
+- `SMS_API_KEY`, `SMS_USERNAME` — For OTP SMS delivery
 
 ## Project Documentation
 
-- `PROJECT_PLAN.md` - Detailed 4-phase project plan with all features
-- `WBS.md` - Work Breakdown Structure with task tracking and status
-- `docs/DEPARTMENTS.md` - Department structure and codes
+- `PROJECT_PLAN.md` — Detailed 4-phase project plan with all features
+- `WBS.md` — Work Breakdown Structure with task tracking and status
+- `docs/DEPARTMENTS.md` — Department structure and codes

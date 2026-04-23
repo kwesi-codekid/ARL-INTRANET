@@ -80,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const slug = await generateUniqueTipSlug(title);
 
-  await createSafetyTip({
+  const tip = await createSafetyTip({
     title,
     slug,
     content,
@@ -93,6 +93,18 @@ export async function action({ request }: ActionFunctionArgs) {
     status,
     isFeatured,
     showInSlideshow,
+  });
+
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "create",
+    resource: "safety_tip",
+    resourceId: tip._id.toString(),
+    details: { title },
+    request,
   });
 
   if (status === "published") {

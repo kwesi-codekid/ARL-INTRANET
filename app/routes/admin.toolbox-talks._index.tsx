@@ -130,10 +130,22 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const talkId = formData.get("talkId") as string;
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+
   // Use service functions for all operations
   if (intent === "delete") {
     const deleted = await deleteToolboxTalk(talkId);
     if (deleted) {
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "delete",
+        resource: "toolbox_talk",
+        resourceId: talkId.toString(),
+        details: { title: "PSI talk deleted" },
+        request,
+      });
       return Response.json({ success: true, message: "PSI talk deleted" });
     }
     return Response.json({ error: "Failed to delete" }, { status: 400 });
@@ -142,6 +154,14 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "toggle-status") {
     const updated = await toggleToolboxTalkStatus(talkId);
     if (updated) {
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "toolbox_talk",
+        resourceId: talkId.toString(),
+        details: { title: "Status toggled" },
+        request,
+      });
       return Response.json({ success: true, message: "Status updated" });
     }
     return Response.json({ error: "Failed to update status" }, { status: 400 });
@@ -150,6 +170,14 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "archive") {
     const archived = await archiveToolboxTalk(talkId);
     if (archived) {
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "toolbox_talk",
+        resourceId: talkId.toString(),
+        details: { title: "Talk archived" },
+        request,
+      });
       return Response.json({ success: true, message: "Talk archived" });
     }
     return Response.json({ error: "Failed to archive" }, { status: 400 });

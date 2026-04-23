@@ -16,6 +16,7 @@ export interface ISafetyTip extends Document {
   status: "draft" | "published" | "archived";
   isFeatured: boolean;
   showInSlideshow: boolean; // Admin controls if this appears in homepage slideshow
+  carouselOrder: number;
   views: number;
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +84,10 @@ const SafetyTipSchema = new Schema<ISafetyTip>(
       type: Boolean,
       default: false,
       index: true,
+    },
+    carouselOrder: {
+      type: Number,
+      default: 0,
     },
     views: {
       type: Number,

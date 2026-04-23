@@ -157,6 +157,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
     await updatePolicyCategory(categoryId, { isActive: !isActive });
 
+    await logActivity({
+      userId: sessionData?.userId,
+      action: isActive ? "deactivate" : "activate",
+      resource: "policy_category",
+      resourceId: categoryId,
+      details: {},
+      request,
+    });
+
     return Response.json({ success: true, message: "Status updated" });
   }
 
@@ -165,6 +174,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const ids = JSON.parse(orderedIds);
 
     await reorderPolicyCategories(ids);
+
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "reorder",
+      resource: "policy_category",
+      resourceId: "bulk",
+      details: { count: ids.length },
+      request,
+    });
 
     return Response.json({ success: true, message: "Order updated" });
   }

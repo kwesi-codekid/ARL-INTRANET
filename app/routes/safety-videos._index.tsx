@@ -21,7 +21,7 @@ import {
 } from "@heroui/react";
 import { Search, Video, Play, Eye, Clock, X } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useOutletContext } from "react-router";
+import { useLoaderData, Link, useOutletContext, useFetcher } from "react-router";
 import { MainLayout } from "~/components/layout";
 import type { PublicOutletContext } from "~/routes/_public";
 import { VideoPlayer } from "~/components/ui";
@@ -92,10 +92,16 @@ export default function SafetyVideosPage() {
   const [search, setSearch] = useState(searchQuery);
   const [selectedVideo, setSelectedVideo] = useState<SerializedSafetyVideo | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const viewFetcher = useFetcher();
 
   const handleVideoClick = (video: SerializedSafetyVideo) => {
     setSelectedVideo(video);
     onOpen();
+    // Increment view count
+    viewFetcher.submit(
+      { intent: "increment-views", videoId: video.id },
+      { method: "post", action: "/api/safety-videos" }
+    );
   };
 
   return (

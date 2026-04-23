@@ -101,11 +101,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -113,9 +115,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const albumId = formData.get("albumId") as string;
 
   if (intent === "delete") {
+    const album = await Album.findById(albumId);
     // Delete all photos in album first
     await Photo.deleteMany({ album: albumId });
     await Album.findByIdAndDelete(albumId);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "album",
+      resourceId: albumId,
+      details: { title: album?.title || "Unknown" },
+      request,
+    });
     return Response.json({ success: true, message: "Album deleted" });
   }
 
@@ -124,6 +135,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (album) {
       album.status = album.status === "published" ? "draft" : "published";
       await album.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "album",
+        resourceId: albumId,
+        details: { title: album.title, status: album.status },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Status updated" });
   }
@@ -133,6 +152,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (album) {
       album.isFeatured = !album.isFeatured;
       await album.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "album",
+        resourceId: albumId,
+        details: { title: album.title, isFeatured: album.isFeatured },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Featured status updated" });
   }

@@ -98,12 +98,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { News } = await import("~/lib/db/models/news.server");
   const { uploadImage } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const { id } = params;
@@ -111,7 +113,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "delete") {
+    const articleToDelete = await News.findById(id);
     await News.findByIdAndDelete(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "news",
+      resourceId: id!,
+      details: { title: articleToDelete?.title },
+      request,
+    });
     return redirect("/admin/news");
   }
 
@@ -175,6 +186,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   await article.save();
+
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "news",
+    resourceId: id!,
+    details: { title },
+    request,
+  });
 
   return Response.json({ success: true, message: "Article updated successfully!" });
 }

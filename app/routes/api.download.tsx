@@ -82,6 +82,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
       body = await response.arrayBuffer();
     }
 
+    const { logActivity } = await import("~/lib/services/activity-log.server");
+    await logActivity({
+      action: "download",
+      resource: "file",
+      details: { url: fileUrl, fileName },
+      request,
+    });
+
     return new Response(body, {
       status: 200,
       headers: {

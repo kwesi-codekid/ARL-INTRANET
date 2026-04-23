@@ -84,12 +84,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { Event } = await import("~/lib/db/models/event.server");
   const { uploadImage } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -97,7 +99,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   // Handle delete
   if (intent === "delete") {
+    const event = await Event.findById(params.id);
     await Event.findByIdAndDelete(params.id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "event",
+      resourceId: params.id!,
+      details: { title: event?.title || "Unknown" },
+      request,
+    });
     return redirect("/admin/events?deleted=true");
   }
 
@@ -185,6 +196,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   await Event.findByIdAndUpdate(params.id, updateData);
+
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "event",
+    resourceId: params.id!,
+    details: { title },
+    request,
+  });
 
   return redirect(`/admin/events/${params.id}/edit?success=updated`);
 }

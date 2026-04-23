@@ -73,12 +73,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { Album, Photo } = await import("~/lib/db/models/gallery.server");
   const { uploadImage } = await import("~/lib/services/upload.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -86,8 +88,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   // Handle delete
   if (intent === "delete") {
+    const album = await Album.findById(params.id);
     await Photo.deleteMany({ album: params.id });
     await Album.findByIdAndDelete(params.id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "album",
+      resourceId: params.id!,
+      details: { title: album?.title || "Unknown" },
+      request,
+    });
     return redirect("/admin/gallery?deleted=true");
   }
 
@@ -159,6 +170,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   await Album.findByIdAndUpdate(params.id, updateData);
+
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "album",
+    resourceId: params.id!,
+    details: { title },
+    request,
+  });
 
   return redirect(`/admin/gallery/${params.id}/edit?success=updated`);
 }

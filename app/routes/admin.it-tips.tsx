@@ -100,6 +100,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const sessionData = await getSessionData(request);
   await connectDB();
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
 
@@ -114,13 +116,22 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Title, content, and category are required" }, { status: 400 });
     }
 
-    await createITTip({
+    const result = await createITTip({
       title,
       content,
       category,
       icon: icon || "lightbulb",
       isPinned,
       createdBy: sessionData!.userId,
+    });
+
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "it_tip",
+      resourceId: result._id.toString(),
+      details: { title },
+      request,
     });
 
     return Response.json({ success: true, message: "IT Tip created successfully" });
@@ -134,24 +145,56 @@ export async function action({ request }: ActionFunctionArgs) {
     const icon = formData.get("icon") as string;
 
     await updateITTip(id, { title, content, category, icon });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "it_tip",
+      resourceId: id,
+      details: { title },
+      request,
+    });
     return Response.json({ success: true, message: "IT Tip updated" });
   }
 
   if (intent === "toggle-active") {
     const id = formData.get("id") as string;
-    await toggleITTipActive(id);
+    const tip = await toggleITTipActive(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: tip?.isActive ? "activate" : "deactivate",
+      resource: "it_tip",
+      resourceId: id,
+      details: { title: tip?.title || "IT Tip" },
+      request,
+    });
     return Response.json({ success: true, message: "Status updated" });
   }
 
   if (intent === "toggle-pinned") {
     const id = formData.get("id") as string;
-    await toggleITTipPinned(id);
+    const tip = await toggleITTipPinned(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "it_tip",
+      resourceId: id,
+      details: { title: `${tip?.title || "IT Tip"} - pin toggled` },
+      request,
+    });
     return Response.json({ success: true, message: "Pin status updated" });
   }
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
     await deleteITTip(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "it_tip",
+      resourceId: id,
+      details: { title: "IT Tip deleted" },
+      request,
+    });
     return Response.json({ success: true, message: "IT Tip deleted" });
   }
 

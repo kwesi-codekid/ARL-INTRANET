@@ -111,10 +111,30 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const id = formData.get("id") as string;
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+
   if (intent === "delete" && id) {
     await deleteAlert(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "alert",
+      resourceId: id,
+      details: { title: "Alert deleted" },
+      request,
+    });
   } else if (intent === "toggle-status" && id) {
     await toggleAlertStatus(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "alert",
+      resourceId: id,
+      details: { title: "Alert status toggled" },
+      request,
+    });
   }
 
   return Response.json({ success: true });

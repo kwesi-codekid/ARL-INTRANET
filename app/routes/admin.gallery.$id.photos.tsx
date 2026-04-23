@@ -74,12 +74,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { uploadImage } = await import("~/lib/services/upload.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { Album, Photo } = await import("~/lib/db/models/gallery.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -123,6 +125,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
       });
     }
 
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "upload",
+      resource: "photo",
+      resourceId: params.id!,
+      details: { albumId: params.id, count: uploadedPhotos.length },
+      request,
+    });
+
     return Response.json({
       success: true,
       message: `${uploadedPhotos.length} photos uploaded`,
@@ -139,6 +150,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const photoCount = await Photo.countDocuments({ album: params.id });
     await Album.findByIdAndUpdate(params.id, { photoCount });
 
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "photo",
+      resourceId: photoId,
+      details: { albumId: params.id },
+      request,
+    });
+
     return Response.json({ success: true, message: "Photo deleted" });
   }
 
@@ -146,6 +166,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "set-cover") {
     const photoUrl = formData.get("photoUrl") as string;
     await Album.findByIdAndUpdate(params.id, { coverImage: photoUrl });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "album",
+      resourceId: params.id!,
+      details: { coverImage: photoUrl },
+      request,
+    });
     return Response.json({ success: true, message: "Cover image updated" });
   }
 
@@ -179,6 +207,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }));
 
       await Photo.bulkWrite(bulkOps);
+
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "reorder",
+        resource: "photo",
+        resourceId: params.id!,
+        details: { albumId: params.id, photoCount: photoOrders.length },
+        request,
+      });
+
       return Response.json({ success: true, message: "Photo order updated" });
     } catch (error) {
       return Response.json({ error: "Failed to reorder photos" }, { status: 400 });

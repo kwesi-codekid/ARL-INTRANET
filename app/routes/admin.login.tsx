@@ -63,6 +63,12 @@ export async function action({ request }: ActionFunctionArgs) {
     // Check if user exists
     const exists = await userExistsByPhone(phone);
     if (!exists) {
+      await logActivity({
+        action: "login_failed",
+        resource: "session",
+        details: { phone, reason: "Phone number not registered as admin" },
+        request,
+      });
       return Response.json({ error: "Phone number not registered as admin", step: "phone" });
     }
 
@@ -97,6 +103,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const otpResult = await verifyOTP(phone, otp);
 
     if (!otpResult.success) {
+      await logActivity({
+        action: "login_failed",
+        resource: "session",
+        details: { phone, reason: "Invalid or expired OTP" },
+        request,
+      });
       return Response.json({ error: otpResult.message, step: "otp", phone });
     }
 
@@ -104,6 +116,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const user = await authenticateByPhone(phone);
 
     if (!user) {
+      await logActivity({
+        action: "login_failed",
+        resource: "session",
+        details: { phone, reason: "User not found or inactive" },
+        request,
+      });
       return Response.json({ error: "User not found or inactive", step: "phone" });
     }
 

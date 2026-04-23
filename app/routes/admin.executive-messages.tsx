@@ -87,6 +87,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const sessionData = await getSessionData(request);
   await connectDB();
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
 
@@ -100,12 +102,21 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    await createExecutiveMessage({
+    const result = await createExecutiveMessage({
       name,
       title,
       photo,
       message,
       createdBy: sessionData!.userId,
+    });
+
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "executive_message",
+      resourceId: result._id.toString(),
+      details: { title: name },
+      request,
     });
 
     return Response.json({ success: true, message: "Executive message created" });
@@ -119,18 +130,42 @@ export async function action({ request }: ActionFunctionArgs) {
     const message = formData.get("message") as string;
 
     await updateExecutiveMessage(id, { name, title, photo, message });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "executive_message",
+      resourceId: id,
+      details: { title: name },
+      request,
+    });
     return Response.json({ success: true, message: "Executive message updated" });
   }
 
   if (intent === "toggle-active") {
     const id = formData.get("id") as string;
-    await toggleExecutiveMessageActive(id);
+    const result = await toggleExecutiveMessageActive(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: result?.isActive ? "activate" : "deactivate",
+      resource: "executive_message",
+      resourceId: id,
+      details: { title: result?.name || "Executive message" },
+      request,
+    });
     return Response.json({ success: true, message: "Status updated" });
   }
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
     await deleteExecutiveMessage(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "executive_message",
+      resourceId: id,
+      details: { title: "Executive message deleted" },
+      request,
+    });
     return Response.json({ success: true, message: "Executive message deleted" });
   }
 

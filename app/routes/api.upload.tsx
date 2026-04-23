@@ -49,6 +49,14 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: result.error }, { status: 400 });
     }
 
+    const { logActivity } = await import("~/lib/services/activity-log.server");
+    await logActivity({
+      action: "upload",
+      resource: "file",
+      details: { type: fileType, size: file.size, url: result.url },
+      request,
+    });
+
     return Response.json({ url: result.url, type: fileType });
   } catch (error) {
     console.error("Upload error:", error);

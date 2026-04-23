@@ -112,11 +112,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { Event } = await import("~/lib/db/models/event.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -124,7 +126,16 @@ export async function action({ request }: ActionFunctionArgs) {
   const eventId = formData.get("eventId") as string;
 
   if (intent === "delete") {
+    const event = await Event.findById(eventId);
     await Event.findByIdAndDelete(eventId);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "event",
+      resourceId: eventId,
+      details: { title: event?.title || "Unknown" },
+      request,
+    });
     return Response.json({ success: true, message: "Event deleted" });
   }
 
@@ -133,6 +144,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (event) {
       event.status = event.status === "published" ? "draft" : "published";
       await event.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "event",
+        resourceId: eventId,
+        details: { title: event.title, status: event.status },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Status updated" });
   }
@@ -142,6 +161,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (event) {
       event.isFeatured = !event.isFeatured;
       await event.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "event",
+        resourceId: eventId,
+        details: { title: event.title, isFeatured: event.isFeatured },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Featured status updated" });
   }

@@ -74,6 +74,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "delete" && id) {
     await deleteMenu(id);
+
+    const { getSessionData } = await import("~/lib/services/session.server");
+    const { logActivity } = await import("~/lib/services/activity-log.server");
+    const sessionData = await getSessionData(request);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "menu",
+      resourceId: id,
+      details: { title: "Menu deleted" },
+      request,
+    });
   }
 
   return Response.json({ success: true });

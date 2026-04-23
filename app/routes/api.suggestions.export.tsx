@@ -39,6 +39,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     status: url.searchParams.get("status") || undefined,
   };
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+
   const data = await getSuggestionsForExport(filters);
 
   const headers = [
@@ -50,6 +52,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     "Reviewed By",
     "Reviewed At",
   ];
+
+  await logActivity({
+    action: "export",
+    resource: "suggestion",
+    details: { format, count: data.length },
+    request,
+  });
 
   if (format === "xlsx") {
     const XLSX = await import("xlsx");

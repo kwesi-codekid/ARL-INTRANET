@@ -3,12 +3,13 @@
  * Task: 1.2.2.1.5 - GET /api/safety-videos endpoint
  */
 
-import type { LoaderFunctionArgs } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { connectDB } from "~/lib/db/connection.server";
 import {
   getSafetyVideos,
   getFeaturedSafetyVideo,
   serializeSafetyVideo,
+  incrementVideoViews,
 } from "~/lib/services/safety.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -47,4 +48,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     page: result.page,
     totalPages: result.totalPages,
   });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  await connectDB();
+
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+
+  if (intent === "increment-views") {
+    const videoId = formData.get("videoId") as string;
+    if (videoId) {
+      await incrementVideoViews(videoId);
+      return Response.json({ success: true });
+    }
+  }
+
+  return Response.json({ error: "Invalid action" }, { status: 400 });
 }

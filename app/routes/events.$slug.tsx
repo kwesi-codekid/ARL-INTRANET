@@ -28,7 +28,7 @@ import type { PublicOutletContext } from "~/routes/_public";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { requireUserAuth } = await import("~/lib/services/user-auth.server");
-  const { getEventBySlug, serializeEvent } = await import("~/lib/services/event.server");
+  const { getEventBySlug, serializeEvent, incrementEventViews } = await import("~/lib/services/event.server");
   const { getAlbumsByEvent, serializeAlbum } = await import("~/lib/services/gallery.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
@@ -40,6 +40,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!event) {
     throw new Response("Event not found", { status: 404 });
   }
+
+  // Increment view count
+  await incrementEventViews(event._id.toString());
 
   // Get related albums
   const albums = await getAlbumsByEvent(event._id.toString());

@@ -177,6 +177,9 @@ export default [
     route("admin/policies/categories", "routes/admin.policies.categories.tsx"),
     route("admin/policies/:id/edit", "routes/admin.policies.$id.edit.tsx"),
 
+    // Admin carousel management route
+    route("admin/carousel", "routes/admin.carousel.tsx"),
+
     // Admin settings route (Superadmin only)
     route("admin/settings", "routes/admin.settings.tsx"),
   ]),

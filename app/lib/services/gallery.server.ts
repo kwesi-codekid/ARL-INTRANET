@@ -366,11 +366,16 @@ export function serializeAlbum(album: IAlbum) {
     photoCount: album.photoCount,
     status: album.status,
     isFeatured: album.isFeatured,
+    views: album.views || 0,
     externalGalleryUrl: album.externalGalleryUrl,
     isExternalGallery: album.isExternalGallery,
     createdAt: album.createdAt.toISOString(),
     updatedAt: album.updatedAt.toISOString(),
   };
+}
+
+export async function incrementAlbumViews(id: string): Promise<void> {
+  await Album.findByIdAndUpdate(id, { $inc: { views: 1 } });
 }
 
 export function serializePhoto(photo: IPhoto) {

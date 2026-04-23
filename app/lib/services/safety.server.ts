@@ -471,6 +471,7 @@ export interface SerializedSafetyTip {
   status: string;
   isFeatured: boolean;
   showInSlideshow: boolean;
+  carouselOrder: number;
   views: number;
   author: { name: string } | null;
   createdAt: string;
@@ -490,6 +491,7 @@ export function serializeSafetyTip(tip: ISafetyTip): SerializedSafetyTip {
     status: tip.status,
     isFeatured: tip.isFeatured,
     showInSlideshow: tip.showInSlideshow || false,
+    carouselOrder: tip.carouselOrder || 0,
     views: tip.views,
     author: tip.author ? { name: (tip.author as { name?: string }).name || "Unknown" } : null,
     createdAt: tip.createdAt.toISOString(),
@@ -509,6 +511,7 @@ export interface SerializedSafetyVideo {
   status: string;
   isFeatured: boolean;
   showInSlideshow: boolean;
+  carouselOrder: number;
   views: number;
   author: { name: string } | null;
   createdAt: string;
@@ -528,6 +531,7 @@ export function serializeSafetyVideo(video: ISafetyVideo): SerializedSafetyVideo
     status: video.status,
     isFeatured: video.isFeatured,
     showInSlideshow: video.showInSlideshow || false,
+    carouselOrder: video.carouselOrder || 0,
     views: video.views,
     author: video.author ? { name: (video.author as { name?: string }).name || "Unknown" } : null,
     createdAt: video.createdAt.toISOString(),

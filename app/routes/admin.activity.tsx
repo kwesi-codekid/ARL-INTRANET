@@ -17,16 +17,38 @@ import {
   Select,
   SelectItem,
   Pagination,
+  Tooltip,
 } from "@heroui/react";
-import { Activity, User, FileText, Settings, LogIn, LogOut, Eye, Pencil, Trash2, Plus, ToggleLeft } from "lucide-react";
+import {
+  Activity,
+  Plus,
+  Pencil,
+  Trash2,
+  ToggleLeft,
+  LogIn,
+  LogOut,
+  Eye,
+  ArrowUpDown,
+  Import,
+  Download,
+  Upload,
+  ShieldX,
+  Monitor,
+  Smartphone,
+  Tablet,
+} from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams } from "react-router";
 
-
-
 // Type definitions
+interface DeviceInfo {
+  browser: string;
+  os: string;
+  type: "desktop" | "mobile" | "tablet" | "unknown";
+}
+
 interface ActivityLog {
-  _id: string;
+  id: string;
   userId?: string;
   userName?: string;
   action: string;
@@ -35,6 +57,7 @@ interface ActivityLog {
   details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
+  device?: DeviceInfo | null;
   createdAt: string;
 }
 
@@ -42,12 +65,17 @@ interface ActivityStats {
   todayCount: number;
   weekCount: number;
   totalCount: number;
-  recentLogins: number;
+  recentLogins: Array<{
+    userName: string;
+    createdAt: string;
+    ipAddress?: string;
+    device?: DeviceInfo | null;
+  }>;
 }
 
 interface LoaderData {
   logs: ActivityLog[];
-  pagination: { page: number; totalPages: number; total: number };
+  pagination: { page: number; totalPages: number; totalCount: number };
   stats: ActivityStats;
   filters: { resource?: string; action?: string };
 }
@@ -82,29 +110,70 @@ const actionIcons: Record<string, typeof Activity> = {
   activate: ToggleLeft,
   deactivate: ToggleLeft,
   login: LogIn,
+  login_failed: ShieldX,
   logout: LogOut,
   view: Eye,
+  reorder: ArrowUpDown,
+  import: Import,
+  export: Download,
+  upload: Upload,
+  download: Download,
 };
 
-const actionColors: Record<string, "success" | "warning" | "danger" | "primary" | "default"> = {
+const actionColors: Record<string, "success" | "warning" | "danger" | "primary" | "default" | "secondary"> = {
   create: "success",
   update: "warning",
   delete: "danger",
   activate: "success",
   deactivate: "default",
   login: "primary",
+  login_failed: "danger",
   logout: "default",
   view: "primary",
+  reorder: "secondary",
+  import: "primary",
+  export: "warning",
+  upload: "primary",
+  download: "primary",
 };
 
 const resourceLabels: Record<string, string> = {
   admin_user: "Admin User",
+  portal_user: "Portal User",
   news: "News Article",
   news_category: "News Category",
   contact: "Contact",
   department: "Department",
   app_link: "App Link",
   session: "Session",
+  user_session: "User Session",
+  admin_session: "Admin Session",
+  alert: "Alert",
+  event: "Event",
+  album: "Album",
+  photo: "Photo",
+  safety_tip: "Safety Tip",
+  safety_video: "Safety Video",
+  safety_category: "Safety Category",
+  toolbox_talk: "Toolbox Talk",
+  policy: "Policy",
+  policy_category: "Policy Category",
+  menu: "Menu",
+  menu_template: "Menu Template",
+  it_tip: "IT Tip",
+  executive_message: "Executive Message",
+  suggestion: "Suggestion",
+  suggestion_category: "Suggestion Category",
+  carousel: "Carousel",
+  settings: "Settings",
+  file: "File",
+};
+
+const deviceTypeIcons: Record<string, typeof Monitor> = {
+  desktop: Monitor,
+  mobile: Smartphone,
+  tablet: Tablet,
+  unknown: Monitor,
 };
 
 export default function AdminActivityPage() {
@@ -166,13 +235,29 @@ export default function AdminActivityPage() {
         return `Deactivated ${resource}`;
       case "login":
         return "Logged in";
+      case "login_failed":
+        return "Failed login attempt";
       case "logout":
         return "Logged out";
       case "view":
         return `Viewed ${resource}`;
+      case "reorder":
+        return `Reordered ${resource}`;
+      case "import":
+        return `Imported ${resource}`;
+      case "export":
+        return `Exported ${resource}`;
+      case "upload":
+        return `Uploaded ${resource}`;
+      case "download":
+        return `Downloaded ${resource}`;
       default:
         return `${log.action} ${resource}`;
     }
+  };
+
+  const getDeviceLabel = (device: DeviceInfo) => {
+    return `${device.browser} on ${device.os}`;
   };
 
   return (
@@ -228,52 +313,72 @@ export default function AdminActivityPage() {
             >
               <SelectItem key="all">All Resources</SelectItem>
               <SelectItem key="admin_user">Admin Users</SelectItem>
+              <SelectItem key="portal_user">Portal Users</SelectItem>
               <SelectItem key="news">News</SelectItem>
-              <SelectItem key="news_category">Categories</SelectItem>
-              <SelectItem key="contact">Contacts</SelectItem>
+              <SelectItem key="event">Events</SelectItem>
+              <SelectItem key="alert">Alerts</SelectItem>
+              <SelectItem key="safety_tip">Safety Tips</SelectItem>
+              <SelectItem key="safety_video">Safety Videos</SelectItem>
+              <SelectItem key="toolbox_talk">Toolbox Talks</SelectItem>
+              <SelectItem key="policy">Policies</SelectItem>
+              <SelectItem key="album">Gallery</SelectItem>
+              <SelectItem key="menu">Menus</SelectItem>
+              <SelectItem key="suggestion">Suggestions</SelectItem>
+              <SelectItem key="settings">Settings</SelectItem>
               <SelectItem key="session">Sessions</SelectItem>
+              <SelectItem key="file">Files</SelectItem>
             </Select>
             <Select
               placeholder="All Actions"
               selectedKeys={filters.action ? [filters.action] : []}
               onChange={(e) => handleFilterChange("action", e.target.value)}
-              className="w-36"
+              className="w-40"
               size="sm"
             >
               <SelectItem key="all">All Actions</SelectItem>
               <SelectItem key="create">Create</SelectItem>
               <SelectItem key="update">Update</SelectItem>
               <SelectItem key="delete">Delete</SelectItem>
+              <SelectItem key="activate">Activate</SelectItem>
+              <SelectItem key="deactivate">Deactivate</SelectItem>
               <SelectItem key="login">Login</SelectItem>
+              <SelectItem key="login_failed">Failed Login</SelectItem>
               <SelectItem key="logout">Logout</SelectItem>
+              <SelectItem key="reorder">Reorder</SelectItem>
+              <SelectItem key="import">Import</SelectItem>
+              <SelectItem key="export">Export</SelectItem>
+              <SelectItem key="upload">Upload</SelectItem>
+              <SelectItem key="download">Download</SelectItem>
             </Select>
           </div>
         </CardHeader>
         <CardBody className="overflow-x-auto p-0">
-          <Table aria-label="Activity log table" removeWrapper className="min-w-[600px]">
+          <Table aria-label="Activity log table" removeWrapper className="min-w-[700px]">
             <TableHeader>
               <TableColumn>ACTION</TableColumn>
               <TableColumn>USER</TableColumn>
               <TableColumn>DETAILS</TableColumn>
-              <TableColumn>IP ADDRESS</TableColumn>
+              <TableColumn>DEVICE</TableColumn>
+              <TableColumn>IP</TableColumn>
               <TableColumn>TIME</TableColumn>
             </TableHeader>
             <TableBody emptyContent="No activity logs found">
               {logs.map((log) => {
                 const ActionIcon = actionIcons[log.action] || Activity;
+                const DeviceIcon = log.device
+                  ? deviceTypeIcons[log.device.type] || Monitor
+                  : Monitor;
                 return (
                   <TableRow key={log.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          color={actionColors[log.action] || "default"}
-                          startContent={<ActionIcon size={12} />}
-                        >
-                          {log.action}
-                        </Chip>
-                      </div>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={actionColors[log.action] || "default"}
+                        startContent={<ActionIcon size={12} />}
+                      >
+                        {log.action}
+                      </Chip>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{log.userName || "System"}</span>
@@ -284,17 +389,37 @@ export default function AdminActivityPage() {
                         {log.details && (
                           <p className="text-xs text-gray-500 truncate max-w-xs">
                             {typeof log.details === "object"
-                              ? JSON.stringify(log.details).substring(0, 50) + "..."
+                              ? Object.entries(log.details)
+                                  .filter(([, v]) => v !== undefined && v !== null)
+                                  .map(([k, v]) => `${k}: ${v}`)
+                                  .join(", ")
+                                  .substring(0, 80)
                               : String(log.details)}
                           </p>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
+                      {log.device ? (
+                        <Tooltip content={log.userAgent || ""} delay={500}>
+                          <div className="flex items-center gap-1.5">
+                            <DeviceIcon size={14} className="flex-shrink-0 text-gray-400" />
+                            <span className="text-xs text-gray-600">
+                              {getDeviceLabel(log.device)}
+                            </span>
+                          </div>
+                        </Tooltip>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <span className="text-sm text-gray-500">{log.ipAddress || "-"}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-gray-500">{formatDate(log.createdAt)}</span>
+                      <Tooltip content={new Date(log.createdAt).toLocaleString()}>
+                        <span className="text-sm text-gray-500">{formatDate(log.createdAt)}</span>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 );

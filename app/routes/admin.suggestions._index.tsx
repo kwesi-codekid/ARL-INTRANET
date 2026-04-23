@@ -142,6 +142,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const user = await requireAuth(request);
   await connectDB();
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
 
@@ -151,6 +155,14 @@ export async function action({ request }: ActionFunctionArgs) {
     const notes = formData.get("notes") as string;
 
     await updateSuggestionStatus(id, status, user._id.toString(), notes);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "suggestion",
+      resourceId: id,
+      details: { title: `Status changed to ${status}` },
+      request,
+    });
     return Response.json({ success: true, message: "Status updated" });
   }
 
@@ -159,12 +171,28 @@ export async function action({ request }: ActionFunctionArgs) {
     const notes = formData.get("notes") as string;
 
     await addAdminNote(id, notes, user._id.toString());
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "suggestion",
+      resourceId: id,
+      details: { title: "Admin note added" },
+      request,
+    });
     return Response.json({ success: true, message: "Note added" });
   }
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
     await deleteSuggestion(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "suggestion",
+      resourceId: id,
+      details: { title: "Suggestion deleted" },
+      request,
+    });
     return Response.json({ success: true, message: "Suggestion deleted" });
   }
 

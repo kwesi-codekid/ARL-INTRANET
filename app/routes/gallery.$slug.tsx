@@ -31,7 +31,7 @@ import type { SerializedAlbum, SerializedPhoto } from "~/lib/services/gallery.se
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { requireUserAuth } = await import("~/lib/services/user-auth.server");
-  const { getAlbumBySlug, getPhotosByAlbum, serializeAlbum, serializePhoto } = await import("~/lib/services/gallery.server");
+  const { getAlbumBySlug, getPhotosByAlbum, serializeAlbum, serializePhoto, incrementAlbumViews } = await import("~/lib/services/gallery.server");
   const { connectDB } = await import("~/lib/db/connection.server");
 
   await requireUserAuth(request);
@@ -42,6 +42,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!album) {
     throw new Response("Album not found", { status: 404 });
   }
+
+  // Increment view count
+  await incrementAlbumViews(album._id.toString());
 
   const { photos } = await getPhotosByAlbum(album._id.toString(), 1, 500);
 

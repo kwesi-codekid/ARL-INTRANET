@@ -68,6 +68,10 @@ export async function action({ request }: ActionFunctionArgs) {
     return s === "training" || s === "both" ? s : "safety";
   };
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+
   if (intent === "create") {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
@@ -78,7 +82,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const scope = parseScope(formData.get("scope"));
 
     const slug = await generateUniqueCategorySlug(name);
-    await createSafetyCategory({
+    const category = await createSafetyCategory({
       name,
       slug,
       description,
@@ -87,6 +91,14 @@ export async function action({ request }: ActionFunctionArgs) {
       order,
       isActive,
       scope,
+    });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "safety_category",
+      resourceId: category._id.toString(),
+      details: { title: name },
+      request,
     });
   } else if (intent === "update") {
     const id = formData.get("id") as string;
@@ -107,9 +119,25 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive,
       scope,
     });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "safety_category",
+      resourceId: id.toString(),
+      details: { title: name },
+      request,
+    });
   } else if (intent === "delete") {
     const id = formData.get("id") as string;
     await deleteSafetyCategory(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "safety_category",
+      resourceId: id.toString(),
+      details: { title: "Safety category deleted" },
+      request,
+    });
   } else if (intent === "toggle-active") {
     const id = formData.get("id") as string;
     const isActive = formData.get("isActive") === "true";

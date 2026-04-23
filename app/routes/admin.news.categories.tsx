@@ -69,11 +69,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { NewsCategory, News } = await import("~/lib/db/models/news.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -97,12 +99,21 @@ export async function action({ request }: ActionFunctionArgs) {
     const maxOrder = await NewsCategory.findOne().sort({ order: -1 }).select("order");
     const order = (maxOrder?.order || 0) + 1;
 
-    await NewsCategory.create({
+    const newCategory = await NewsCategory.create({
       name,
       slug,
       description,
       color: color || "#d2ab66",
       order,
+    });
+
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "news_category",
+      resourceId: newCategory._id.toString(),
+      details: { name },
+      request,
     });
 
     return Response.json({ success: true, message: "Category created" });
@@ -128,6 +139,15 @@ export async function action({ request }: ActionFunctionArgs) {
     category.color = color || "#d2ab66";
     await category.save();
 
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "news_category",
+      resourceId: categoryId,
+      details: { name },
+      request,
+    });
+
     return Response.json({ success: true, message: "Category updated" });
   }
 
@@ -137,6 +157,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (category) {
       category.isActive = !category.isActive;
       await category.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: category.isActive ? "activate" : "deactivate",
+        resource: "news_category",
+        resourceId: categoryId,
+        details: { name: category.name, isActive: category.isActive },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Category status updated" });
   }
@@ -153,7 +181,16 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
+    const categoryToDelete = await NewsCategory.findById(categoryId);
     await NewsCategory.findByIdAndDelete(categoryId);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "news_category",
+      resourceId: categoryId,
+      details: { name: categoryToDelete?.name },
+      request,
+    });
     return Response.json({ success: true, message: "Category deleted" });
   }
 

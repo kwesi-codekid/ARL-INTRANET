@@ -122,15 +122,43 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const id = formData.get("id") as string;
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+
   if (intent === "delete" && id) {
     await deleteSafetyVideo(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "safety_video",
+      resourceId: id.toString(),
+      details: { title: "Safety video deleted" },
+      request,
+    });
   } else if (intent === "toggle-status" && id) {
     const currentStatus = formData.get("currentStatus") as string;
     const newStatus = currentStatus === "published" ? "draft" : "published";
     await updateSafetyVideo(id, { status: newStatus });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "safety_video",
+      resourceId: id.toString(),
+      details: { title: `Status changed to ${newStatus}` },
+      request,
+    });
   } else if (intent === "toggle-featured" && id) {
     const isFeatured = formData.get("isFeatured") === "true";
     await updateSafetyVideo(id, { isFeatured: !isFeatured });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "safety_video",
+      resourceId: id.toString(),
+      details: { title: `Featured toggled to ${!isFeatured}` },
+      request,
+    });
   }
 
   return Response.json({ success: true });

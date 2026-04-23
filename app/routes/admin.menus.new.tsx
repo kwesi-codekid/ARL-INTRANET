@@ -109,11 +109,23 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const meals = JSON.parse(mealsJson) as IMeal[];
 
-  await createMenu({
+  const createdMenu = await createMenu({
     date: new Date(date),
     meals,
     notes: notes || undefined,
     createdBy: user._id.toString(),
+  });
+
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "create",
+    resource: "menu",
+    resourceId: createdMenu._id.toString(),
+    details: { title: `Menu for ${date}` },
+    request,
   });
 
   {

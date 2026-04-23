@@ -85,6 +85,10 @@ export async function action({ request }: ActionFunctionArgs) {
   await requireAuth(request);
   await connectDB();
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
 
@@ -96,7 +100,15 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Name must be at least 2 characters" }, { status: 400 });
     }
 
-    await createCategory({ name: name.trim(), description: description?.trim() });
+    const result = await createCategory({ name: name.trim(), description: description?.trim() });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "suggestion_category",
+      resourceId: result._id.toString(),
+      details: { title: name.trim() },
+      request,
+    });
     return Response.json({ success: true, message: "Category created" });
   }
 
@@ -115,6 +127,14 @@ export async function action({ request }: ActionFunctionArgs) {
       description: description?.trim(),
       isActive,
     });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "suggestion_category",
+      resourceId: id,
+      details: { title: name.trim() },
+      request,
+    });
     return Response.json({ success: true, message: "Category updated" });
   }
 
@@ -123,6 +143,14 @@ export async function action({ request }: ActionFunctionArgs) {
     const isActive = formData.get("isActive") === "true";
 
     await updateCategory(id, { isActive });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: isActive ? "activate" : "deactivate",
+      resource: "suggestion_category",
+      resourceId: id,
+      details: { title: `Category ${isActive ? "activated" : "deactivated"}` },
+      request,
+    });
     return Response.json({ success: true, message: "Category updated" });
   }
 
@@ -131,6 +159,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
       await deleteCategory(id);
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "delete",
+        resource: "suggestion_category",
+        resourceId: id,
+        details: { title: "Suggestion category deleted" },
+        request,
+      });
       return Response.json({ success: true, message: "Category deleted" });
     } catch (error: any) {
       return Response.json({ error: error.message }, { status: 400 });

@@ -89,6 +89,12 @@ export async function action({ request }: ActionFunctionArgs) {
         });
       }
 
+      await logActivity({
+        action: "login_failed",
+        resource: "user_session",
+        details: { phone, reason: result.message },
+        request,
+      });
       return Response.json({ error: result.message, step: "phone" });
     }
 
@@ -117,6 +123,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const { verifyOTP } = await import("~/lib/services/otp.server");
     const otpResult = await verifyOTP(phone, otp);
     if (!otpResult.success) {
+      await logActivity({
+        action: "login_failed",
+        resource: "user_session",
+        details: { phone, reason: "Invalid or expired OTP" },
+        request,
+      });
       return Response.json({ error: otpResult.message, step: "otp", identifier: phone });
     }
 
@@ -170,6 +182,12 @@ export async function action({ request }: ActionFunctionArgs) {
       return createUserSession(adminUser, redirectTo);
     }
 
+    await logActivity({
+      action: "login_failed",
+      resource: "user_session",
+      details: { phone, reason: "User not found or inactive" },
+      request,
+    });
     return Response.json({ error: "User not found or inactive", step: "otp", identifier: phone });
   }
 

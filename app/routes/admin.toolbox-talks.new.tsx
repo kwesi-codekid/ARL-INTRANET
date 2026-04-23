@@ -93,6 +93,16 @@ export async function action({ request }: ActionFunctionArgs) {
     featuredMedia,
   });
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "create",
+    resource: "toolbox_talk",
+    resourceId: talk._id.toString(),
+    details: { title },
+    request,
+  });
+
   if (status === "published") {
     const { sendPushNotificationToAll } = await import("~/lib/services/push-notification.server");
     sendPushNotificationToAll({

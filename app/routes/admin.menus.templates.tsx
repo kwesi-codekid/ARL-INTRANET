@@ -71,18 +71,30 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+
   if (intent === "create") {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const mealsJson = formData.get("meals") as string;
     const isDefault = formData.get("isDefault") === "true";
 
-    await createMenuTemplate({
+    const result = await createMenuTemplate({
       name,
       description: description || undefined,
       meals: JSON.parse(mealsJson),
       isDefault,
       createdBy: user._id.toString(),
+    });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "create",
+      resource: "menu_template",
+      resourceId: result._id.toString(),
+      details: { title: name },
+      request,
     });
   } else if (intent === "update") {
     const id = formData.get("id") as string;
@@ -97,12 +109,36 @@ export async function action({ request }: ActionFunctionArgs) {
       meals: JSON.parse(mealsJson),
       isDefault,
     });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "menu_template",
+      resourceId: id,
+      details: { title: name },
+      request,
+    });
   } else if (intent === "delete") {
     const id = formData.get("id") as string;
     await deleteMenuTemplate(id);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "menu_template",
+      resourceId: id,
+      details: { title: "Menu template deleted" },
+      request,
+    });
   } else if (intent === "set-default") {
     const id = formData.get("id") as string;
     await updateMenuTemplate(id, { isDefault: true });
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "update",
+      resource: "menu_template",
+      resourceId: id,
+      details: { title: "Menu template set as default" },
+      request,
+    });
   }
 
   return Response.json({ success: true });

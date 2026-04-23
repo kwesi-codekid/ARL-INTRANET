@@ -82,6 +82,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
     isActive,
   });
 
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const sessionData = await getSessionData(request);
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "menu",
+    resourceId: id,
+    details: { title: "Menu updated" },
+    request,
+  });
+
   return redirect("/admin/menus");
 }
 

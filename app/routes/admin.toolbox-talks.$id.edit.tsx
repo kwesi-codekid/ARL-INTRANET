@@ -85,10 +85,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  const { logActivity } = await import("~/lib/services/activity-log.server");
+  const { getSessionData } = await import("~/lib/services/session.server");
+  const sessionData = await getSessionData(request);
+
   // Handle delete using service
   if (intent === "delete") {
     const deleted = await deleteToolboxTalk(params.id!);
     if (deleted) {
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "delete",
+        resource: "toolbox_talk",
+        resourceId: params.id!.toString(),
+        details: { title: "PSI talk deleted" },
+        request,
+      });
       return redirect("/admin/toolbox-talks?deleted=true");
     }
     return Response.json({ error: "Failed to delete" }, { status: 400 });
@@ -148,6 +160,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (!updated) {
     return Response.json({ error: "Failed to update talk" }, { status: 400 });
   }
+
+  await logActivity({
+    userId: sessionData?.userId,
+    action: "update",
+    resource: "toolbox_talk",
+    resourceId: params.id!.toString(),
+    details: { title },
+    request,
+  });
 
   return Response.json({ success: true, message: "Talk updated successfully" });
 }

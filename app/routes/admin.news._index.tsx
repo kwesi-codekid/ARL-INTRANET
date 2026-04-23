@@ -103,11 +103,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireAuth } = await import("~/lib/services/session.server");
+  const { requireAuth, getSessionData } = await import("~/lib/services/session.server");
   const { connectDB } = await import("~/lib/db/connection.server");
   const { News } = await import("~/lib/db/models/news.server");
+  const { logActivity } = await import("~/lib/services/activity-log.server");
 
   await requireAuth(request);
+  const sessionData = await getSessionData(request);
   await connectDB();
 
   const formData = await request.formData();
@@ -115,7 +117,16 @@ export async function action({ request }: ActionFunctionArgs) {
   const newsId = formData.get("newsId") as string;
 
   if (intent === "delete") {
+    const article = await News.findById(newsId);
     await News.findByIdAndDelete(newsId);
+    await logActivity({
+      userId: sessionData?.userId,
+      action: "delete",
+      resource: "news",
+      resourceId: newsId,
+      details: { title: article?.title },
+      request,
+    });
     return Response.json({ success: true, message: "Article deleted" });
   }
 
@@ -127,6 +138,14 @@ export async function action({ request }: ActionFunctionArgs) {
         article.publishedAt = new Date();
       }
       await article.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "news",
+        resourceId: newsId,
+        details: { status: article.status },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Status updated" });
   }
@@ -136,6 +155,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (article) {
       article.isFeatured = !article.isFeatured;
       await article.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "news",
+        resourceId: newsId,
+        details: { isFeatured: article.isFeatured },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Featured status updated" });
   }
@@ -145,6 +172,14 @@ export async function action({ request }: ActionFunctionArgs) {
     if (article) {
       article.isPinned = !article.isPinned;
       await article.save();
+      await logActivity({
+        userId: sessionData?.userId,
+        action: "update",
+        resource: "news",
+        resourceId: newsId,
+        details: { isPinned: article.isPinned },
+        request,
+      });
     }
     return Response.json({ success: true, message: "Pinned status updated" });
   }
