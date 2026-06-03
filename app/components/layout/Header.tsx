@@ -39,7 +39,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigation } from "react-router";
 import { useAlertsSafe } from "~/components/alerts";
-import { GoldPriceTicker } from "~/components/ui";
+import { WeatherWidget, ExchangeRateWidget } from "~/components/ui";
 import type { PortalUser } from "./MainLayout";
 
 interface HeaderProps {
@@ -202,8 +202,8 @@ export function Header({ user }: HeaderProps) {
         height="4.5rem"
         isBlurred={false}
       >
-      {/* Mobile menu toggle */}
-      <NavbarContent className="sm:hidden" justify="start">
+      {/* Menu toggle — shown until the full nav links fit (xl) */}
+      <NavbarContent className="xl:hidden" justify="start">
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           className="text-white"
@@ -223,8 +223,8 @@ export function Header({ user }: HeaderProps) {
           </Link>
         </NavbarBrand>
 
-        {/* Desktop nav items */}
-        <div className="hidden gap-1 sm:flex">
+        {/* Desktop nav items — only when there's room for them + the user menu */}
+        <div className="hidden gap-1 xl:flex">
           {navItems.map((item) => (
             <NavbarItem key={item.href}>
               {item.external ? (
@@ -298,11 +298,14 @@ export function Header({ user }: HeaderProps) {
 
       {/* Actions */}
       <NavbarContent justify="end" className="gap-2 sm:gap-3">
-        {/* Gold Price Ticker - beside search */}
-        <NavbarItem className="hidden lg:block">
-          <div className="flex items-center h-[46px]">
-            <GoldPriceTicker />
-          </div>
+        {/* Live Weather - mine site (visible on all screen sizes) */}
+        <NavbarItem>
+          <WeatherWidget variant="compact" />
+        </NavbarItem>
+
+        {/* Live USD -> GHS exchange rate (hide on the smallest screens) */}
+        <NavbarItem className="hidden md:block">
+          <ExchangeRateWidget variant="compact" />
         </NavbarItem>
 
         {/* User Menu */}
@@ -318,7 +321,7 @@ export function Header({ user }: HeaderProps) {
                       base: "bg-white text-primary-600 font-semibold cursor-pointer",
                     }}
                   />
-                  <span className="hidden sm:inline text-white text-sm font-medium max-w-[120px] truncate">
+                  <span className="hidden sm:inline-block max-w-[120px] truncate align-middle text-white text-sm font-medium">
                     {user.name}
                   </span>
                 </Button>
@@ -363,6 +366,26 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile menu */}
       <NavbarMenu className="bg-[#1a1a1a] pt-6 pb-24">
+        {/* Live Weather - mine site (full readout for phones) */}
+        <NavbarMenuItem>
+          <div className="mb-4">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-white/50">
+              Weather
+            </p>
+            <WeatherWidget variant="panel" />
+          </div>
+        </NavbarMenuItem>
+
+        {/* Live USD -> GHS exchange rate (full readout for phones) */}
+        <NavbarMenuItem>
+          <div className="mb-4">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-white/50">
+              Exchange Rate
+            </p>
+            <ExchangeRateWidget variant="panel" />
+          </div>
+        </NavbarMenuItem>
+
         {/* Main Navigation */}
         {navItems.map((item) => (
           <NavbarMenuItem key={item.href}>

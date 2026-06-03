@@ -74,6 +74,8 @@ export default [
   route("api/csv-template", "routes/api.csv-template.tsx"),
   route("api/alerts", "routes/api.alerts.tsx"),
   route("api/menu", "routes/api.menu.tsx"),
+  route("api/weather", "routes/api.weather.tsx"),
+  route("api/exchange-rate", "routes/api.exchange-rate.tsx"),
   route("api/safety-categories", "routes/api.safety-categories.tsx"),
   route("api/safety-tips", "routes/api.safety-tips.tsx"),
   route("api/safety-videos", "routes/api.safety-videos.tsx"),

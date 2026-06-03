@@ -468,18 +468,20 @@ function GreetingBanner() {
             </div>
           </div>
 
-          {/* Right: Safety message chip */}
-          <Chip
-            startContent={
-              <HardHat size={14} className={`ml-1 ${theme.chipText}`} />
-            }
-            variant="flat"
-            className={`${theme.chipBg} ${theme.chipText} h-auto max-w-xs px-3 py-1.5 sm:max-w-sm`}
-          >
-            <span className="text-xs leading-snug font-medium whitespace-normal sm:text-sm">
-              {message}
-            </span>
-          </Chip>
+          {/* Right: safety message chip (weather lives in the navbar) */}
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <Chip
+              startContent={
+                <HardHat size={14} className={`ml-1 ${theme.chipText}`} />
+              }
+              variant="flat"
+              className={`${theme.chipBg} ${theme.chipText} h-auto max-w-xs px-3 py-1.5 sm:max-w-sm`}
+            >
+              <span className="text-xs leading-snug font-medium whitespace-normal sm:text-sm">
+                {message}
+              </span>
+            </Chip>
+          </div>
         </div>
       </CardBody>
     </Card>
