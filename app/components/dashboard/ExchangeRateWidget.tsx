@@ -92,7 +92,6 @@ export function ExchangeRateWidget({ variant = "compact" }: ExchangeRateWidgetPr
         asOf ? ` · As of ${asOf}` : ""
       }`}
     >
-      <DollarSign size={16} className="shrink-0 text-emerald-300" />
       <span className="text-sm font-semibold text-white tabular-nums">
         ₵{rate.usdToGhs.toFixed(2)}
       </span>
