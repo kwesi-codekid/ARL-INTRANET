@@ -46,42 +46,43 @@ export async function sendSMS(
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${config.apiKey}`,
-        // Host: "api.smsonlinegh.com",
+        Host: "api.smsonlinegh.com",
       },
-      body: JSON.stringify({
-        from: "Adamus",
-        to: phoneNumber,
-        message: message,
-        refId: `arl_intranet_ref_${Date.now()}`,
-      }),
       // body: JSON.stringify({
-      //   sender: config.senderId,
-      //   type: 0, // Plain text
-      //   destinations: [phoneNumber],
-      //   text: message,
+      //   from: "Adamus",
+      //   to: phoneNumber,
+      //   message: message,
+      //   refId: `arl_intranet_ref_${Date.now()}`,
       // }),
+      body: JSON.stringify({
+        sender: config.senderId,
+        type: 0, // Plain text
+        destinations: [phoneNumber],
+        text: message,
+      }),
     });
 
     const data = await response.json();
 
-    if (data?.status === "FAILED") {
-      console.error("SMS failed");
-      return {
-        success: false,
-        message: "Failed to send SMS",
-      };
-    }
-    // Check for rejected sender
-    // const destination = data?.data?.destinations?.[0];
-    // if (destination?.status?.label === "DS_REJECTED_SENDER_UNREGISTERED") {
-    //   console.error("SMS rejected: Unregistered sender", config.senderId);
+    // if (data?.status === "FAILED") {
+    //   console.error("SMS failed");
     //   return {
     //     success: false,
-    //     message: "Failed to send SMS: Unregistered sender",
+    //     message: "Failed to send SMS",
     //   };
     // }
+    // Check for rejected sender
+    const destination = data?.data?.destinations?.[0];
+    if (destination?.status?.label === "DS_REJECTED_SENDER_UNREGISTERED") {
+      console.error("SMS rejected: Unregistered sender", config.senderId);
+      return {
+        success: false,
+        message: "Failed to send SMS: Unregistered sender",
+      };
+    }
 
-    if (response.ok && data?.status === "SUCCESS") {
+    if (response.status === 200) {
+    // if (response.ok && data?.status === "SUCCESS") {
       console.log("SMS delivery:", data);
       return {
         success: true,
