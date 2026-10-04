@@ -72,7 +72,7 @@ export async function requestOTP(phone: string): Promise<OTPResult> {
     otp: otpCode,
     attempts: 0,
     expiresAt,
-  });
+  }); 
 
   // Send OTP via SMS
   const smsResult = await sendOTP(formattedPhone, otpCode);
