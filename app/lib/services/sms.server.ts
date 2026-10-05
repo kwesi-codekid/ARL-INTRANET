@@ -45,7 +45,7 @@ export async function sendSMS(
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${config.apiKey}`,
+        Authorization: `key ${config.apiKey}`,
         Host: "api.smsonlinegh.com",
       },
       // body: JSON.stringify({
@@ -82,7 +82,7 @@ export async function sendSMS(
       };
     }
 
-    if (response.status === 200) {
+    if (response.status === 200 && data?.handshake?.label === "HSHK_OK") {
     // if (response.ok && data?.status === "SUCCESS") {
       console.log("SMS delivery:", data);
       return {
