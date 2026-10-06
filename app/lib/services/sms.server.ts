@@ -63,7 +63,7 @@ export async function sendSMS(
     });
 
     const data = await response.json();
-    console.log("SMS response:", data);
+    console.log("SMS response:", JSON.stringify(data));
 
     // if (data?.status === "FAILED") {
     //   console.error("SMS failed");
